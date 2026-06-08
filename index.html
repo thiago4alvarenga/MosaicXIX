@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banco de dados de atores — busca, rede e dossiê</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{ --azul:#1f3a5f; --azul2:#2f5496; --cinza:#f4f6f9; --borda:#d9e0ea; --txt:#1c2733; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--txt); background:var(--cinza); }
+  header{ background:var(--azul); color:#fff; padding:16px 22px; }
+  header h1{ margin:0; font-size:18px; } header p{ margin:4px 0 0; font-size:12.5px; opacity:.85; }
+  .aviso{ background:#fff7e6; border-bottom:1px solid #f0d9a8; color:#7a5b12; font-size:12.5px; padding:7px 22px; }
+  .wrap{ max-width:1150px; margin:0 auto; padding:16px 22px 60px; }
+  .filtros{ background:#fff; border:1px solid var(--borda); border-radius:10px; padding:14px; display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; align-items:end; }
+  .campo{ display:flex; flex-direction:column; gap:4px; }
+  .campo label{ font-size:12px; font-weight:600; color:#41526b; }
+  .campo input,.campo select{ padding:8px 9px; border:1px solid var(--borda); border-radius:7px; font-size:13.5px; background:#fff; }
+  .campo.full{ grid-column:1/-1; }
+  .acoes{ display:flex; gap:8px; }
+  button{ border:0; border-radius:7px; padding:9px 16px; font-size:13.5px; font-weight:600; cursor:pointer; }
+  .btn-buscar{ background:var(--azul2); color:#fff; } .btn-limpar{ background:#e7ecf3; color:#41526b; }
+  .btn-sm{ padding:6px 11px; font-size:12px; background:#e7ecf3; color:#41526b; }
+  .barra{ display:flex; justify-content:space-between; align-items:center; margin:12px 2px 8px; gap:10px; flex-wrap:wrap; }
+  .status{ font-size:13px; color:#41526b; }
+  .tabela-box{ background:#fff; border:1px solid var(--borda); border-radius:10px; overflow:auto; max-height:58vh; }
+  table{ border-collapse:collapse; width:100%; font-size:12.8px; }
+  thead th{ position:sticky; top:0; background:var(--azul2); color:#fff; text-align:left; padding:8px 10px; white-space:nowrap; }
+  tbody td{ padding:7px 10px; border-top:1px solid #eef2f7; }
+  tbody tr{ cursor:pointer; } tbody tr:nth-child(even){ background:#fafbfd; } tbody tr:hover{ background:#eef5ff; }
+  .num{ text-align:right; font-variant-numeric:tabular-nums; }
+  .vazio{ padding:24px; text-align:center; color:#7a8aa0; }
+  .badge{ display:inline-block; border-radius:20px; padding:1px 9px; font-size:11.5px; font-weight:600; color:#fff; white-space:nowrap; }
+  .b-Pessoa{ background:#3a7bd5; } .b-Embarcação{ background:#1d9e75; } .b-Companhia{ background:#7f77dd; }
+  .b-Instituição{ background:#ba7517; } .b-Desconhecido{ background:#8a97a8; }
+  .pill{ display:inline-block; background:#eef2f7; border-radius:20px; padding:1px 8px; font-size:11.5px; color:#41526b; }
+  .overlay{ position:fixed; inset:0; background:rgba(20,30,45,.5); display:none; align-items:center; justify-content:center; padding:14px; z-index:50; }
+  .overlay.on{ display:flex; }
+  .modal{ background:#fff; border-radius:12px; width:min(1120px,97vw); max-height:94vh; overflow:hidden; display:flex; flex-direction:column; }
+  .modal header{ background:var(--azul); display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .mtools{ display:flex; gap:6px; align-items:center; }
+  .modal header .x{ background:transparent; color:#fff; font-size:20px; padding:0 6px; }
+  .modal header .btn-sm{ background:rgba(255,255,255,.15); color:#fff; }
+  .modal-body{ display:grid; grid-template-columns:1.05fr 1fr; gap:0; overflow:hidden; min-height:0; }
+  .col-rede{ border-right:1px solid var(--borda); }
+  .rede-tools{ padding:6px 10px; border-bottom:1px solid var(--borda); display:flex; gap:8px; align-items:center; font-size:11.5px; color:#5f5e5a; }
+  #rede{ height:58vh; background:#fbfcfe; }
+  .ficha{ height:64vh; overflow:auto; padding:14px 16px; }
+  .ident{ background:#f7f9fc; border:1px solid var(--borda); border-radius:9px; padding:10px 12px; margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; }
+  .ident div{ font-size:12.4px; } .ident b{ color:#41526b; font-weight:600; }
+  .sech{ margin:6px 0 8px; color:#1f3a5f; font-size:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .ffiltros{ display:flex; gap:8px; margin:0 0 10px; flex-wrap:wrap; }
+  .ffiltros select,.ffiltros input{ padding:5px 7px; border:1px solid var(--borda); border-radius:6px; font-size:12px; }
+  .grp{ margin-bottom:12px; }
+  .grp h4{ margin:0 0 5px; font-size:12.8px; display:flex; align-items:center; gap:8px; }
+  .grp .cnt{ font-size:11.5px; color:#7a8aa0; font-weight:400; }
+  .item{ font-size:12.6px; padding:3px 0; border-top:1px solid #f0f3f7; }
+  .item a{ color:var(--azul2); cursor:pointer; text-decoration:none; }
+  .item .ano{ color:#7a8aa0; font-size:11.5px; } .item .val{ color:#0f6e56; font-weight:600; }
+  .item .nota{ display:block; color:#7a8aa0; font-size:11px; }
+  .mais{ font-size:12px; color:var(--azul2); padding-top:4px; cursor:pointer; }
+  .legenda{ font-size:11.5px; color:#5f5e5a; padding:8px 16px; border-top:1px solid var(--borda); background:#fafbfd; }
+  .legenda .badge{ margin-right:6px; }
+  canvas{ max-width:100%; }
+  h2.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+  @media print{
+    body *{ visibility:hidden; } #overlay,#overlay *{ visibility:visible; }
+    #overlay{ position:absolute; inset:0; background:#fff; padding:0; display:block; }
+    .modal{ max-height:none; width:100%; } .modal-body{ grid-template-columns:1fr; }
+    #rede{ height:340px; } .ficha{ height:auto; overflow:visible; } .x,.rede-tools,.ffiltros,.mtools{ display:none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Banco de dados de atores — busca, rede e dossiê</h1>
+  <p>Pessoas, embarcações, companhias e instituições · clique num resultado para abrir o dossiê completo</p>
+</header>
+<div class="aviso">⚠️ Protótipo de testes — leitura pública temporária e somente leitura.</div>
+
+<div class="wrap">
+  <div class="filtros">
+    <div class="campo full"><label>Buscar por nome</label>
+      <input id="texto" type="text" placeholder="ex.: Rosário, Joaquim Pedro Belo, Caixa, Companhia Geral..." /></div>
+    <div class="campo"><label>Tipo de ator</label>
+      <select id="tipo"><option value="">Todos os tipos</option><option>Pessoa</option><option>Embarcação</option><option>Companhia</option><option>Instituição</option></select></div>
+    <div class="campo"><label>Ano (aparece em)</label><input id="ano" type="number" min="1700" max="1950" placeholder="ex.: 1790" /></div>
+    <div class="campo"><label>Acervo</label>
+      <select id="origem"><option value="">Todos os acervos</option></select></div>
+    <div class="campo"><label>Categoria social</label>
+      <select id="catsoc"><option value="">Todas</option></select></div>
+    <div class="campo"><label>Gênero</label>
+      <select id="genero"><option value="">Todos</option><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="__null__">Não identificado</option></select></div>
+    <div class="campo"><label>Limite</label><select id="limite"><option>100</option><option selected>300</option><option>1000</option></select></div>
+    <div class="campo"><label>&nbsp;</label><div class="acoes">
+      <button class="btn-buscar" onclick="buscar()">Buscar</button>
+      <button class="btn-limpar" onclick="limpar()">Limpar</button></div></div>
+  </div>
+  <div class="barra">
+    <div class="status" id="status">Carregando…</div>
+    <button class="btn-sm" onclick="exportBuscaCSV()">Exportar resultados (CSV)</button>
+  </div>
+  <div class="tabela-box">
+    <table><thead><tr>
+      <th>Nome</th><th>Tipo</th><th>Acervo</th><th>Período</th><th class="num">Registros</th><th class="num">Relações</th>
+    </tr></thead><tbody id="tbody"></tbody></table>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <header>
+      <div id="mhead"></div>
+      <div class="mtools">
+        <button class="btn-sm" onclick="exportFichaCSV()">CSV</button>
+        <button class="btn-sm" onclick="window.print()">Imprimir / PDF</button>
+        <button class="x" onclick="fecharFicha()" aria-label="Fechar">&times;</button>
+      </div>
+    </header>
+    <h2 class="sr-only">Dossiê do ator: identidade, rede de relações, estatísticas e fontes</h2>
+    <div class="modal-body">
+      <div class="col-rede">
+        <div class="rede-tools"><span id="redeinfo"></span>
+          <button class="btn-sm" id="btnExpRede" onclick="expandirRede()" style="margin-left:auto">Expandir rede</button></div>
+        <div id="rede"></div>
+      </div>
+      <div class="ficha" id="ficha"></div>
+    </div>
+    <div class="legenda">
+      <span class="badge b-Pessoa">Pessoa</span><span class="badge b-Embarcação">Embarcação</span>
+      <span class="badge b-Companhia">Companhia</span><span class="badge b-Instituição">Instituição</span>
+      · clique num nó para abrir o dossiê dele
+    </div>
+  </div>
+</div>
+
+<script>
+const URL="https://fnngbyxmqeudqsehtxkx.supabase.co";
+const ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubmdieXhtcWV1ZHFzZWh0eGt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMjMwMzYsImV4cCI6MjA5NTU5OTAzNn0.kSJGViqmJgp5sK_XFOw08GjZW6gHwjYE4zRDlu3QHxs";
+const HDRS={ apikey:ANON, Authorization:"Bearer "+ANON };
+const esc=s=>(s==null?"":String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const COR={ "Pessoa":"#3a7bd5","Embarcação":"#1d9e75","Companhia":"#7f77dd","Instituição":"#ba7517","Desconhecido":"#8a97a8" };
+const RELPT={ CaptainOf:"capitão", OwnerOf:"proprietário", Deposit:"depósito/poupança", Debt:"dívida",
+  OfficeHolding:"cargo", FatherOf:"pai de", SonOf:"filho de", MotherOf:"mãe de", DaughterOf:"filha de", EnslavedBy:"escravizado por" };
+const relpt=r=>RELPT[r]||(r||"relação");
+let net=null, chart=null, topo=70;
+let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], expand:{}, fAno:"", fTipo:"" };
+let ultimaBusca=[];
+
+async function getJSON(path,count){
+  const h=count?Object.assign({},HDRS,{Prefer:"count=exact"}):HDRS;
+  const r=await fetch(URL+"/rest/v1/"+path,{headers:h}); if(!r.ok) throw new Error("HTTP "+r.status);
+  const dados=await r.json(); const cr=r.headers.get("content-range")||"";
+  return { dados, total: cr.includes("/")?Number(cr.split("/")[1]):dados.length };
+}
+function milreis(n,moeda){
+  if(n==null) return "";
+  if(!moeda || !/r[eé]is/i.test(moeda)) return Number(n).toLocaleString('pt-BR')+(moeda?(" "+moeda):"");
+  n=Math.round(Number(n)); const reis=String(Math.abs(n)%1000).padStart(3,'0'); let mil=Math.floor(Math.abs(n)/1000);
+  let ms=String(mil).replace(/\B(?=(\d{3})+(?!\d))/g,":"); return (n<0?"-":"")+ms+"$"+reis+" réis";
+}
+function dataExt(y,m,d){ if(!y) return ""; return [String(d||"").padStart(2,'0')||null,(m?String(m).padStart(2,'0'):null),y].filter(Boolean).join("/").replace(/^00\//,""); }
+
+/* ----- BUSCA ----- */
+function montarURL(){
+  const p=["select=actor_id,nome,tipo,origem,ano_min,ano_max,n_registros,n_relacoes","order=nome.asc",
+           "limit="+encodeURIComponent(document.getElementById("limite").value)];
+  const t=document.getElementById("texto").value.trim(); if(t)p.push("nome=ilike."+encodeURIComponent("*"+t+"*"));
+  const tp=document.getElementById("tipo").value; if(tp)p.push("tipo=eq."+encodeURIComponent(tp));
+  const og=document.getElementById("origem").value; if(og)p.push("origem=eq."+encodeURIComponent(og));
+  const cs=document.getElementById("catsoc").value; if(cs)p.push("categoria_social=eq."+encodeURIComponent(cs));
+  const g=document.getElementById("genero").value; if(g==="__null__")p.push("genero=is.null"); else if(g)p.push("genero=eq."+encodeURIComponent(g));
+  const an=document.getElementById("ano").value; if(an)p.push("anos=cs."+encodeURIComponent("{"+an+"}"));
+  return "mv_busca_atores?"+p.join("&");
+}
+async function buscar(){
+  const status=document.getElementById("status"),tbody=document.getElementById("tbody"); status.textContent="Buscando…";
+  try{
+    const {dados,total}=await getJSON(montarURL(),true); ultimaBusca=dados;
+    if(!dados.length){ tbody.innerHTML='<tr><td colspan="6" class="vazio">Nenhum ator para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
+    tbody.innerHTML=dados.map(d=>{ const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
+      return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+
+        '</span></td><td>'+esc(d.origem)+'</td><td>'+esc(per)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
+    }).join("");
+    status.innerHTML='<span class="pill">'+dados.length+' atores</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
+  }catch(e){ status.textContent="Erro: "+e.message; }
+}
+function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("origem").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("limite").value="300"; buscar(); }
+
+/* ----- DOSSIÊ ----- */
+async function abrirFicha(id){
+  document.getElementById("overlay").classList.add("on");
+  document.getElementById("mhead").innerHTML="<p style='margin:0;color:#fff'>Carregando…</p>";
+  document.getElementById("ficha").innerHTML=""; document.getElementById("rede").innerHTML=""; topo=70;
+  try{
+    const det=(await getJSON("v_actor_detalhe?actor_id=eq."+id)).dados[0]||{nome:"(sem nome)"};
+    const mv=(await getJSON("mv_busca_atores?actor_id=eq."+id+"&select=tipo,origem,fonte,fonte_autor,ano_min,ano_max,n_registros,n_relacoes")).dados[0]||{};
+    const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes&order=relation_name.asc&limit=1000",true);
+    const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte&order=ano.asc&limit=1500");
+    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, expand:{}, fAno:"", fTipo:"" };
+    renderHead(); renderRede(); renderFichaTudo();
+  }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
+}
+function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} if(chart){chart.destroy();chart=null;} }
+
+function renderHead(){
+  const i=F.info,mv=F.mv; const tipo=mv.tipo||"Desconhecido";
+  const per=mv.ano_min==null?"":(mv.ano_min===mv.ano_max?mv.ano_min:mv.ano_min+"–"+mv.ano_max);
+  document.getElementById("mhead").innerHTML="<div style='color:#fff'><div style='font-size:17px;font-weight:600'>"+esc(i.nome)+"</div>"+
+    "<div style='font-size:12.5px;opacity:.9;margin-top:3px'><span class=\"badge b-"+esc(tipo)+"\">"+esc(tipo)+"</span> "+
+    (per?(" · "+esc(per)):"")+" · "+esc(mv.origem||"")+" · "+(F.relsTotal||0)+" relações · "+(mv.n_registros||0)+" registros</div>"+(mv.fonte?("<div style='font-size:11.5px;opacity:.85;margin-top:3px'>Fonte: "+esc(mv.fonte)+"</div>"):"")+"</div>";
+}
+
+function renderRede(){
+  const cont=document.getElementById("rede");
+  if(typeof vis==="undefined"){ cont.innerHTML="<p style='padding:14px;color:#7a8aa0'>Biblioteca de rede não carregou (sem internet?).</p>"; return; }
+  const i=F.info, tipoC=F.mv.tipo||"Desconhecido", centerId="c"+i.actor_id;
+  const nodes=[{id:centerId,label:i.nome,color:{background:COR[tipoC]||"#888",border:"#1f3a5f"},size:24,font:{size:14,bold:true},borderWidth:3}];
+  const edges=[],vistos={};
+  for(const r of F.rels){ if(r.rel_actor_id==null) continue; const nid="n"+r.rel_actor_id;
+    if(!vistos[nid]){ if(Object.keys(vistos).length>=topo) continue; vistos[nid]={rels:{}};
+      nodes.push({id:nid,label:(r.rel_nome||"").slice(0,26),realId:r.rel_actor_id,color:{background:COR[r.rel_tipo]||"#888",border:"#fff"},size:13,font:{size:12}}); }
+    if(vistos[nid]) vistos[nid].rels[r.relation_name]=true; }
+  for(const nid in vistos) edges.push({from:centerId,to:nid,label:Object.keys(vistos[nid].rels).map(relpt).join(", "),
+    font:{size:10,color:"#5f5e5a",strokeWidth:3,strokeColor:"#fff"},color:{color:"#c2cad6"},length:160});
+  document.getElementById("redeinfo").textContent="Mostrando "+Object.keys(vistos).length+" de "+F.relsTotal+" vínculos";
+  document.getElementById("btnExpRede").style.display=(Object.keys(vistos).length<F.relsTotal && F.rels.length>Object.keys(vistos).length)?"":"none";
+  if(net){net.destroy();net=null;}
+  net=new vis.Network(cont,{nodes,edges},{ nodes:{shape:"dot"}, edges:{smooth:false},
+    physics:{stabilization:{iterations:120},barnesHut:{springLength:150,gravitationalConstant:-4000}}, interaction:{hover:true} });
+  net.on("click",p=>{ if(p.nodes.length){ const n=nodes.find(x=>x.id===p.nodes[0]); if(n&&n.realId) abrirFicha(n.realId); } });
+}
+function expandirRede(){ topo+=120; renderRede(); }
+
+function renderFichaTudo(){
+  const f=document.getElementById("ficha"); let h="";
+  h+=blocoIdentidade();
+  h+="<div class='sech'>Relações</div>"+filtrosFichaHTML();
+  h+="<div id='relWrap'></div>";
+  h+="<div id='grafWrap'></div>";
+  h+=blocoCargas();
+  f.innerHTML=h;
+  renderRelacoes(); renderGrafico();
+}
+
+function blocoIdentidade(){
+  const i=F.info; const L=[];
+  const add=(lab,val)=>{ if(val!=null && String(val).trim()!=="") L.push("<div><b>"+lab+":</b> "+esc(val)+"</div>"); };
+  add("Subtipo", i.institution_type);
+  add("Gênero", i.gender); add("Ocupação", i.primary_occupation); add("Status jurídico", i.legal_status);
+  add("Estado civil", i.marital_status); add("Nobreza", i.nobility); add("Tratamento", i.honorific);
+  add("Outro nome", i.alternate_name); add("Naturalidade", i.place_of_origin); add("Endereço", i.address);
+  const nasc=dataExt(i.birth_year,i.birth_month,i.birth_day), morte=dataExt(i.death_year,i.death_month,i.death_day);
+  add("Nascimento", nasc); add("Falecimento", morte);
+  add("Fundação", i.founding_year); add("Local", i.location); add("Notas", i.notas);
+  if(!L.length) return "";
+  return "<div class='sech'>Identidade</div><div class='ident'>"+L.join("")+"</div>";
+}
+function filtrosFichaHTML(){
+  const tipos=[...new Set(F.rels.map(r=>r.relation_name))];
+  let opt='<option value="">Todos os tipos</option>'+tipos.map(t=>'<option value="'+esc(t)+'"'+(F.fTipo===t?' selected':'')+'>'+esc(relpt(t))+'</option>').join("");
+  return "<div class='ffiltros'><select onchange='F.fTipo=this.value;renderRelacoes()'>"+opt+"</select>"+
+    "<input type='number' placeholder='filtrar por ano' value='"+esc(F.fAno)+"' oninput='F.fAno=this.value;renderRelacoes()' style='width:130px'>"+
+    (F.rels.length<F.relsTotal?("<button class='btn-sm' onclick='carregarTodasRel()'>Carregar todas ("+F.relsTotal+")</button>"):"")+"</div>";
+}
+function relFiltradas(){
+  return F.rels.filter(r=>{
+    if(F.fTipo && r.relation_name!==F.fTipo) return false;
+    if(F.fAno){ const a=Number(F.fAno); const ini=r.ano, fim=r.ano_fim||r.ano; if(!(ini && a>=ini && a<=fim)) return false; }
+    return true;
+  });
+}
+function renderRelacoes(){
+  const wrap=document.getElementById("relWrap"); if(!wrap) return;
+  const dados=relFiltradas(); const porTipo={};
+  for(const r of dados){ const k=r.relation_name||"relação"; (porTipo[k]=porTipo[k]||[]).push(r); }
+  const chaves=Object.keys(porTipo).sort((a,b)=>porTipo[b].length-porTipo[a].length);
+  let h="";
+  for(const k of chaves){ const arr=porTipo[k]; const aberto=F.expand[k]; const LIM=aberto?arr.length:25;
+    let its=arr.slice(0,LIM).map(r=>{
+      const per=r.ano?((r.ano_fim&&r.ano_fim!=r.ano)?(r.ano+"–"+r.ano_fim):String(r.ano)):"";
+      const val=milreis(r.valor,r.moeda);
+      const aH=per?(' <span class="ano">'+esc(per)+'</span>'):''; const vH=val?(' <span class="val">'+esc(val)+'</span>'):'';
+      const pH=r.role_name?(' <span class="ano">('+esc(r.role_name)+')</span>'):'';
+      const nH=r.notes?('<span class="nota">'+esc(r.notes)+'</span>'):'';
+      return '<div class="item"><a onclick="abrirFicha('+r.rel_actor_id+')">'+esc(r.rel_nome||"(sem nome)")+'</a>'+aH+vH+pH+nH+'</div>';
+    }).join("");
+    if(arr.length>LIM) its+='<div class="mais" onclick="F.expand[\''+esc(k).replace(/'/g,"")+'\']=1;renderRelacoes()">+ '+(arr.length-LIM)+' mais…</div>';
+    h+="<div class='grp'><h4><span class='badge' style='background:"+(COR[arr[0].rel_tipo]||"#888")+"'>"+esc(relpt(k))+"</span> <span class='cnt'>"+arr.length+"</span></h4>"+its+"</div>";
+  }
+  if(!chaves.length) h="<p style='color:#7a8aa0;font-size:12.5px'>Sem relações para o filtro atual.</p>";
+  if(F.rels.length<F.relsTotal) h+="<p class='mais' style='cursor:default;color:#7a8aa0'>Carregadas "+F.rels.length+" de "+F.relsTotal+" relações.</p>";
+  wrap.innerHTML=h;
+}
+async function carregarTodasRel(){
+  const id=F.info.actor_id;
+  const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes&order=relation_name.asc&limit="+F.relsTotal,true);
+  F.rels=rel.dados; F.relsTotal=rel.total; renderHead(); renderRede();
+  const f=document.getElementById("ficha"); document.querySelector(".ffiltros").outerHTML=filtrosFichaHTML(); renderRelacoes();
+}
+
+/* ----- ESTATÍSTICAS + GRÁFICO ----- */
+function blocoCargas(){
+  if(!F.cargas.length) return "";
+  const porProd={};
+  for(const c of F.cargas){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda}; if(c.ano)o.anos.add(c.ano); if(c.valor!=null)o.soma+=Number(c.valor); }
+  const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
+  let h="<div class='sech'>Cargas / estatísticas <span class='cnt'>"+F.cargas.length+" registros</span></div>";
+  // seletor de grafico
+  const linhas=ks.filter(k=>porProd[k].anos.size>=2);
+  let opt="";
+  if(F.mv.tipo==="Embarcação") opt+="<option value='bar'>Top produtos por soma (barras)</option>";
+  opt+=linhas.map(k=>"<option value='line:"+esc(k)+"'>"+esc(k)+" por ano (linha)</option>").join("");
+  if(opt) h+="<div class='ffiltros'><select id='gsel' onchange='renderGrafico()'>"+opt+"</select></div><canvas id='graf' height='150'></canvas>";
+  h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:10px'><thead><tr>"+
+     "<th style='text-align:left;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Produto / métrica</th>"+
+     "<th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Anos</th>"+
+     "<th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Soma</th></tr></thead><tbody>";
+  for(const k of ks.slice(0,80)){ const o=porProd[k]; const ys=[...o.anos].sort(); const faixa=ys.length?(ys[0]+(ys.length>1?"–"+ys[ys.length-1]:"")):"";
+    h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+esc(k)+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(faixa)+
+       "</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+(o.soma?milreis(o.soma,o.moeda):"")+"</td></tr>"; }
+  h+="</tbody></table>";
+  const fonte=F.cargas.find(c=>c.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
+  return h;
+}
+function renderGrafico(){
+  const sel=document.getElementById("gsel"); const cv=document.getElementById("graf"); if(!cv) return;
+  if(chart){chart.destroy();chart=null;} const modo=sel?sel.value:(F.mv.tipo==="Embarcação"?"bar":"");
+  let cfg=null;
+  if(modo==="bar"){
+    const soma={}; for(const c of F.cargas){ if(c.valor!=null){ const k=c.produto||"?"; soma[k]=(soma[k]||0)+Number(c.valor); } }
+    const top=Object.entries(soma).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    cfg={type:'bar',data:{labels:top.map(t=>t[0]),datasets:[{label:'Soma',data:top.map(t=>t[1]),backgroundColor:'#2f5496'}]},
+      options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:60,minRotation:30}}}}};
+  } else if(modo.startsWith("line:")){
+    const m=modo.slice(5); const pts=F.cargas.filter(c=>c.produto===m && c.valor!=null).sort((a,b)=>a.ano-b.ano);
+    cfg={type:'line',data:{labels:pts.map(p=>p.ano),datasets:[{label:m,data:pts.map(p=>Number(p.valor)),borderColor:'#1d9e75',backgroundColor:'rgba(29,158,117,.15)',tension:.2,fill:true}]},
+      options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}}}}}};
+  }
+  if(cfg && typeof Chart!=="undefined") chart=new Chart(cv,cfg);
+}
+
+/* ----- EXPORTAÇÃO ----- */
+function baixarCSV(nome,linhas){
+  const csv=linhas.map(r=>r.map(c=>{ c=(c==null?"":String(c)); return /[",\n;]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c; }).join(";")).join("\n");
+  const blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"}); const a=document.createElement("a");
+  a.href=URL_OBJ(blob); a.download=nome; a.click(); setTimeout(()=>URL.revokeObjectURL&&0,0);
+}
+function URL_OBJ(b){ return (window.URL||window.webkitURL).createObjectURL(b); }
+function exportBuscaCSV(){
+  if(!ultimaBusca.length){ alert("Faça uma busca primeiro."); return; }
+  const L=[["nome","tipo","origem","ano_min","ano_max","n_registros","n_relacoes"]];
+  ultimaBusca.forEach(d=>L.push([d.nome,d.tipo,d.origem,d.ano_min,d.ano_max,d.n_registros,d.n_relacoes]));
+  baixarCSV("busca_atores.csv",L);
+}
+function exportFichaCSV(){
+  if(!F.info){ return; } const L=[["bloco","tipo","relacionado/produto","ano","ano_fim","valor","moeda","papel/nota"]];
+  F.rels.forEach(r=>L.push(["relacao",relpt(r.relation_name),r.rel_nome,r.ano,r.ano_fim,r.valor,r.moeda,r.role_name||r.notes||""]));
+  F.cargas.forEach(c=>L.push(["estatistica",c.produto,"",c.ano,"",c.valor,c.moeda,c.notes||""]));
+  baixarCSV("dossie_"+(F.info.nome||"ator").replace(/[^a-z0-9]+/gi,"_").slice(0,40)+".csv",L);
+}
+
+async function carregarOrigens(){
+  try{ const {dados}=await getJSON("v_origens?select=origem,atores&order=atores.desc");
+    const sel=document.getElementById("origem");
+    dados.forEach(d=>{ const o=document.createElement("option"); o.value=d.origem; o.textContent=d.origem+" ("+d.atores+")"; sel.appendChild(o); });
+  }catch(e){}
+}
+carregarOrigens();
+async function carregarCategorias(){
+  try{ const {dados}=await getJSON("v_categorias?select=categoria_social,atores&order=atores.desc");
+    const sel=document.getElementById("catsoc");
+    dados.forEach(d=>{ const o=document.createElement("option"); o.value=d.categoria_social; o.textContent=d.categoria_social+" ("+d.atores+")"; sel.appendChild(o); });
+  }catch(e){}
+}
+carregarCategorias();
+document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
+document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
+buscar();
+</script>
+</body>
+</html>
