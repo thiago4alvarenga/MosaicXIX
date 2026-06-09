@@ -243,7 +243,9 @@ async function abrirFicha(id){
     const mv=(await getJSON("mv_busca_atores?actor_id=eq."+id+"&select=tipo,origem,fonte,fonte_autor,ano_min,ano_max,n_registros,n_relacoes,nome_incompleto")).dados[0]||{};
     const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes&order=relation_name.asc&limit=1000",true);
     const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte&order=ano.asc&limit=1500");
-    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
+    const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
+    let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
+    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
     renderHead(); renderRede(); renderFichaTudo();
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
@@ -281,15 +283,60 @@ function expandirRede(){ topo+=120; renderRede(); }
 function resetarFiltros(){ F.fTipo=""; F.fAno=""; F.expand={}; if(F.cargaProds)F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderFichaTudo(); renderRede(); }
 function renderFichaTudo(){
   const f=document.getElementById("ficha"); let h="";
+  h+=blocoFoto();
   h+=blocoIdentidade();
+  h+="<div id='eventosWrap'></div>";
   h+="<div class='sech'>Relações</div>"+filtrosFichaHTML();
   h+="<div id='relWrap'></div>";
   h+="<div id='grafWrap'></div>";
   h+="<div id='cargasWrap'></div>";
   f.innerHTML=h;
-  renderRelacoes(); renderCargas();
+  renderEventos(); renderRelacoes(); renderCargas();
 }
 
+function fmtDataEvento(ev){ const d=dataExt(ev.ano,ev.mes,ev.dia); return d || (ev.ano_fim?("até "+ev.ano_fim):"s/d"); }
+function renderEventos(){
+  const wrap=document.getElementById("eventosWrap"); if(!wrap) return;
+  const evs=F.eventos||[]; if(!evs.length){ wrap.innerHTML=""; return; }
+  const fid=F.info.actor_id;
+  let h="<div class='sech'>Linha do tempo · eventos</div>";
+  for(const ev of evs){
+    const data=fmtDataEvento(ev);
+    const outros=(ev.participantes||[]).filter(p=>p.actor_id!=null && p.actor_id!=fid)
+      .map(p=>(p.role_pt?esc(p.role_pt)+": ":"")+'<a onclick="abrirFicha('+p.actor_id+')">'+esc(p.nome)+'</a>').join(" · ");
+    const desc=ev.description?('<span class="nota">'+esc(ev.description)+'</span>'):'';
+    const loc=ev.local?(' · '+esc(ev.local)):'';
+    const refs=(ev.referencias||[]).map(rf=>rf.url?('<a href="'+esc(rf.url)+'" target="_blank" rel="noopener">'+esc(rf.short_ref||"referência")+'</a>'):esc(rf.short_ref||"")).filter(Boolean).join("<br>");
+    const refsH=refs?('<div style="font-size:11px;margin-top:3px;color:#5f5e5a"><b>Ref.:</b> '+refs+'</div>'):'';
+    h+="<div class='item'><span class='ano'>"+esc(data)+"</span> <span class='badge' style='background:#5b6b86'>"+esc(ev.event_type_pt||ev.event_type)+"</span> <b>"+esc(ev.title)+"</b>"+loc+desc+(outros?('<div style="font-size:11.5px;margin-top:2px;color:#41526b">'+outros+'</div>'):'')+refsH+"</div>";
+  }
+  wrap.innerHTML=h;
+}
+
+function blocoFoto(){
+  const i=F.info; if(!i || !i.image_url) return "";
+  const cred=i.image_credit?("Crédito: "+i.image_credit):"";
+  return "<div style='text-align:center;margin:4px 0 12px'>"+
+    "<img src='"+esc(i.image_url)+"' alt='"+esc(i.nome||"")+"' title='Clique para ampliar' "+
+    "style='max-height:220px;max-width:100%;border:1px solid #d9e0ea;border-radius:8px;cursor:zoom-in' "+
+    "onclick='abrirImg()' onerror=\"this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';\">"+
+    "<div style='font-size:11px;color:#7a8aa0;margin-top:3px'>"+esc(cred)+"</div></div>";
+}
+function abrirImg(){
+  const i=F.info||{}; if(!i.image_url) return;
+  let lb=document.getElementById("imgLB");
+  if(!lb){
+    lb=document.createElement("div"); lb.id="imgLB";
+    lb.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;cursor:zoom-out;padding:20px";
+    lb.onclick=function(){ lb.style.display="none"; };
+    lb.innerHTML="<img id='imgLBimg' style='max-width:92vw;max-height:84vh;object-fit:contain;border:3px solid #fff;box-shadow:0 6px 40px rgba(0,0,0,.6)'>"+
+                 "<div id='imgLBcred' style='color:#e8e8e8;font-size:12px;margin-top:10px;max-width:90vw;text-align:center'></div>";
+    document.body.appendChild(lb);
+  }
+  document.getElementById("imgLBimg").src=i.image_url;
+  document.getElementById("imgLBcred").textContent=i.image_credit?("Crédito: "+i.image_credit):"";
+  lb.style.display="flex";
+}
 function blocoIdentidade(){
   const i=F.info; const L=[];
   const add=(lab,val)=>{ if(val!=null && String(val).trim()!=="") L.push("<div><b>"+lab+":</b> "+esc(val)+"</div>"); };
