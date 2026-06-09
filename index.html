@@ -177,8 +177,8 @@ function fmtSomaCargo(o){
   const sym=F.moeda==="libra"?"£ ":"US$ ";
   return (o.aprox?"≈ ":"")+sym+Math.round(o.conv).toLocaleString("pt-BR");
 }
-function setMoeda(m){ if(F&&F.info){F.moeda=m; renderHead(); renderRelacoes(); renderCargas();} }
-function setTaxa(t){ if(F&&F.info){F.taxa=t; renderHead(); renderRelacoes(); renderCargas();} }
+function setMoeda(m){ if(F&&F.info){F.moeda=m; renderHead(); renderRelacoes(); renderCargas(); renderBens();} }
+function setTaxa(t){ if(F&&F.info){F.taxa=t; renderHead(); renderRelacoes(); renderCargas(); renderBens();} }
 function controleMoeda(){
   const b=(m,lab)=>"<button onclick=\"setMoeda('"+m+"')\" style=\"padding:4px 10px;border-radius:6px;font-size:12px;margin-right:4px;cursor:pointer;border:1px solid rgba(255,255,255,.45);"+(F.moeda===m?"background:#fff;color:#1f3a5f;font-weight:600":"background:rgba(255,255,255,.30);color:#fff")+"\">"+lab+"</button>";
   let h="<div style='margin-top:8px;font-size:12px;color:#fff'>Valores em: "+b("reis","Réis")+b("libra","£ Libra")+b("dolar","US$ Dólar");
@@ -189,8 +189,8 @@ function controleMoeda(){
   h+="</div>"; return h;
 }
 
-let net=null, chart=null, topo=70;
-let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
+let net=null, chart=null, chartBens=null, topo=70;
+let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
 let ultimaBusca=[];
 
 async function getJSON(path,count){
@@ -208,8 +208,16 @@ function milreis(n,moeda){
 function dataExt(y,m,d){ if(!y) return ""; return [String(d||"").padStart(2,'0')||null,(m?String(m).padStart(2,'0'):null),y].filter(Boolean).join("/").replace(/^00\//,""); }
 
 /* ----- BUSCA ----- */
+// Título de nobreza entre parênteses, evitando prefixos vazios (D., Sr.) e redundância com o próprio nome.
+function tituloParen(nome,hon){
+  if(!hon) return "";
+  const t=String(hon).trim();
+  if(/^(d\.|dna\.?|sr\.?|sra\.?|dr\.?)$/i.test(t)) return "";
+  if((nome||"").toLowerCase().includes(t.toLowerCase())) return "";
+  return ' <span style="color:#7a8aa0;font-weight:400">('+esc(t)+')</span>';
+}
 function montarURL(){
-  const p=["select=actor_id,nome,tipo,origem,ano_min,ano_max,n_registros,n_relacoes,nome_incompleto","order=n_relacoes.desc,nome.asc",
+  const p=["select=actor_id,nome,honorifico,tipo,origem,ano_min,ano_max,n_registros,n_relacoes,nome_incompleto","order=n_relacoes.desc,nome.asc",
            "limit="+encodeURIComponent(document.getElementById("limite").value)];
   const t=document.getElementById("texto").value.trim(); if(t){const tn=t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); p.push("nome_busca=ilike."+encodeURIComponent("*"+tn+"*"));}
   const tp=document.getElementById("tipo").value; if(tp)p.push("tipo=eq."+encodeURIComponent(tp));
@@ -217,7 +225,7 @@ function montarURL(){
   const cs=document.getElementById("catsoc").value; if(cs)p.push("categoria_social=eq."+encodeURIComponent(cs));
   const g=document.getElementById("genero").value; if(g==="__null__")p.push("genero=is.null"); else if(g)p.push("genero=eq."+encodeURIComponent(g));
   const an=document.getElementById("ano").value; if(an)p.push("anos=cs."+encodeURIComponent("{"+an+"}"));
-  return "mv_busca_atores?"+p.join("&");
+  return "v_busca_atores?"+p.join("&");
 }
 async function buscar(){
   const status=document.getElementById("status"),tbody=document.getElementById("tbody"); status.textContent="Buscando…";
@@ -225,7 +233,7 @@ async function buscar(){
     const {dados,total}=await getJSON(montarURL(),true); ultimaBusca=dados;
     if(!dados.length){ tbody.innerHTML='<tr><td colspan="5" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
     tbody.innerHTML=dados.map(d=>{ const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
-      return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+
+      return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+tituloParen(d.nome,d.honorifico)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+
         '</span></td><td>'+esc(per)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
     }).join("");
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
@@ -243,18 +251,19 @@ async function abrirFicha(id){
     const mv=(await getJSON("mv_busca_atores?actor_id=eq."+id+"&select=tipo,origem,fonte,fonte_autor,ano_min,ano_max,n_registros,n_relacoes,nome_incompleto")).dados[0]||{};
     const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes&order=relation_name.asc&limit=1000",true);
     const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte&order=ano.asc&limit=1500");
+    const ben=await getJSON("v_inventario_bens?actor_id=eq."+id+"&select=item_id,categoria,subcategoria,descricao,quantidade,unidade,valor,moeda,ano,local,rel_actor_id,rel_nome,notes,fonte&order=valor.desc.nullslast&limit=2000");
     const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
     let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
-    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
+    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, bens:ben.dados, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
     renderHead(); renderRede(); renderFichaTudo();
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
-function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} if(chart){chart.destroy();chart=null;} }
+function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} if(chart){chart.destroy();chart=null;} if(chartBens){chartBens.destroy();chartBens=null;} }
 
 function renderHead(){
   const i=F.info,mv=F.mv; const tipo=mv.tipo||"Desconhecido";
   const per=mv.ano_min==null?"":(mv.ano_min===mv.ano_max?mv.ano_min:mv.ano_min+"–"+mv.ano_max);
-  document.getElementById("mhead").innerHTML="<div style='color:#fff'><div style='font-size:17px;font-weight:600'>"+esc(i.nome)+"</div>"+
+  document.getElementById("mhead").innerHTML="<div style='color:#fff'><div style='font-size:17px;font-weight:600'>"+esc(i.nome)+(tituloParen(i.nome,i.honorific).replace("#7a8aa0","#dbe6ff"))+"</div>"+
     "<div style='font-size:12.5px;opacity:.9;margin-top:3px'><span class=\"badge b-"+esc(tipo)+"\">"+esc(tipo)+"</span> "+
     (per?(" · "+esc(per)):"")+" · "+esc(mv.origem||"")+" · "+(F.relsTotal||0)+" relações · "+(mv.n_registros||0)+" estatísticas</div>"+(mv.nome_incompleto?"<div style='font-size:11.5px;color:#ffd9a8;margin-top:3px'>⚠ Nome incompleto (sem sobrenome) — não agregável; cada ocorrência é uma pessoa distinta.</div>":"")+(mv.fonte?("<div style='font-size:11.5px;opacity:.85;margin-top:3px'>Fonte: "+esc(mv.fonte)+"</div>"):"")+controleMoeda()+"</div>";
 }
@@ -290,8 +299,88 @@ function renderFichaTudo(){
   h+="<div id='relWrap'></div>";
   h+="<div id='grafWrap'></div>";
   h+="<div id='cargasWrap'></div>";
+  h+="<div id='bensWrap'></div>";
   f.innerHTML=h;
-  renderEventos(); renderRelacoes(); renderCargas();
+  renderEventos(); renderRelacoes(); renderCargas(); renderBens();
+}
+
+/* ----- BENS DO INVENTÁRIO ----- */
+function bensPorCategoria(){
+  const cats={};
+  for(const b of (F.bens||[])){
+    const k=b.categoria||"(sem categoria)";
+    const o=cats[k]=cats[k]||{cat:k,itens:[],soma:0,conv:0,aprox:false,temValor:false};
+    o.itens.push(b);
+    if(b.valor!=null){ o.temValor=true; o.soma+=Number(b.valor);
+      if(F.moeda!=="reis"){ const rr=convAno(Number(b.valor),b.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } }
+  }
+  return cats;
+}
+function fmtSomaBens(o){
+  if(!o.temValor) return "<span style='color:#9aa6b5'>—</span>";
+  if(F.moeda==="reis") return milreis(o.soma,"réis");
+  const sym=F.moeda==="libra"?"£ ":"US$ ";
+  return (o.aprox?"≈ ":"")+sym+Math.round(o.conv).toLocaleString("pt-BR");
+}
+function renderBens(){
+  const w=document.getElementById("bensWrap"); if(!w) return;
+  const bens=F.bens||[];
+  if(!bens.length){ w.innerHTML=""; if(chartBens){chartBens.destroy();chartBens=null;} return; }
+  const cats=bensPorCategoria();
+  const ks=Object.keys(cats).sort((a,b)=>cats[b].soma-cats[a].soma);
+  const anos=[...new Set(bens.map(b=>b.ano).filter(Boolean))].sort();
+  const faixa=anos.length?(anos[0]+(anos.length>1?"–"+anos[anos.length-1]:"")):"";
+  const totReis=bens.reduce((s,b)=>s+(b.valor!=null?Number(b.valor):0),0);
+  const totO={temValor:true,soma:totReis,conv:bens.reduce((s,b)=>{ if(b.valor==null||F.moeda==="reis")return s; return s+convAno(Number(b.valor),b.ano).val; },0),aprox:anos.some(y=>y<RATE_MIN||y>RATE_MAX)};
+  let h="<div class='sech'>Bens do inventário <span class='cnt'>"+bens.length+" itens"+(faixa?(" · "+faixa):"")+"</span></div>";
+  h+="<div style='position:relative;height:260px;margin-top:6px'><canvas id='grafBens'></canvas></div>";
+  h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:10px'><thead><tr>"+
+     "<th style='text-align:left;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Categoria</th>"+
+     "<th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Itens</th>"+
+     "<th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Avaliação</th></tr></thead><tbody>";
+  for(const k of ks){ const o=cats[k];
+    h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+esc(k)+"</td>"+
+       "<td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+o.itens.length+"</td>"+
+       "<td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+fmtSomaBens(o)+"</td></tr>"; }
+  h+="<tr><td style='padding:5px 4px;border-top:2px solid #e3e8ef;font-weight:600;color:#1f3a5f'>Total</td>"+
+     "<td style='padding:5px 4px;text-align:right;border-top:2px solid #e3e8ef;font-weight:600'>"+bens.length+"</td>"+
+     "<td style='padding:5px 4px;text-align:right;border-top:2px solid #e3e8ef;font-weight:600'>"+fmtSomaBens(totO)+"</td></tr>";
+  h+="</tbody></table>";
+  for(const k of ks){ const o=cats[k]; const ek="bem:"+k.replace(/'/g,""); const aberto=F.expand[ek]; const LIM=aberto?o.itens.length:15;
+    let its=o.itens.slice(0,LIM).map(b=>{
+      const nome=b.rel_nome||b.descricao||b.subcategoria||"(item)";
+      const link=b.rel_actor_id?('<a onclick="abrirFicha('+b.rel_actor_id+')">'+esc(nome)+'</a>'):esc(nome);
+      const val=(b.valor==null)?"":fmtDinheiro(Number(b.valor),b.ano);
+      const vH=val?(' <span class="val">'+esc(val)+'</span>'):'';
+      const loc=b.local?(' <span class="ano">'+esc(b.local)+'</span>'):'';
+      const sub=(b.subcategoria&&b.subcategoria!==nome)?(' <span class="ano">'+esc(b.subcategoria)+'</span>'):'';
+      const qt=(b.quantidade!=null&&Number(b.quantidade)>1)?(' <span class="ano">×'+esc(b.quantidade)+'</span>'):'';
+      const nH=b.notes?('<span class="nota">'+esc(b.notes)+'</span>'):'';
+      return '<div class="item">'+link+sub+qt+vH+loc+nH+'</div>';
+    }).join("");
+    if(o.itens.length>LIM) its+='<div class="mais" onclick="F.expand[\''+esc(ek)+'\']=1;renderBens()">+ '+(o.itens.length-LIM)+' mais…</div>';
+    h+="<div class='grp'><h4><span class='badge' style='background:#1f3a5f'>"+esc(k)+"</span> <span class='cnt'>"+o.itens.length+"</span> · "+fmtSomaBens(o)+"</h4>"+its+"</div>";
+  }
+  const fonte=bens.find(b=>b.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
+  if(F.moeda!=="reis") h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Conversão pela tabela de Moura Filho (2010); ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
+  w.innerHTML=h;
+  const cv=document.getElementById("grafBens");
+  if(cv && typeof Chart!=="undefined"){
+    if(chartBens){chartBens.destroy();chartBens=null;}
+    const labels=ks.filter(k=>cats[k].temValor);
+    const vals=labels.map(k=> F.moeda==="reis" ? cats[k].soma : cats[k].conv );
+    const simb=F.moeda==="reis"?"réis":(F.moeda==="libra"?"£":"US$");
+    const PAL=["#2f5496","#1d9e75","#e05c2a","#7f77dd","#ba7517","#c0392b","#16a085","#8e44ad","#d4a017","#5b6b86"];
+    const tot=vals.reduce((s,v)=>s+v,0)||1;
+    chartBens=new Chart(cv,{type:"doughnut",
+      data:{labels:labels,datasets:[{data:vals,backgroundColor:labels.map((_,i)=>PAL[i%PAL.length]),borderColor:"#fff",borderWidth:1}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:"right",labels:{font:{size:11},boxWidth:12,padding:8}},
+          title:{display:true,text:"Distribuição do inventário ("+simb+")",font:{size:12.5},color:"#1f3a5f"},
+          tooltip:{callbacks:{label:c=>{const v=c.parsed; const pct=v/tot*100;
+            const vf=(F.moeda==="reis")?milreis(v,"réis"):(simb+" "+Math.round(v).toLocaleString("pt-BR"));
+            return c.label+": "+vf+" ("+pct.toFixed(1)+"%)";}}}}}});
+  }
 }
 
 function fmtDataEvento(ev){ const d=dataExt(ev.ano,ev.mes,ev.dia); return d || (ev.ano_fim?("até "+ev.ano_fim):"s/d"); }
@@ -424,8 +513,10 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; const usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
   F._agg={porProd,ks,grupos,usarGrupo};
-  let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length) h+=barraFiltroCargas();
-  h+="<canvas id='graf' height='150'></canvas>";
+  const ehInventario=!!(F.bens&&F.bens.length);
+  let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length && !ehInventario) h+=barraFiltroCargas();
+  if(ehInventario) h+="<p style='font-size:11.5px;color:#7a8aa0;margin:2px 0 0'>Totais do inventário (retrato de "+(F.bens[0].ano||"")+", sem série temporal). Veja a distribuição no gráfico de “Bens do inventário” abaixo.</p>";
+  else h+="<canvas id='graf' height='150'></canvas>";
   h+="<div id='cargaTabela'></div>";
   const fonte=F.cargas.find(c=>c.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
   if(F.moeda!=="reis") h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Conversão pela tabela de Moura Filho (2010); só valores monetários (Soma/valor) convertem; ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
@@ -572,6 +663,7 @@ function exportFichaCSV(){
   if(!F.info){ return; } const L=[["bloco","tipo","relacionado/produto","ano","ano_fim","valor","moeda","papel/nota"]];
   F.rels.forEach(r=>L.push(["relacao",relpt(r.relation_name),r.rel_nome,r.ano,r.ano_fim,r.valor,r.moeda,r.role_name||r.notes||""]));
   F.cargas.forEach(c=>L.push(["estatistica",c.produto,"",c.ano,"",c.valor,c.moeda,c.notes||""]));
+  (F.bens||[]).forEach(b=>L.push(["bem",b.categoria,b.rel_nome||b.descricao||b.subcategoria||"",b.ano,"",b.valor,b.moeda,[b.local,b.notes].filter(Boolean).join(" — ")]));
   baixarCSV("dossie_"+(F.info.nome||"registro").replace(/[^a-z0-9]+/gi,"_").slice(0,40)+".csv",L);
 }
 
