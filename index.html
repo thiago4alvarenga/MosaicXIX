@@ -425,22 +425,26 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; const usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
   F._agg={porProd,ks,grupos,usarGrupo};
   let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length) h+=barraFiltroCargas();
-  // seletor de grafico
-  const linhas=ks.filter(k=>porProd[k].anos.size>=2);
-  let opt="";
-  if(temRelVal) opt+="<option value='reltot'>Total de valores das relações por ano</option>";
-  if(F.mv.tipo==="Embarcação") opt+="<option value='bar'>Top produtos por valor (Soma)</option>";
-  if(usarGrupo){ for(const g of grupos){ if(g==="Outros") continue; opt+="<option value='grp:"+esc(g)+"'>"+esc(g)+" — total por ano</option>"; } }
-  opt+=linhas.map(k=>"<option value='line:"+esc(k)+"'>"+esc(k)+" por ano (linha)</option>").join("");
-  if(opt) h+="<div class='ffiltros'><select id='gsel' onchange='F.cargaSel=this.value;renderGrafico(); renderTabelaSerie();'>"+opt+"</select></div><canvas id='graf' height='150'></canvas>";
+  h+="<canvas id='graf' height='150'></canvas>";
   h+="<div id='cargaTabela'></div>";
   const fonte=F.cargas.find(c=>c.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
   if(F.moeda!=="reis") h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Conversão pela tabela de Moura Filho (2010); só valores monetários (Soma/valor) convertem; ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
-  cw.innerHTML=h; const _gs=document.getElementById('gsel'); if(_gs){ if(F.cargaSel && [..._gs.options].some(o=>o.value===F.cargaSel)) _gs.value=F.cargaSel; else F.cargaSel=_gs.value; } renderGrafico(); renderTabelaSerie();
+  cw.innerHTML=h; renderGrafico(); renderTabelaSerie();
+}
+function autoModo(){
+  // Quando produtos específicos estão selecionados, a tabela usa o bloco agregado por produto (modo="")
+  if(F.cargaProds&&F.cargaProds.size>0) return "";
+  const temRelVal=F.rels.some(r=>r.valor!=null);
+  if(temRelVal) return "reltot";
+  if(F.mv&&F.mv.tipo==="Embarcação") return "bar";
+  const A=F._agg||{porProd:{},ks:[],grupos:[],usarGrupo:false};
+  if(A.usarGrupo){ const g=(A.grupos||[]).find(g=>g!=="Outros"); if(g) return "grp:"+g; }
+  const linha=(A.ks||[]).find(k=>(A.porProd[k]&&A.porProd[k].anos.size>=2));
+  return linha?"line:"+linha:"";
 }
 function renderTabelaSerie(){
   const ct=document.getElementById("cargaTabela"); if(!ct) return;
-  const sel=document.getElementById("gsel"); const modo=sel?sel.value:(F.mv.tipo==="Embarcação"?"bar":"");
+  const modo=autoModo();
   let h="";
   if(modo==="reltot"){
     const byY={}; for(const r of relFiltradas()){ if(r.valor==null||r.ano==null) continue; byY[r.ano]=(byY[r.ano]||0)+Number(r.valor); }
@@ -474,40 +478,81 @@ function renderTabelaSerie(){
   ct.innerHTML=h;
 }
 function renderGrafico(){
-  const sel=document.getElementById("gsel"); const cv=document.getElementById("graf"); if(!cv) return;
-  if(chart){chart.destroy();chart=null;} const modo=sel?sel.value:(F.mv.tipo==="Embarcação"?"bar":"");
-  let cfg=null;
+  const cv=document.getElementById("graf"); if(!cv) return;
+  if(chart){chart.destroy();chart=null;}
   const simb=F.moeda==="reis"?"réis":(F.moeda==="libra"?"£":"US$");
-  if(modo==="reltot"){
+  const CORES=["#2f5496","#1d9e75","#e05c2a","#7f77dd","#ba7517","#c0392b","#16a085","#8e44ad"];
+
+  /* — Produtos específicos selecionados → multi-série, eixo duplo automático — */
+  if(F.cargaProds&&F.cargaProds.size>0){
+    const prods=[...F.cargaProds];
+    const series=prods.map(prod=>{
+      const byY={};
+      for(const c of cargasFiltradas().filter(c=>baseDe(c.produto)===prod)){
+        if(c.ano==null||c.valor==null) continue;
+        let v=Number(c.valor);
+        if(F.moeda!=="reis"&&isMonet(c.produto,c.moeda)) v=convAno(v,c.ano).val;
+        byY[c.ano]=(byY[c.ano]||0)+v;
+      }
+      const anos=Object.keys(byY).map(Number).sort((a,b)=>a-b);
+      const mx=anos.length?Math.max(...anos.map(y=>byY[y])):0;
+      return {prod,byY,anos,mx};
+    }).filter(s=>s.anos.length>0);
+    if(!series.length) return;
+    const todosAnos=[...new Set(series.flatMap(s=>s.anos))].sort((a,b)=>a-b);
+    const maxVals=series.map(s=>s.mx).filter(v=>v>0);
+    const eixoDuplo=maxVals.length>=2&&Math.max(...maxVals)/Math.min(...maxVals)>10;
+    const datasets=series.map((s,i)=>({
+      label:s.prod+" ("+simb+")",
+      data:todosAnos.map(y=>s.byY[y]!=null?Math.round(s.byY[y]):null),
+      borderColor:CORES[i%CORES.length], backgroundColor:CORES[i%CORES.length]+"28",
+      tension:.2, fill:false, spanGaps:true,
+      yAxisID:eixoDuplo&&i>0?"y2":"y1"
+    }));
+    const scales={y1:{type:"linear",position:"left",ticks:{font:{size:10}}}};
+    if(eixoDuplo) scales.y2={type:"linear",position:"right",grid:{drawOnChartArea:false},ticks:{font:{size:10}},
+      title:{display:true,text:series.slice(1).map(s=>s.prod).join(", "),font:{size:10}}};
+    if(typeof Chart!=="undefined") chart=new Chart(cv,{type:"line",
+      data:{labels:todosAnos,datasets},
+      options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},
+               scales:{x:{ticks:{font:{size:10}}},...scales}}});
+    return;
+  }
+
+  /* — Sem produto selecionado: total de relações com valor — */
+  const temRelVal=F.rels.some(r=>r.valor!=null);
+  if(temRelVal){
     const byY={}; for(const r of relFiltradas()){ if(r.valor==null||r.ano==null) continue; let v=Number(r.valor); if(F.moeda!=="reis") v=convAno(v,r.ano).val; byY[r.ano]=(byY[r.ano]||0)+v; }
     const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
-    cfg={type:"bar",data:{labels:yy,datasets:[{label:"Total ("+simb+")",data:yy.map(y=>Math.round(byY[y])),backgroundColor:"#2f5496"}]},
-      options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}}}}};
-  } else if(modo==="bar"){
+    if(typeof Chart!=="undefined") chart=new Chart(cv,{type:"bar",
+      data:{labels:yy,datasets:[{label:"Total ("+simb+")",data:yy.map(y=>Math.round(byY[y])),backgroundColor:"#2f5496"}]},
+      options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}}}}});
+    return;
+  }
+
+  /* — Embarcação: top produtos por valor — */
+  if(F.mv&&F.mv.tipo==="Embarcação"){
     const soma={}; let mon=false;
     for(const c of cargasFiltradas()){ if(c.valor==null) continue; if(!isMonet(c.produto,c.moeda)) continue; mon=true;
       const base=(c.produto||"?").replace(/\s*\((Soma|valor)\)\s*$/i,"");
-      let v=Number(c.valor); if(F.moeda!=="reis") v=convAno(v,c.ano).val;
-      soma[base]=(soma[base]||0)+v; }
+      let v=Number(c.valor); if(F.moeda!=="reis") v=convAno(v,c.ano).val; soma[base]=(soma[base]||0)+v; }
     if(!mon){ for(const c of cargasFiltradas()){ if(c.valor!=null){ const k=c.produto||"?"; soma[k]=(soma[k]||0)+Number(c.valor); } } }
     const top=Object.entries(soma).sort((a,b)=>b[1]-a[1]).slice(0,12);
-    const lab=mon?("Valor ("+simb+")"):"Quantidades (não convertível)";
-    cfg={type:'bar',data:{labels:top.map(t=>t[0]),datasets:[{label:lab,data:top.map(t=>Math.round(t[1])),backgroundColor:'#2f5496'}]},
-      options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:60,minRotation:30}}}}};
-  } else if(modo.startsWith("grp:")){
-    const g=modo.slice(4); const byY={};
-    for(const c of cargasFiltradas()){ if(c.valor==null||grpDe(c.notes)!==g) continue; let v=Number(c.valor); if(F.moeda!=="reis"&&isMonet(c.produto,c.moeda)) v=convAno(v,c.ano).val; if(c.ano) byY[c.ano]=(byY[c.ano]||0)+v; }
-    const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
-    cfg={type:"line",data:{labels:yy,datasets:[{label:g+" ("+simb+")",data:yy.map(y=>byY[y]),borderColor:"#2f5496",backgroundColor:"rgba(47,84,150,.15)",tension:.2,fill:true}]},
-      options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}}}}};
-  } else if(modo.startsWith("line:")){
-    const m=modo.slice(5); const mon=isMonet(m,null)&&F.moeda!=="reis";
-    const pts=cargasFiltradas().filter(c=>c.produto===m && c.valor!=null).sort((a,b)=>a.ano-b.ano);
-    const lab=mon?(m+" ("+simb+")"):m;
-    cfg={type:'line',data:{labels:pts.map(p=>p.ano),datasets:[{label:lab,data:pts.map(p=> mon?convAno(Number(p.valor),p.ano).val:Number(p.valor)),borderColor:'#1d9e75',backgroundColor:'rgba(29,158,117,.15)',tension:.2,fill:true}]},
-      options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}}}}};
+    if(typeof Chart!=="undefined") chart=new Chart(cv,{type:"bar",
+      data:{labels:top.map(t=>t[0]),datasets:[{label:mon?"Valor ("+simb+")":"Quantidades",data:top.map(t=>Math.round(t[1])),backgroundColor:"#2f5496"}]},
+      options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:60,minRotation:30}}}}});
+    return;
   }
-  if(cfg && typeof Chart!=="undefined") chart=new Chart(cv,cfg);
+
+  /* — Fallback: linha do produto com mais anos — */
+  const A=F._agg||{porProd:{},ks:[]};
+  const linha=(A.ks||[]).find(k=>A.porProd[k]&&A.porProd[k].anos&&A.porProd[k].anos.size>=2);
+  if(!linha) return;
+  const mon=isMonet(linha,null)&&F.moeda!=="reis";
+  const pts=cargasFiltradas().filter(c=>c.produto===linha&&c.valor!=null).sort((a,b)=>a.ano-b.ano);
+  if(typeof Chart!=="undefined") chart=new Chart(cv,{type:"line",
+    data:{labels:pts.map(p=>p.ano),datasets:[{label:linha+" ("+simb+")",data:pts.map(p=>mon?convAno(Number(p.valor),p.ano).val:Number(p.valor)),borderColor:"#1d9e75",backgroundColor:"rgba(29,158,117,.15)",tension:.2,fill:true}]},
+    options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}}}}});
 }
 
 /* ----- EXPORTAÇÃO ----- */
