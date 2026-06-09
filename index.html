@@ -43,7 +43,7 @@
   .modal header{ background:var(--azul); display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
   .mtools{ display:flex; gap:6px; align-items:center; }
   .modal header .x{ background:transparent; color:#fff; font-size:20px; padding:0 6px; }
-  .modal header .btn-sm{ background:rgba(255,255,255,.15); color:#fff; }
+  .modal header .btn-sm{ background:rgba(255,255,255,.28); color:#fff; border:1px solid rgba(255,255,255,.45); }
   .modal-body{ display:grid; grid-template-columns:1.05fr 1fr; gap:0; overflow:hidden; min-height:0; }
   .col-rede{ border-right:1px solid var(--borda); }
   .rede-tools{ padding:6px 10px; border-bottom:1px solid var(--borda); display:flex; gap:8px; align-items:center; font-size:11.5px; color:#5f5e5a; }
@@ -105,7 +105,7 @@
   </div>
   <div class="tabela-box">
     <table><thead><tr>
-      <th>Nome</th><th>Tipo</th><th>Acervo</th><th>Período</th><th class="num">Estatísticas</th><th class="num">Relações</th>
+      <th>Nome</th><th>Tipo</th><th>Período</th><th class="num">Estatísticas</th><th class="num">Relações</th>
     </tr></thead><tbody id="tbody"></tbody></table>
   </div>
 </div>
@@ -115,6 +115,7 @@
     <header>
       <div id="mhead"></div>
       <div class="mtools">
+        <button class="btn-sm" onclick="resetarFiltros()" title="Limpar todos os filtros de relações e cargas">↺ Limpar filtros</button>
         <button class="btn-sm" onclick="exportFichaCSV()">CSV</button>
         <button class="btn-sm" onclick="window.print()">Imprimir / PDF</button>
         <button class="x" onclick="fecharFicha()" aria-label="Fechar">&times;</button>
@@ -179,17 +180,17 @@ function fmtSomaCargo(o){
 function setMoeda(m){ if(F&&F.info){F.moeda=m; renderHead(); renderRelacoes(); renderCargas();} }
 function setTaxa(t){ if(F&&F.info){F.taxa=t; renderHead(); renderRelacoes(); renderCargas();} }
 function controleMoeda(){
-  const b=(m,lab)=>"<button onclick=\"setMoeda('"+m+"')\" style=\"padding:4px 10px;border-radius:6px;font-size:12px;margin-right:4px;cursor:pointer;border:1px solid rgba(255,255,255,.45);"+(F.moeda===m?"background:#fff;color:#1f3a5f;font-weight:600":"background:rgba(255,255,255,.14);color:#fff")+"\">"+lab+"</button>";
+  const b=(m,lab)=>"<button onclick=\"setMoeda('"+m+"')\" style=\"padding:4px 10px;border-radius:6px;font-size:12px;margin-right:4px;cursor:pointer;border:1px solid rgba(255,255,255,.45);"+(F.moeda===m?"background:#fff;color:#1f3a5f;font-weight:600":"background:rgba(255,255,255,.30);color:#fff")+"\">"+lab+"</button>";
   let h="<div style='margin-top:8px;font-size:12px;color:#fff'>Valores em: "+b("reis","Réis")+b("libra","£ Libra")+b("dolar","US$ Dólar");
   if(F.moeda!=="reis"){
-    const t=(v,lab,tip)=>"<button onclick=\"setTaxa('"+v+"')\" title=\""+tip+"\" style=\"padding:3px 9px;border-radius:6px;font-size:11.5px;margin-right:4px;cursor:pointer;border:1px solid rgba(255,255,255,.45);"+(F.taxa===v?"background:#1d9e75;color:#fff;font-weight:600":"background:rgba(255,255,255,.14);color:#fff")+"\">"+lab+"</button>";
+    const t=(v,lab,tip)=>"<button onclick=\"setTaxa('"+v+"')\" title=\""+tip+"\" style=\"padding:3px 9px;border-radius:6px;font-size:11.5px;margin-right:4px;cursor:pointer;border:1px solid rgba(255,255,255,.45);"+(F.taxa===v?"background:#1d9e75;color:#fff;font-weight:600":"background:rgba(255,255,255,.30);color:#fff")+"\">"+lab+"</button>";
     h+="<span style='margin-left:8px'>Taxa:</span> "+t("c","Corrente","Câmbio do próprio ano (valor de mercado).")+t("l","Longo prazo","Tendência secular do câmbio, que suaviza oscilações de conjuntura (guerras, crises).")+" <span title='Câmbio de Moura Filho (2010), 1795–1914. Anos fora desse intervalo usam a taxa do ano mais próximo, marcada com ≈.' style='cursor:help;opacity:.85'>ⓘ</span>";
   }
   h+="</div>"; return h;
 }
 
 let net=null, chart=null, topo=70;
-let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c" };
+let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
 let ultimaBusca=[];
 
 async function getJSON(path,count){
@@ -222,10 +223,10 @@ async function buscar(){
   const status=document.getElementById("status"),tbody=document.getElementById("tbody"); status.textContent="Buscando…";
   try{
     const {dados,total}=await getJSON(montarURL(),true); ultimaBusca=dados;
-    if(!dados.length){ tbody.innerHTML='<tr><td colspan="6" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
+    if(!dados.length){ tbody.innerHTML='<tr><td colspan="5" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
     tbody.innerHTML=dados.map(d=>{ const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
       return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+
-        '</span></td><td>'+esc(d.origem)+'</td><td>'+esc(per)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
+        '</span></td><td>'+esc(per)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
     }).join("");
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
   }catch(e){ status.textContent="Erro: "+e.message; }
@@ -242,7 +243,7 @@ async function abrirFicha(id){
     const mv=(await getJSON("mv_busca_atores?actor_id=eq."+id+"&select=tipo,origem,fonte,fonte_autor,ano_min,ano_max,n_registros,n_relacoes,nome_incompleto")).dados[0]||{};
     const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes&order=relation_name.asc&limit=1000",true);
     const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte&order=ano.asc&limit=1500");
-    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c" };
+    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
     renderHead(); renderRede(); renderFichaTudo();
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
@@ -262,14 +263,14 @@ function renderRede(){
   const i=F.info, tipoC=F.mv.tipo||"Desconhecido", centerId="c"+i.actor_id;
   const nodes=[{id:centerId,label:i.nome,color:{background:COR[tipoC]||"#888",border:"#1f3a5f"},size:24,font:{size:14,bold:true},borderWidth:3}];
   const edges=[],vistos={};
-  for(const r of F.rels){ if(r.rel_actor_id==null) continue; const nid="n"+r.rel_actor_id;
+  for(const r of relFiltradas()){ if(r.rel_actor_id==null) continue; const nid="n"+r.rel_actor_id;
     if(!vistos[nid]){ if(Object.keys(vistos).length>=topo) continue; vistos[nid]={rels:{}};
       nodes.push({id:nid,label:(r.rel_nome||"").slice(0,26),realId:r.rel_actor_id,color:{background:COR[r.rel_tipo]||"#888",border:"#fff"},size:13,font:{size:12}}); }
     if(vistos[nid]) vistos[nid].rels[r.relation_name]=true; }
   for(const nid in vistos) edges.push({from:centerId,to:nid,label:Object.keys(vistos[nid].rels).map(relpt).join(", "),
     font:{size:10,color:"#5f5e5a",strokeWidth:3,strokeColor:"#fff"},color:{color:"#c2cad6"},length:160});
-  document.getElementById("redeinfo").textContent="Mostrando "+Object.keys(vistos).length+" de "+F.relsTotal+" vínculos";
-  document.getElementById("btnExpRede").style.display=(Object.keys(vistos).length<F.relsTotal && F.rels.length>Object.keys(vistos).length)?"":"none";
+  document.getElementById("redeinfo").textContent="Mostrando "+Object.keys(vistos).length+" de "+relFiltradas().length+" vínculos"+((F.fTipo||F.fAno)?" (filtrado)":"");
+  document.getElementById("btnExpRede").style.display=(Object.keys(vistos).length<relFiltradas().length)?"":"none";
   if(net){net.destroy();net=null;}
   net=new vis.Network(cont,{nodes,edges},{ nodes:{shape:"dot"}, edges:{smooth:false},
     physics:{stabilization:{iterations:120},barnesHut:{springLength:150,gravitationalConstant:-4000}}, interaction:{hover:true} });
@@ -277,6 +278,7 @@ function renderRede(){
 }
 function expandirRede(){ topo+=120; renderRede(); }
 
+function resetarFiltros(){ F.fTipo=""; F.fAno=""; F.expand={}; if(F.cargaProds)F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderFichaTudo(); renderRede(); }
 function renderFichaTudo(){
   const f=document.getElementById("ficha"); let h="";
   h+=blocoIdentidade();
@@ -304,8 +306,8 @@ function blocoIdentidade(){
 function filtrosFichaHTML(){
   const tipos=[...new Set(F.rels.map(r=>r.relation_name))];
   let opt='<option value="">Todos os tipos</option>'+tipos.map(t=>'<option value="'+esc(t)+'"'+(F.fTipo===t?' selected':'')+'>'+esc(relpt(t))+'</option>').join("");
-  return "<div class='ffiltros'><select onchange='F.fTipo=this.value;renderRelacoes()'>"+opt+"</select>"+
-    "<input type='number' placeholder='filtrar por ano' value='"+esc(F.fAno)+"' oninput='F.fAno=this.value;renderRelacoes()' style='width:130px'>"+
+  return "<div class='ffiltros'><select onchange='F.fTipo=this.value;renderRelacoes();renderRede()'>"+opt+"</select>"+
+    "<input type='number' placeholder='filtrar por ano' value='"+esc(F.fAno)+"' oninput='F.fAno=this.value;renderRelacoes();renderRede()' style='width:130px'>"+
     (F.rels.length<F.relsTotal?("<button class='btn-sm' onclick='carregarTodasRel()'>Carregar todas ("+F.relsTotal+")</button>"):"")+"</div>";
 }
 function relFiltradas(){
@@ -345,36 +347,66 @@ async function carregarTodasRel(){
 }
 
 /* ----- ESTATÍSTICAS + GRÁFICO ----- */
+function unidDe(p){ const m=(p||"").match(/\(([^)]*)\)\s*$/); if(!m) return ""; const u=m[1].trim(); return /^(soma|arrob|caix|fech|caras|car\b|barr|sac|quint|paus?|sola|und|uni|unid|varas|pipas|almud|toneis|rolos?|molhos|fardos|achas|taboa|atanad|libras|couros|meios?|arrate|alqueire|feixo)/i.test(u)?u:""; }
+function baseDe(p){ return unidDe(p)?(p||"").replace(/\s*\([^)]*\)\s*$/,"").trim():(p||""); }
+function cargasFiltradas(){ return F.cargas.filter(c=>{ if(F.cargaProds&&F.cargaProds.size&&!F.cargaProds.has(baseDe(c.produto))) return false; if(F.cargaUnid&&unidDe(c.produto)!==F.cargaUnid) return false; if(F.cargaAnoDe&&!(c.ano>=+F.cargaAnoDe)) return false; if(F.cargaAnoAte&&!(c.ano<=+F.cargaAnoAte)) return false; return true; }); }
+function barraFiltroCargas(){
+  const esc1=v=>String(v).replace(/'/g,"\\'");
+  const bases=[...new Set(F.cargas.map(c=>baseDe(c.produto)))].sort();
+  const units=[...new Set(F.cargas.map(c=>unidDe(c.produto)).filter(Boolean))].sort();
+  const chip=(act,onc,lab)=>"<button onclick=\""+onc+"\" style=\"padding:3px 8px;margin:0 4px 4px 0;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid #d9e0ea;"+(act?'background:#2f5496;color:#fff':'background:#fff;color:#41526b')+"\">"+lab+"</button>";
+  let h="<div style='background:#f7f9fc;border:1px solid #d9e0ea;border-radius:9px;padding:8px 10px;margin:8px 0;font-size:12px'>";
+  h+="<div style='margin-bottom:4px'><b style='color:#41526b'>Produtos:</b> "+chip(F.cargaProds.size===0,"todosProd()","Todos");
+  for(const b of bases) h+=chip(F.cargaProds.has(b),"toggleProd('"+esc1(b)+"')",esc(b));
+  h+="</div>";
+  if(units.length>1){ h+="<div style='margin-bottom:4px'><b style='color:#41526b'>Unidade:</b> "+chip(F.cargaUnid==="","setUnid('')","Todas"); for(const u of units) h+=chip(F.cargaUnid===u,"setUnid('"+esc1(u)+"')",esc(u)); h+="</div>"; }
+  h+="<b style='color:#41526b'>Anos:</b> <input type='number' value='"+esc(F.cargaAnoDe)+"' placeholder='de' onchange='F.cargaAnoDe=this.value;renderCargas()' style='width:72px;padding:3px 6px;border:1px solid #d9e0ea;border-radius:6px'> <input type='number' value='"+esc(F.cargaAnoAte)+"' placeholder='até' onchange='F.cargaAnoAte=this.value;renderCargas()' style='width:72px;padding:3px 6px;border:1px solid #d9e0ea;border-radius:6px'> "+chip(false,"limparCargas()","↺ limpar");
+  h+="</div>"; return h;
+}
+function toggleProd(b){ if(F.cargaProds.has(b))F.cargaProds.delete(b); else F.cargaProds.add(b); renderCargas(); }
+function todosProd(){ F.cargaProds.clear(); renderCargas(); }
+function setUnid(u){ F.cargaUnid=u; renderCargas(); }
+function limparCargas(){ F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderCargas(); }
 function grpDe(n){ const m=(n||"").match(/grupo=([^|]+)/); return m?m[1].trim():"Outros"; }
 function flagDe(n){ n=(n||"").toLowerCase(); if(n.indexOf("estimado")>=0) return "estimado"; if(n.indexOf("convertido")>=0||n.indexOf("não documental")>=0||n.indexOf("nao documental")>=0) return "convertido"; return ""; }
 function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw) return;
-  if(!F.cargas.length){ cw.innerHTML=""; return; }
+  const temRelVal=F.rels.some(r=>r.valor!=null);
+  if(!F.cargas.length && !temRelVal){ cw.innerHTML=""; return; }
   const porProd={};
-  for(const c of F.cargas){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:""}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
+  for(const c of cargasFiltradas()){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:""}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; const usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
   F._agg={porProd,ks,grupos,usarGrupo};
-  let h="<div class='sech'>Cargas / estatísticas <span class='cnt'>"+F.cargas.length+" lançamentos</span></div>";
+  let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length) h+=barraFiltroCargas();
   // seletor de grafico
   const linhas=ks.filter(k=>porProd[k].anos.size>=2);
   let opt="";
+  if(temRelVal) opt+="<option value='reltot'>Total de valores das relações por ano</option>";
   if(F.mv.tipo==="Embarcação") opt+="<option value='bar'>Top produtos por valor (Soma)</option>";
   if(usarGrupo){ for(const g of grupos){ if(g==="Outros") continue; opt+="<option value='grp:"+esc(g)+"'>"+esc(g)+" — total por ano</option>"; } }
   opt+=linhas.map(k=>"<option value='line:"+esc(k)+"'>"+esc(k)+" por ano (linha)</option>").join("");
-  if(opt) h+="<div class='ffiltros'><select id='gsel' onchange='renderGrafico(); renderTabelaSerie();'>"+opt+"</select></div><canvas id='graf' height='150'></canvas>";
+  if(opt) h+="<div class='ffiltros'><select id='gsel' onchange='F.cargaSel=this.value;renderGrafico(); renderTabelaSerie();'>"+opt+"</select></div><canvas id='graf' height='150'></canvas>";
   h+="<div id='cargaTabela'></div>";
   const fonte=F.cargas.find(c=>c.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
   if(F.moeda!=="reis") h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Conversão pela tabela de Moura Filho (2010); só valores monetários (Soma/valor) convertem; ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
-  cw.innerHTML=h; renderGrafico(); renderTabelaSerie();
+  cw.innerHTML=h; const _gs=document.getElementById('gsel'); if(_gs){ if(F.cargaSel && [..._gs.options].some(o=>o.value===F.cargaSel)) _gs.value=F.cargaSel; else F.cargaSel=_gs.value; } renderGrafico(); renderTabelaSerie();
 }
 function renderTabelaSerie(){
   const ct=document.getElementById("cargaTabela"); if(!ct) return;
   const sel=document.getElementById("gsel"); const modo=sel?sel.value:(F.mv.tipo==="Embarcação"?"bar":"");
   let h="";
-  if(modo.startsWith("line:")||modo.startsWith("grp:")){
+  if(modo==="reltot"){
+    const byY={}; for(const r of relFiltradas()){ if(r.valor==null||r.ano==null) continue; byY[r.ano]=(byY[r.ano]||0)+Number(r.valor); }
+    const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
+    h+="<div style='margin-top:8px;font-weight:600;color:#1f3a5f;font-size:12.8px'>Total de valores das relações por ano</div>";
+    if(F.rels.length<F.relsTotal) h+="<p style='font-size:11px;color:#b06a00;margin:2px 0'>⚠ Parcial: "+F.rels.length+" de "+F.relsTotal+" relações carregadas — use \"Carregar todas\" para o total completo.</p>";
+    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
+    for(const y of yy){ h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+y+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(fmtDinheiro(byY[y],y))+"</td></tr>"; }
+    h+="</tbody></table>";
+  } else if(modo.startsWith("line:")||modo.startsWith("grp:")){
     const isGrp=modo.startsWith("grp:"); const key=modo.slice(isGrp?4:5);
     const byY={}, flagY={};
-    for(const c of F.cargas){ if(c.ano==null) continue; if(isGrp?(grpDe(c.notes)!==key):(c.produto!==key)) continue; if(c.valor!=null) byY[c.ano]=(byY[c.ano]||0)+Number(c.valor); const f=flagDe(c.notes); if(f) flagY[c.ano]=f; }
+    for(const c of cargasFiltradas()){ if(c.ano==null) continue; if(isGrp?(grpDe(c.notes)!==key):(c.produto!==key)) continue; if(c.valor!=null) byY[c.ano]=(byY[c.ano]||0)+Number(c.valor); const f=flagDe(c.notes); if(f) flagY[c.ano]=f; }
     const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
     const mon=isGrp?true:isMonet(key,null);
     const titulo=isGrp?(key+" — total por ano"):key;
@@ -399,26 +431,31 @@ function renderGrafico(){
   if(chart){chart.destroy();chart=null;} const modo=sel?sel.value:(F.mv.tipo==="Embarcação"?"bar":"");
   let cfg=null;
   const simb=F.moeda==="reis"?"réis":(F.moeda==="libra"?"£":"US$");
-  if(modo==="bar"){
+  if(modo==="reltot"){
+    const byY={}; for(const r of relFiltradas()){ if(r.valor==null||r.ano==null) continue; let v=Number(r.valor); if(F.moeda!=="reis") v=convAno(v,r.ano).val; byY[r.ano]=(byY[r.ano]||0)+v; }
+    const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
+    cfg={type:"bar",data:{labels:yy,datasets:[{label:"Total ("+simb+")",data:yy.map(y=>Math.round(byY[y])),backgroundColor:"#2f5496"}]},
+      options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}}}}};
+  } else if(modo==="bar"){
     const soma={}; let mon=false;
-    for(const c of F.cargas){ if(c.valor==null) continue; if(!isMonet(c.produto,c.moeda)) continue; mon=true;
+    for(const c of cargasFiltradas()){ if(c.valor==null) continue; if(!isMonet(c.produto,c.moeda)) continue; mon=true;
       const base=(c.produto||"?").replace(/\s*\((Soma|valor)\)\s*$/i,"");
       let v=Number(c.valor); if(F.moeda!=="reis") v=convAno(v,c.ano).val;
       soma[base]=(soma[base]||0)+v; }
-    if(!mon){ for(const c of F.cargas){ if(c.valor!=null){ const k=c.produto||"?"; soma[k]=(soma[k]||0)+Number(c.valor); } } }
+    if(!mon){ for(const c of cargasFiltradas()){ if(c.valor!=null){ const k=c.produto||"?"; soma[k]=(soma[k]||0)+Number(c.valor); } } }
     const top=Object.entries(soma).sort((a,b)=>b[1]-a[1]).slice(0,12);
     const lab=mon?("Valor ("+simb+")"):"Quantidades (não convertível)";
     cfg={type:'bar',data:{labels:top.map(t=>t[0]),datasets:[{label:lab,data:top.map(t=>Math.round(t[1])),backgroundColor:'#2f5496'}]},
       options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:60,minRotation:30}}}}};
   } else if(modo.startsWith("grp:")){
     const g=modo.slice(4); const byY={};
-    for(const c of F.cargas){ if(c.valor==null||grpDe(c.notes)!==g) continue; let v=Number(c.valor); if(F.moeda!=="reis"&&isMonet(c.produto,c.moeda)) v=convAno(v,c.ano).val; if(c.ano) byY[c.ano]=(byY[c.ano]||0)+v; }
+    for(const c of cargasFiltradas()){ if(c.valor==null||grpDe(c.notes)!==g) continue; let v=Number(c.valor); if(F.moeda!=="reis"&&isMonet(c.produto,c.moeda)) v=convAno(v,c.ano).val; if(c.ano) byY[c.ano]=(byY[c.ano]||0)+v; }
     const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
     cfg={type:"line",data:{labels:yy,datasets:[{label:g+" ("+simb+")",data:yy.map(y=>byY[y]),borderColor:"#2f5496",backgroundColor:"rgba(47,84,150,.15)",tension:.2,fill:true}]},
       options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}}}}};
   } else if(modo.startsWith("line:")){
     const m=modo.slice(5); const mon=isMonet(m,null)&&F.moeda!=="reis";
-    const pts=F.cargas.filter(c=>c.produto===m && c.valor!=null).sort((a,b)=>a.ano-b.ano);
+    const pts=cargasFiltradas().filter(c=>c.produto===m && c.valor!=null).sort((a,b)=>a.ano-b.ano);
     const lab=mon?(m+" ("+simb+")"):m;
     cfg={type:'line',data:{labels:pts.map(p=>p.ano),datasets:[{label:lab,data:pts.map(p=> mon?convAno(Number(p.valor),p.ano).val:Number(p.valor)),borderColor:'#1d9e75',backgroundColor:'rgba(29,158,117,.15)',tension:.2,fill:true}]},
       options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}}}}};
