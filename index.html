@@ -177,8 +177,8 @@ function fmtSomaCargo(o){
   const sym=F.moeda==="libra"?"£ ":"US$ ";
   return (o.aprox?"≈ ":"")+sym+Math.round(o.conv).toLocaleString("pt-BR");
 }
-function setMoeda(m){ if(F&&F.info){F.moeda=m; renderHead(); renderRelacoes(); renderCargas(); renderBens();} }
-function setTaxa(t){ if(F&&F.info){F.taxa=t; renderHead(); renderRelacoes(); renderCargas(); renderBens();} }
+function setMoeda(m){ if(F&&F.info){F.moeda=m; renderHead(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes();} }
+function setTaxa(t){ if(F&&F.info){F.taxa=t; renderHead(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes();} }
 function controleMoeda(){
   const b=(m,lab)=>"<button onclick=\"setMoeda('"+m+"')\" style=\"padding:4px 10px;border-radius:6px;font-size:12px;margin-right:4px;cursor:pointer;border:1px solid rgba(255,255,255,.45);"+(F.moeda===m?"background:#fff;color:#1f3a5f;font-weight:600":"background:rgba(255,255,255,.30);color:#fff")+"\">"+lab+"</button>";
   let h="<div style='margin-top:8px;font-size:12px;color:#fff'>Valores em: "+b("reis","Réis")+b("libra","£ Libra")+b("dolar","US$ Dólar");
@@ -189,8 +189,8 @@ function controleMoeda(){
   h+="</div>"; return h;
 }
 
-let net=null, chart=null, chartBens=null, topo=70;
-let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
+let net=null, chart=null, chartBens=null, chartCot=null, chartBolsaA=null, chartBolsaS=null, topo=70;
+let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
 let ultimaBusca=[];
 
 async function getJSON(path,count){
@@ -252,13 +252,19 @@ async function abrirFicha(id){
     const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes&order=relation_name.asc&limit=1000",true);
     const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte&order=ano.asc&limit=1500");
     const ben=await getJSON("v_inventario_bens?actor_id=eq."+id+"&select=item_id,categoria,subcategoria,descricao,quantidade,unidade,valor,moeda,ano,local,rel_actor_id,rel_nome,notes,fonte&order=valor.desc.nullslast&limit=2000");
+    const cot=await getJSON("v_cotacoes?actor_id=eq."+id+"&select=ano,nome_ativo,ativo,tipo,categoria_epoca,fase_historica,min_reis,max_reis,avg_reis,volume,faixa_preco,is_percent,moeda,fonte&order=ativo.asc,ano.asc&limit=3000");
+    let bolsaAno=[], bolsaSetor=[];
+    if((det.institution_type||"")==="Bolsa de valores"){
+      bolsaAno=(await getJSON("v_bolsa_por_ano?select=ano,emissores,ativos,volume_total&order=ano.asc")).dados;
+      bolsaSetor=(await getJSON("v_bolsa_por_setor?select=setor,emissores,ativos&order=ativos.desc")).dados;
+    }
     const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
     let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
-    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, bens:ben.dados, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
+    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, bens:ben.dados, cotacoes:cot.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
     renderHead(); renderRede(); renderFichaTudo();
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
-function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} if(chart){chart.destroy();chart=null;} if(chartBens){chartBens.destroy();chartBens=null;} }
+function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} [chart,chartBens,chartCot,chartBolsaA,chartBolsaS].forEach(c=>{try{if(c)c.destroy();}catch(e){}}); chart=chartBens=chartCot=chartBolsaA=chartBolsaS=null; }
 
 function renderHead(){
   const i=F.info,mv=F.mv; const tipo=mv.tipo||"Desconhecido";
@@ -300,8 +306,105 @@ function renderFichaTudo(){
   h+="<div id='grafWrap'></div>";
   h+="<div id='cargasWrap'></div>";
   h+="<div id='bensWrap'></div>";
+  h+="<div id='cotacoesWrap'></div>";
+  h+="<div id='bolsaWrap'></div>";
   f.innerHTML=h;
-  renderEventos(); renderRelacoes(); renderCargas(); renderBens();
+  renderEventos(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); renderBolsa();
+}
+
+/* ----- COTAÇÕES NA BOLSA (ficha da empresa) ----- */
+function cotacoesPorAtivo(){
+  const ats={};
+  for(const c of (F.cotacoes||[])){
+    const k=c.ativo||c.nome_ativo||"(ativo)";
+    const o=ats[k]=ats[k]||{ativo:k,tipo:c.tipo,categoria:c.categoria_epoca,linhas:[],min:null,max:null,vol:0,is_pct:!!c.is_percent};
+    o.linhas.push(c);
+    if(c.min_reis!=null){ o.min=(o.min==null)?Number(c.min_reis):Math.min(o.min,Number(c.min_reis)); }
+    if(c.max_reis!=null){ o.max=(o.max==null)?Number(c.max_reis):Math.max(o.max,Number(c.max_reis)); }
+    if(c.volume!=null) o.vol+=Number(c.volume);
+  }
+  return ats;
+}
+function renderCotacoes(){
+  const w=document.getElementById("cotacoesWrap"); if(!w) return;
+  const cot=F.cotacoes||[];
+  if(!cot.length){ w.innerHTML=""; if(chartCot){chartCot.destroy();chartCot=null;} return; }
+  const anos=[...new Set(cot.map(c=>c.ano).filter(Boolean))].sort();
+  const faixa=anos.length?(anos[0]+(anos.length>1?"–"+anos[anos.length-1]:"")):"";
+  const ats=cotacoesPorAtivo();
+  const ks=Object.keys(ats).sort((a,b)=>ats[b].linhas.length-ats[a].linhas.length);
+  let h="<div class='sech'>Cotações na Bolsa do RJ <span class='cnt'>"+cot.length+" registros"+(faixa?(" · "+faixa):"")+" · "+ks.length+" ativo(s)</span></div>";
+  h+="<p style='font-size:11.5px;color:#7a8aa0;margin:2px 0 6px'>Cotações mín./máx. anuais (Retrospecto Commercial do Jornal do Commercio). Série temporal no gráfico de “Cargas/estatísticas” acima.</p>";
+  h+="<canvas id='grafCot' height='150'></canvas>";
+  for(const k of ks){ const o=ats[k]; const ek="cot:"+k.replace(/'/g,""); const aberto=F.expand[ek]; const arr=o.linhas.slice().sort((a,b)=>a.ano-b.ano);
+    const banda = o.is_pct ? "% do par" : ((o.min!=null?milreis(o.min,"réis"):"?")+" – "+(o.max!=null?milreis(o.max,"réis"):"?"));
+    let det="";
+    if(aberto){
+      det="<table style='width:100%;font-size:12px;border-collapse:collapse;margin:4px 0 8px'><thead><tr>"+
+        "<th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:3px'>Ano</th>"+
+        "<th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:3px'>Mínima</th>"+
+        "<th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:3px'>Máxima</th>"+
+        "<th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:3px'>Volume</th></tr></thead><tbody>";
+      for(const c of arr){
+        const mn=c.min_reis!=null?fmtDinheiro(Number(c.min_reis),c.ano):(c.is_percent?"% par":"—");
+        const mx=c.max_reis!=null?fmtDinheiro(Number(c.max_reis),c.ano):(c.is_percent?"% par":"—");
+        det+="<tr><td style='padding:3px;border-top:1px solid #f0f3f7'>"+esc(c.ano)+"</td>"+
+          "<td style='padding:3px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(mn)+"</td>"+
+          "<td style='padding:3px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(mx)+"</td>"+
+          "<td style='padding:3px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(c.volume!=null?Number(c.volume).toLocaleString("pt-BR"):"")+"</td></tr>";
+      }
+      det+="</tbody></table>";
+    }
+    const toggle="F.expand['"+esc(ek)+"']="+(aberto?"0":"1")+";renderCotacoes()";
+    h+="<div class='grp'><h4 style='cursor:pointer' onclick=\""+toggle+"\"><span class='badge' style='background:#1d6e56'>"+esc(k)+"</span> <span class='cnt'>"+o.linhas.length+" anos</span> · "+esc(banda)+(o.categoria?(" · "+esc(o.categoria)):"")+" <span class='ano'>["+(aberto?"−":"+")+"]</span></h4>"+det+"</div>";
+  }
+  const fonte=cot.find(c=>c.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
+  w.innerHTML=h;
+  // gráfico: faixa min-max por ano (área) agregando todos os ativos do emissor
+  const cv=document.getElementById("grafCot");
+  if(cv && typeof Chart!=="undefined"){
+    if(chartCot){chartCot.destroy();chartCot=null;}
+    const byY={};
+    for(const c of cot){ if(c.ano==null) continue; const o=byY[c.ano]=byY[c.ano]||{mn:null,mx:null}; if(c.min_reis!=null)o.mn=(o.mn==null?Number(c.min_reis):Math.min(o.mn,Number(c.min_reis))); if(c.max_reis!=null)o.mx=(o.mx==null?Number(c.max_reis):Math.max(o.mx,Number(c.max_reis))); }
+    const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
+    const conv=(v,y)=> F.moeda==="reis"? v/1000 : convAno(v,y).val;
+    const simb=F.moeda==="reis"?"mil-réis":(F.moeda==="libra"?"£":"US$");
+    const dmin=yy.map(y=>byY[y].mn!=null?conv(byY[y].mn,y):null);
+    const dmax=yy.map(y=>byY[y].mx!=null?conv(byY[y].mx,y):null);
+    chartCot=new Chart(cv,{type:"line",
+      data:{labels:yy,datasets:[
+        {label:"Máxima ("+simb+")",data:dmax,borderColor:"#1d9e75",backgroundColor:"rgba(29,158,117,.15)",tension:.2,fill:"+1",spanGaps:true},
+        {label:"Mínima ("+simb+")",data:dmin,borderColor:"#2f5496",backgroundColor:"rgba(47,84,150,.10)",tension:.2,fill:false,spanGaps:true}
+      ]},
+      options:{responsive:true,maintainAspectRatio:true,
+        plugins:{legend:{labels:{font:{size:11}}},title:{display:true,text:"Faixa de cotação por ano",font:{size:12},color:"#1f3a5f"},
+          tooltip:{callbacks:{label:c=>c.dataset.label+": "+Number(c.parsed.y).toLocaleString("pt-BR")+" "+simb}}},
+        scales:{y:{ticks:{callback:v=>Number(v).toLocaleString("pt-BR")}}}}});
+  }
+}
+
+/* ----- DOSSIÊ DA BOLSA (visão geral do mercado) ----- */
+function renderBolsa(){
+  const w=document.getElementById("bolsaWrap"); if(!w) return;
+  const A=F.bolsaAno||[], S=F.bolsaSetor||[];
+  if(!A.length && !S.length){ w.innerHTML=""; if(chartBolsaA){chartBolsaA.destroy();chartBolsaA=null;} if(chartBolsaS){chartBolsaS.destroy();chartBolsaS=null;} return; }
+  let h="<div class='sech'>Mercado — visão geral <span class='cnt'>"+(A.length?(A[0].ano+"–"+A[A.length-1].ano):"")+"</span></div>";
+  h+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:4px 0'>Ativos e emissores negociados por ano</div>";
+  h+="<canvas id='grafBolsaA' height='150'></canvas>";
+  h+="<div style='position:relative;height:240px;margin-top:14px'><div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:4px 0'>Ativos por setor (reclassificado)</div><canvas id='grafBolsaS'></canvas></div>";
+  w.innerHTML=h;
+  if(typeof Chart==="undefined") return;
+  if(chartBolsaA){chartBolsaA.destroy();chartBolsaA=null;}
+  const cvA=document.getElementById("grafBolsaA");
+  if(cvA) chartBolsaA=new Chart(cvA,{data:{labels:A.map(r=>r.ano),datasets:[
+      {type:"bar",label:"Ativos",data:A.map(r=>r.ativos),backgroundColor:"rgba(47,84,150,.65)",yAxisID:"y"},
+      {type:"line",label:"Emissores",data:A.map(r=>r.emissores),borderColor:"#e05c2a",backgroundColor:"#e05c2a",tension:.2,yAxisID:"y"}
+    ]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:60,minRotation:45}}}}});
+  if(chartBolsaS){chartBolsaS.destroy();chartBolsaS=null;}
+  const cvS=document.getElementById("grafBolsaS");
+  const PAL=["#2f5496","#1d9e75","#e05c2a","#7f77dd","#ba7517","#c0392b","#16a085","#8e44ad","#d4a017","#5b6b86"];
+  if(cvS) chartBolsaS=new Chart(cvS,{type:"doughnut",data:{labels:S.map(r=>r.setor),datasets:[{data:S.map(r=>r.ativos),backgroundColor:S.map((_,i)=>PAL[i%PAL.length]),borderColor:"#fff",borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{font:{size:11},boxWidth:12,padding:6}},tooltip:{callbacks:{label:c=>c.label+": "+c.parsed+" ativos"}}}}});
 }
 
 /* ----- BENS DO INVENTÁRIO ----- */
@@ -335,9 +438,9 @@ function renderBens(){
   let h="<div class='sech'>Bens do inventário <span class='cnt'>"+bens.length+" itens"+(faixa?(" · "+faixa):"")+"</span></div>";
   h+="<div style='position:relative;height:260px;margin-top:6px'><canvas id='grafBens'></canvas></div>";
   h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:10px'><thead><tr>"+
-     "<th style='text-align:left;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Categoria</th>"+
-     "<th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Itens</th>"+
-     "<th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Avaliação</th></tr></thead><tbody>";
+     "<th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Categoria</th>"+
+     "<th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Itens</th>"+
+     "<th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Avaliação</th></tr></thead><tbody>";
   for(const k of ks){ const o=cats[k];
     h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+esc(k)+"</td>"+
        "<td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+o.itens.length+"</td>"+
@@ -434,8 +537,11 @@ function blocoIdentidade(){
   add("Estado civil", i.marital_status); add("Nobreza", i.nobility); add("Tratamento", i.honorific);
   add("Outro nome", i.alternate_name); add("Naturalidade", i.place_of_origin); add("Endereço", i.address);
   const nasc=dataExt(i.birth_year,i.birth_month,i.birth_day), morte=dataExt(i.death_year,i.death_month,i.death_day);
-  add("Nascimento", nasc); add("Falecimento", morte);
-  add("Fundação", i.founding_year); add("Local", i.location); add("Notas", i.notas);
+  const ehPessoa=(i.actor_type==='person');
+  add(ehPessoa?"Nascimento":"Fundação", nasc);
+  add(ehPessoa?"Falecimento":"Encerramento", morte);
+  if(!ehPessoa && nasc && !morte) add("Situação","Em atividade");
+  add("Local", i.location); add("Notas", i.notas);
   if(!L.length) return "";
   return "<div class='sech'>Identidade</div><div class='ident'>"+L.join("")+"</div>";
 }
@@ -542,7 +648,7 @@ function renderTabelaSerie(){
     const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
     h+="<div style='margin-top:8px;font-weight:600;color:#1f3a5f;font-size:12.8px'>Total de valores das relações por ano</div>";
     if(F.rels.length<F.relsTotal) h+="<p style='font-size:11px;color:#b06a00;margin:2px 0'>⚠ Parcial: "+F.rels.length+" de "+F.relsTotal+" relações carregadas — use \"Carregar todas\" para o total completo.</p>";
-    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
+    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
     for(const y of yy){ h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+y+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(fmtDinheiro(byY[y],y))+"</td></tr>"; }
     h+="</tbody></table>";
   } else if(modo.startsWith("line:")||modo.startsWith("grp:")){
@@ -553,14 +659,14 @@ function renderTabelaSerie(){
     const mon=isGrp?true:isMonet(key,null);
     const titulo=isGrp?(key+" — total por ano"):key;
     h+="<div style='margin-top:8px;font-weight:600;color:#1f3a5f;font-size:12.8px'>"+esc(titulo)+"</div>";
-    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
+    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
     for(const y of yy){ const val=mon?fmtDinheiro(byY[y],y):Number(byY[y]).toLocaleString("pt-BR");
       const mk=flagY[y]?(" <span title='"+(flagY[y]==='estimado'?'Valor estimado (repetição não-documental)':'Valor convertido — não documental')+"' style='color:#b06a00'>⚠</span>"):"";
       h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+y+mk+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(val)+"</td></tr>"; }
     h+="</tbody></table>";
   } else {
     const A=F._agg||{porProd:{},ks:[],grupos:[],usarGrupo:false}; const porProd=A.porProd,ks=A.ks,grupos=A.grupos,usarGrupo=A.usarGrupo;
-    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:10px'><thead><tr><th style='text-align:left;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Produto / métrica</th><th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Anos</th><th style='text-align:right;color:#41526b;border-bottom:1px solid #e3e8ef;padding:4px'>Soma</th></tr></thead><tbody>";
+    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:10px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Produto / métrica</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Anos</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Soma</th></tr></thead><tbody>";
     const linhaProd=(k)=>{ const o=porProd[k]; const ys=[...o.anos].sort(); const faixa=ys.length?(ys[0]+(ys.length>1?"–"+ys[ys.length-1]:"")):""; const mk=o.flag?(" <span title='"+(o.flag==='estimado'?'Inclui valores estimados (repetição não-documental)':'Inclui valores convertidos — não documental')+"' style='color:#b06a00'>⚠</span>"):""; return "<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+esc(k)+mk+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(faixa)+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+fmtSomaCargo(o)+"</td></tr>"; };
     if(usarGrupo){ for(const g of grupos){ const its=ks.filter(k=>porProd[k].grupo===g); h+="<tr><td colspan='3' style='padding:7px 4px 2px;font-weight:600;color:#1f3a5f;border-top:2px solid #e3e8ef'>"+esc(g)+"</td></tr>"; for(const k of its) h+=linhaProd(k); } }
     else { for(const k of ks.slice(0,80)) h+=linhaProd(k); }
@@ -664,6 +770,7 @@ function exportFichaCSV(){
   F.rels.forEach(r=>L.push(["relacao",relpt(r.relation_name),r.rel_nome,r.ano,r.ano_fim,r.valor,r.moeda,r.role_name||r.notes||""]));
   F.cargas.forEach(c=>L.push(["estatistica",c.produto,"",c.ano,"",c.valor,c.moeda,c.notes||""]));
   (F.bens||[]).forEach(b=>L.push(["bem",b.categoria,b.rel_nome||b.descricao||b.subcategoria||"",b.ano,"",b.valor,b.moeda,[b.local,b.notes].filter(Boolean).join(" — ")]));
+  (F.cotacoes||[]).forEach(c=>L.push(["cotacao",c.ativo,c.nome_ativo,c.ano,"",c.min_reis,c.moeda,"máx="+(c.max_reis!=null?c.max_reis:"")+(c.volume!=null?(" vol="+c.volume):"")]));
   baixarCSV("dossie_"+(F.info.nome||"registro").replace(/[^a-z0-9]+/gi,"_").slice(0,40)+".csv",L);
 }
 
