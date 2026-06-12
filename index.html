@@ -37,6 +37,7 @@
   .b-Pessoa{ background:#3a7bd5; } .b-Embarcação{ background:#1d9e75; } .b-Companhia{ background:#7f77dd; }
   .b-Instituição{ background:#ba7517; } .b-Desconhecido{ background:#8a97a8; }
   .pill{ display:inline-block; background:#eef2f7; border-radius:20px; padding:1px 8px; font-size:11.5px; color:#41526b; }
+  .selo{ display:inline-block; background:#fff3e0; color:#9a5b00; border:1px solid #f0c68a; border-radius:10px; padding:0 6px; font-size:10px; font-weight:600; margin-left:6px; vertical-align:middle; cursor:help; }
   .overlay{ position:fixed; inset:0; background:rgba(20,30,45,.5); display:none; align-items:center; justify-content:center; padding:14px; z-index:50; }
   .overlay.on{ display:flex; }
   .modal{ background:#fff; border-radius:12px; width:min(1120px,97vw); max-height:94vh; overflow:hidden; display:flex; flex-direction:column; }
@@ -93,8 +94,6 @@
     <div class="campo"><label>Tipo</label>
       <select id="tipo"><option value="">Todos os tipos</option><option>Pessoa</option><option>Embarcação</option><option>Companhia</option><option>Instituição</option></select></div>
     <div class="campo"><label>Ano (aparece em)</label><input id="ano" type="number" min="1700" max="1950" placeholder="ex.: 1790" /></div>
-    <div class="campo"><label>Acervo</label>
-      <select id="origem"><option value="">Todos os acervos</option></select></div>
     <div class="campo"><label>Categoria social</label>
       <select id="catsoc"><option value="">Todas</option></select></div>
     <div class="campo"><label>Gênero</label>
@@ -110,7 +109,7 @@
   </div>
   <div class="tabela-box">
     <table><thead><tr>
-      <th>Nome</th><th>Tipo</th><th>Período</th><th class="num">Estatísticas</th><th class="num">Relações</th>
+      <th onclick="setSort('nome')" id="th_nome" style="cursor:pointer">Nome</th><th>Tipo</th><th>Período</th><th class="num" onclick="setSort('pontuacao')" id="th_pontuacao" style="cursor:pointer">Relevância</th><th class="num" onclick="setSort('n_registros')" id="th_n_registros" style="cursor:pointer">Estat.</th><th class="num" onclick="setSort('n_relacoes')" id="th_n_relacoes" style="cursor:pointer">Rel.</th>
     </tr></thead><tbody id="tbody"></tbody></table>
   </div>
 </div>
@@ -196,6 +195,9 @@ function controleMoeda(){
 }
 
 let net=null, chart=null, chartBens=null, chartCot=null, chartBolsaA=null, chartBolsaS=null, topo=70;
+let chartsD=[];
+let sortCol="pontuacao",sortDir="desc";
+function setSort(col){if(sortCol===col)sortDir=sortDir==="desc"?"asc":"desc";else{sortCol=col;sortDir=col==="nome"?"asc":"desc";} ["nome","pontuacao","n_registros","n_relacoes"].forEach(c=>{const el=document.getElementById("th_"+c);if(!el)return;el.style.fontWeight=sortCol===c?"700":"400";el.style.color=sortCol===c?"#1f3a5f":"inherit";const base=el.textContent.replace(/ [▼▲]$/,"");el.textContent=base+(sortCol===c?(sortDir==="desc"?" ▼":" ▲"):"");});buscar();}
 let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
 let ultimaBusca=[];
 
@@ -223,11 +225,10 @@ function tituloParen(nome,hon){
   return ' <span style="color:#7a8aa0;font-weight:400">('+esc(t)+')</span>';
 }
 function montarURL(){
-  const p=["select=actor_id,nome,honorifico,tipo,origem,ano_min,ano_max,n_registros,n_relacoes,nome_incompleto","order=n_relacoes.desc,nome.asc",
+  const p=["select=actor_id,nome,honorifico,tipo,origem,ano_min,ano_max,n_registros,n_relacoes,pontuacao,nome_incompleto","order="+(sortCol+(sortDir==="desc"?".desc":".asc")+",nome.asc"),
            "limit="+encodeURIComponent(document.getElementById("limite").value)];
   const t=document.getElementById("texto").value.trim(); if(t){const tn=t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); p.push("nome_busca=ilike."+encodeURIComponent("*"+tn+"*"));}
   const tp=document.getElementById("tipo").value; if(tp)p.push("tipo=eq."+encodeURIComponent(tp));
-  const og=document.getElementById("origem").value; if(og)p.push("origem=eq."+encodeURIComponent(og));
   const cs=document.getElementById("catsoc").value; if(cs)p.push("categoria_social=eq."+encodeURIComponent(cs));
   const g=document.getElementById("genero").value; if(g==="__null__")p.push("genero=is.null"); else if(g)p.push("genero=eq."+encodeURIComponent(g));
   const an=document.getElementById("ano").value; if(an)p.push("anos=cs."+encodeURIComponent("{"+an+"}"));
@@ -240,12 +241,12 @@ async function buscar(){
     if(!dados.length){ tbody.innerHTML='<tr><td colspan="5" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
     tbody.innerHTML=dados.map(d=>{ const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
       return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+tituloParen(d.nome,d.honorifico)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+
-        '</span></td><td>'+esc(per)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
+        '</span></td><td>'+esc(per)+'</td><td class="num" style="color:#7a8aa0;font-size:11px">'+esc(d.pontuacao)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
     }).join("");
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
   }catch(e){ status.textContent="Erro: "+e.message; }
 }
-function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("origem").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("limite").value="300"; buscar(); }
+function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("limite").value="300"; buscar(); }
 
 /* ----- DOSSIÊ ----- */
 async function abrirFicha(id){
@@ -547,9 +548,11 @@ function abrirImg(){
 }
 function blocoIdentidade(){
   const i=F.info; const L=[];
+  const SELO="<span class='selo' title='Valor inferido por heurística — não atestado diretamente pela fonte'>inferido</span>";
   const add=(lab,val)=>{ if(val!=null && String(val).trim()!=="") L.push("<div><b>"+lab+":</b> "+esc(val)+"</div>"); };
+  const addInf=(lab,val,inf)=>{ if(val!=null && String(val).trim()!=="") L.push("<div><b>"+lab+":</b> "+esc(val)+(inf?SELO:"")+"</div>"); };
   add("Subtipo", i.institution_type);
-  add("Gênero", i.gender); add("Ocupação", i.primary_occupation); add("Status jurídico", i.legal_status);
+  add("Gênero", i.gender); add("Ocupação", i.primary_occupation); addInf("Status jurídico", i.legal_status, i.legal_status_inferido);
   add("Estado civil", i.marital_status); add("Nobreza", i.nobility); add("Tratamento", i.honorific);
   add("Outro nome", i.alternate_name); add("Naturalidade", i.place_of_origin); add("Endereço", i.address);
   const nasc=dataExt(i.birth_year,i.birth_month,i.birth_day), morte=dataExt(i.death_year,i.death_month,i.death_day);
@@ -625,23 +628,232 @@ function baseDe(p){ return unidDe(p)?(p||"").replace(/\s*\([^)]*\)\s*$/,"").trim
 function cargasFiltradas(){ return F.cargas.filter(c=>{ if(F.cargaProds&&F.cargaProds.size&&!F.cargaProds.has(baseDe(c.produto))) return false; if(F.cargaUnid&&unidDe(c.produto)!==F.cargaUnid) return false; if(F.cargaAnoDe&&!(c.ano>=+F.cargaAnoDe)) return false; if(F.cargaAnoAte&&!(c.ano<=+F.cargaAnoAte)) return false; return true; }); }
 function barraFiltroCargas(){
   const esc1=v=>String(v).replace(/'/g,"\\'");
-  const bases=[...new Set(F.cargas.map(c=>baseDe(c.produto)))].sort();
-  const units=[...new Set(F.cargas.map(c=>unidDe(c.produto)).filter(Boolean))].sort();
-  const chip=(act,onc,lab)=>"<button onclick=\""+onc+"\" style=\"padding:3px 8px;margin:0 4px 4px 0;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid #d9e0ea;"+(act?'background:#2f5496;color:#fff':'background:#fff;color:#41526b')+"\">"+lab+"</button>";
+  const A=F._agg||{porProd:{},ks:[],grupos:[],usarGrupo:false};
   let h="<div style='background:#f7f9fc;border:1px solid #d9e0ea;border-radius:9px;padding:8px 10px;margin:8px 0;font-size:12px'>";
-  h+="<div style='margin-bottom:4px'><b style='color:#41526b'>Produtos:</b> "+chip(F.cargaProds.size===0,"todosProd()","Todos");
-  for(const b of bases) h+=chip(F.cargaProds.has(b),"toggleProd('"+esc1(b)+"')",esc(b));
+  if(A.usarGrupo){
+    const _prio=["Censo 1872","Censo 1890"];const _ocultos=["Pop. histórica"];const _og=[..._prio.filter(g=>A.grupos.includes(g)&&!_ocultos.includes(g)),...A.grupos.filter(g=>!_prio.includes(g)&&g!=="Outros"&&!_ocultos.includes(g)),...(A.grupos.includes("Outros")?["Outros"]:[])];
+    const grupoAtivo=_og.find(g=>{
+      const _bs=new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===g).map(k=>baseDe(k)));
+      return _bs.size>0&&F.cargaProds.size===_bs.size&&[..._bs].every(b=>F.cargaProds.has(b));
+    })||null;
+    const tabSt=(act)=>"padding:5px 14px;border:1px solid "+(act?"#2f5496 #2f5496 transparent":"#d9e0ea")+";border-bottom:"+(act?"none":"1px solid #d9e0ea")+";border-radius:6px 6px 0 0;cursor:pointer;font-size:12px;background:"+(act?"#fff":"#f0f3f8")+";color:"+(act?"#1f3a5f":"#41526b")+";margin-right:2px;position:relative;top:1px;font-weight:"+(act?"600":"400");
+    h+="<div style='display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid #d9e0ea;margin-bottom:8px'>";
+    if(F._activeGrupo)h+="<button onclick='todosProd()' style='padding:4px 10px;margin:0 6px 0 0;border-radius:6px 6px 0 0;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:#f0f3f8;color:#41526b;position:relative;top:1px'>&#8592; Voltar</button>";
+    for(const _g of _og){
+      const _bs=(A.ks||[]).filter(k=>A.porProd[k].grupo===_g);
+      if(!_bs.length)continue;
+      h+="<button onclick='selecionarGrupo(\""+esc1(_g)+"\")' style='"+tabSt(_g===grupoAtivo)+"'>"+esc(_g)+"</button>";
+    }
+    h+="</div>";
+    const _customGrps=["Censo 1872","Óbitos","Imigração","Censo 1890"];if(grupoAtivo&&!_customGrps.includes(grupoAtivo)){
+      const _prods=(A.ks||[]).filter(k=>A.porProd[k].grupo===grupoAtivo).map(k=>baseDe(k));
+      if(_prods.length>1){
+        h+="<div style='margin-bottom:6px'>";
+        const _allSel=_prods.every(b=>F.cargaProds.has(b));
+        h+="<button onclick='selecionarGrupo(\""+esc1(grupoAtivo)+"\")' style='padding:2px 8px;margin:0 4px 3px 0;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:"+(_allSel?"#2f5496":"#fff")+";color:"+(_allSel?"#fff":"#41526b")+"'>Todos</button>";
+        for(const b of _prods){
+          const act=F.cargaProds.has(b);
+          h+="<button onclick='toggleProd(\""+esc1(b)+"\")' style='padding:2px 8px;margin:0 4px 3px 0;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+"'>"+esc(b)+"</button>";
+        }
+        h+="</div>";
+      }
+    }
+  } else {
+    const bases=[...new Set(F.cargas.map(c=>baseDe(c.produto)))].sort();
+    const chip=(act,onc,lab)=>"<button onclick='"+onc+"' style='padding:3px 8px;margin:0 4px 4px 0;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid #d9e0ea;background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+"'>"+lab+"</button>";
+    h+="<div style='margin-bottom:4px'><b style='color:#41526b'>Produtos:</b> "+chip(F.cargaProds.size===0,"todosProd()","Todos");
+    for(const b of bases)h+=chip(F.cargaProds.has(b),"toggleProd('"+esc1(b)+"')",esc(b));
+    h+="</div>";
+  }
+  h+="<div style='margin-top:4px'><b style='color:#41526b'>Anos:</b> <input type='number' value='"+esc(F.cargaAnoDe)+"' placeholder='de' onchange='F.cargaAnoDe=this.value;renderCargas()' style='width:72px;padding:3px 6px;border:1px solid #d9e0ea;border-radius:6px'> <input type='number' value='"+esc(F.cargaAnoAte)+"' placeholder='até' onchange='F.cargaAnoAte=this.value;renderCargas()' style='width:72px;padding:3px 6px;border:1px solid #d9e0ea;border-radius:6px'></div>";
   h+="</div>";
-  if(units.length>1){ h+="<div style='margin-bottom:4px'><b style='color:#41526b'>Unidade:</b> "+chip(F.cargaUnid==="","setUnid('')","Todas"); for(const u of units) h+=chip(F.cargaUnid===u,"setUnid('"+esc1(u)+"')",esc(u)); h+="</div>"; }
-  h+="<b style='color:#41526b'>Anos:</b> <input type='number' value='"+esc(F.cargaAnoDe)+"' placeholder='de' onchange='F.cargaAnoDe=this.value;renderCargas()' style='width:72px;padding:3px 6px;border:1px solid #d9e0ea;border-radius:6px'> <input type='number' value='"+esc(F.cargaAnoAte)+"' placeholder='até' onchange='F.cargaAnoAte=this.value;renderCargas()' style='width:72px;padding:3px 6px;border:1px solid #d9e0ea;border-radius:6px'> "+chip(false,"limparCargas()","↺ limpar");
-  h+="</div>"; return h;
+  return h;
 }
+
 function toggleProd(b){ if(F.cargaProds.has(b))F.cargaProds.delete(b); else F.cargaProds.add(b); renderCargas(); }
-function todosProd(){ F.cargaProds.clear(); renderCargas(); }
+function selecionarGrupo(g){const A=F._agg||{};F.cargaProds=new Set((A.ks||[]).filter(k=>(A.porProd||{})[k]?.grupo===g).map(k=>baseDe(k)));F._activeGrupo=g;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;renderCargas();}function todosProd(){F._activeGrupo=null;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null; F.cargaProds.clear(); renderCargas(); }
 function setUnid(u){ F.cargaUnid=u; renderCargas(); }
 function limparCargas(){ F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderCargas(); }
 function grpDe(n){ const m=(n||"").match(/grupo=([^|]+)/); return m?m[1].trim():"Outros"; }
 function flagDe(n){ n=(n||"").toLowerCase(); if(n.indexOf("estimado")>=0) return "estimado"; if(n.indexOf("convertido")>=0||n.indexOf("não documental")>=0||n.indexOf("nao documental")>=0) return "convertido"; return ""; }
+function renderCenso1872(){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf');
+  const td=document.getElementById('cargaTabela');
+  if(!cv||!td)return;
+  cv.style.display='none';
+  const v=nome=>{const c=F.cargas.find(c=>c.produto===nome);return c?Number(c.valor):0;};
+  const lhBras=v("Pop. livre 1872 — Brasileira Homens");
+  const lhEstr=v("Pop. livre 1872 — Estrangeira Homens");
+  const lhTot=lhBras+lhEstr;
+  const ehAfr=v("Pop. escrava 1872 — Africana Homens");
+  const ehBras=v("Pop. escrava 1872 — Brasileira Homens");
+  const ehTot=ehAfr+ehBras;
+  const hTot=lhTot+ehTot;
+  const lmBras=v("Pop. livre 1872 — Brasileira Mulheres");
+  const lmEstr=v("Pop. livre 1872 — Estrangeira Mulheres");
+  const lmTot=lmBras+lmEstr;
+  const emAfr=v("Pop. escrava 1872 — Africana Mulheres");
+  const emBras=v("Pop. escrava 1872 — Brasileira Mulheres");
+  const emTot=emAfr+emBras;
+  const mTot=lmTot+emTot;
+  const fmt=n=>n.toLocaleString('pt-BR');
+  const pct=(n,d)=>" ("+((n/d)*100).toFixed(1)+"%)";
+  const sex=F._censo1872Sex||null;
+  const chipSex=(s,lbl,tot)=>{
+    const act=sex===s;
+    return "<button onclick=\"F._censo1872Sex='"+s+"';renderCargas()\" style=\"padding:6px 18px;margin:0 8px 0 0;border-radius:20px;font-size:12px;cursor:pointer;border:2px solid "+(act?"#2f5496":"#d9e0ea")+";background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"400")+"\">"+lbl+" <span style=\"font-weight:400;opacity:0.8\">("+fmt(tot)+")</span></button>";
+  };
+  let wrap="<div style='margin:8px 0'><div style='margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;gap:6px'>";
+  wrap+=chipSex('Homens','&#9794; Homens',hTot);
+  wrap+=chipSex('Mulheres','&#9792; Mulheres',mTot);
+  if(sex)wrap+="<button onclick=\"F._censo1872Sex=null;renderCargas()\" style=\"padding:4px 12px;border-radius:16px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:#fff;color:#7a8aa0\">← Visão geral</button>";
+  wrap+="</div>";
+  const mkC=(id,titulo)=>"<div style='flex:1;min-width:180px;text-align:center'><div style='font-size:11px;font-weight:600;color:#1f3a5f;margin-bottom:4px'>"+titulo+"</div><canvas id='"+id+"' style='max-height:195px'></canvas></div>";
+  if(!sex){
+    wrap+="<div style='display:flex;gap:16px;flex-wrap:wrap'>";
+    wrap+=mkC('dn_h',"Homens &mdash; "+fmt(hTot)+" hab.");
+    wrap+=mkC('dn_m',"Mulheres &mdash; "+fmt(mTot)+" hab.");
+    wrap+="</div>";
+    td.innerHTML=wrap+"</div>";
+    chartsD.push(new Chart(document.getElementById('dn_h'),{type:'doughnut',data:{labels:['Livres','Escravos'],datasets:[{data:[lhTot,ehTot],backgroundColor:['#1d9e75','#e05c2a'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,hTot)}}},cutout:'55%'}}));
+    chartsD.push(new Chart(document.getElementById('dn_m'),{type:'doughnut',data:{labels:['Livres','Escravas'],datasets:[{data:[lmTot,emTot],backgroundColor:['#1d9e75','#e05c2a'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,mTot)}}},cutout:'55%'}}));
+  } else {
+    const isH=(sex==='Homens');
+    const tot=isH?hTot:mTot;
+    const lTot=isH?lhTot:lmTot;
+    const eTot=isH?ehTot:emTot;
+    const lBras=isH?lhBras:lmBras;
+    const lEstr=isH?lhEstr:lmEstr;
+    const eAfr=isH?ehAfr:emAfr;
+    const eBras=isH?ehBras:emBras;
+    const lblL=isH?'Livres (H)':'Livres (M)';
+    const lblE=isH?'Escravos (H)':'Escravas (M)';
+    wrap+="<div style='display:flex;gap:12px;flex-wrap:wrap'>";
+    wrap+=mkC('dn_cond',"Condição");
+    wrap+=mkC('dn_lnac',lblL+" &mdash; nac.");
+    wrap+=mkC('dn_enac',lblE+" &mdash; nac.");
+    wrap+="</div>";
+    td.innerHTML=wrap+"</div>";
+    chartsD.push(new Chart(document.getElementById('dn_cond'),{type:'doughnut',data:{labels:[lblL,lblE],datasets:[{data:[lTot,eTot],backgroundColor:['#1d9e75','#e05c2a'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,tot)}}},cutout:'55%'}}));
+    chartsD.push(new Chart(document.getElementById('dn_lnac'),{type:'doughnut',data:{labels:['Brasileira','Estrangeira'],datasets:[{data:[lBras,lEstr],backgroundColor:['#2f5496','#7f77dd'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,lTot)}}},cutout:'55%'}}));
+    chartsD.push(new Chart(document.getElementById('dn_enac'),{type:'doughnut',data:{labels:['Brasileira','Africana'],datasets:[{data:[eBras,eAfr],backgroundColor:['#ba7517','#c0392b'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,eTot)}}},cutout:'55%'}}));
+  }
+}
+
+function renderObitos(){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf'),td=document.getElementById('cargaTabela');
+  if(!cv||!td)return;
+  cv.style.display='none';
+  const vc=(nome,ano)=>{const r=F.cargas.find(c=>c.produto===nome&&c.ano===ano);return r?Number(r.valor):0;};
+  const fmt=n=>n.toLocaleString('pt-BR');
+  const anos15=Array.from({length:20},(_,i)=>1850+i);
+  const anos16=Array.from({length:20},(_,i)=>1870+i);
+  const anosAll=[...anos15,...anos16];
+  const totAnno=a=>a<=1869
+    ?vc("Óbitos — Livre Homens",a)+vc("Óbitos — Livre Mulheres",a)+vc("Óbitos — Escravo Homens",a)+vc("Óbitos — Escravo Mulheres",a)
+    :vc("Óbitos por doença — Febre amarela",a)+vc("Óbitos por doença — Tuberculose",a)+vc("Óbitos por doença — Varíola",a)+vc("Óbitos por doença — Doenças diversas",a);
+  const CORES={livre:'#1d9e75',escravo:'#e05c2a',hom:'#2f5496',mul:'#7f77dd',febre:'#c0392b',tbc:'#ba7517',var:'#8e44ad',div:'#95a5a6'};
+  const brk=F._obitosBreak||null;
+  const chip=(val,lbl)=>{const act=brk===val;return "<button onclick=\"F._obitosBreak="+(val?("'"+val+"'"):"null")+";renderCargas()\" style=\"padding:3px 10px;margin:0 4px 4px 0;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid "+(act?"#2f5496":"#d9e0ea")+";background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+"\">"+lbl+"</button>";};
+  const secH=(t,sub)=>"<div style='font-size:12px;font-weight:600;color:#1f3a5f;margin-bottom:"+(sub?"2px":"6px")+"'>"+t+"</div>";
+  td.innerHTML=(
+    "<div style='margin-top:4px'>"
+    +"<div style='margin-bottom:24px'><div style='font-size:12px;font-weight:600;color:#1f3a5f;margin-bottom:8px'>Óbitos totais por ano</div>"
+    +"<div style='display:flex;gap:0'>"
+    +"<div style='flex:1;border-right:3px solid #e8edf4;padding-right:14px'><div style='font-size:10.5px;font-weight:600;color:#4a7fd4;margin-bottom:4px'>Tab. XV — Condição e sexo (1850–1869)</div><canvas id='ob_tot15' height='110'></canvas></div>"
+    +"<div style='flex:1;padding-left:14px'><div style='font-size:10.5px;font-weight:600;color:#c0392b;margin-bottom:4px'>Tab. XVI — Por doença (1870–1889)</div><canvas id='ob_tot16' height='110'></canvas></div>"
+    +"</div></div>"
+    +"<div style='margin-bottom:22px'>"+secH("Por condição e sexo — 1850 a 1869",true)
+    +"<div style='margin-bottom:6px'>"+chip(null,"Total")+chip('cond',"Livre / Escravo")+chip('sexo',"Homens / Mulheres")+chip('ambos',"Condição × Sexo")+"</div>"
+    +"<canvas id='ob_cond' height='120'></canvas></div>"
+    +"<div>"+secH("Por causa de morte — 1870 a 1889")
+    +"<canvas id='ob_doe' height='120'></canvas></div>"
+    +"</div>"
+  );
+  // Chart 1 – total
+  const _optTot={plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)+' óbitos'}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}},x:{ticks:{maxRotation:55,font:{size:10}}}},animation:{duration:300}};chartsD.push(new Chart(document.getElementById('ob_tot15'),{type:'bar',data:{labels:anos15,datasets:[{data:anos15.map(totAnno),backgroundColor:'#4a7fd4',borderWidth:0}]},options:_optTot}));chartsD.push(new Chart(document.getElementById('ob_tot16'),{type:'bar',data:{labels:anos16,datasets:[{data:anos16.map(totAnno),backgroundColor:'#c0392b',borderWidth:0}]},options:_optTot}));
+  // Chart 2 – condition/sex breakdown
+  let ds2;
+  if(!brk) ds2=[{label:'Óbitos',data:anos15.map(totAnno),backgroundColor:'#4a7fd4',borderWidth:0}];
+  else if(brk==='cond') ds2=[{label:'Livre',data:anos15.map(a=>vc("Óbitos — Livre Homens",a)+vc("Óbitos — Livre Mulheres",a)),backgroundColor:CORES.livre,borderWidth:0},{label:'Escravo',data:anos15.map(a=>vc("Óbitos — Escravo Homens",a)+vc("Óbitos — Escravo Mulheres",a)),backgroundColor:CORES.escravo,borderWidth:0}];
+  else if(brk==='sexo') ds2=[{label:'Homens',data:anos15.map(a=>vc("Óbitos — Livre Homens",a)+vc("Óbitos — Escravo Homens",a)),backgroundColor:CORES.hom,borderWidth:0},{label:'Mulheres',data:anos15.map(a=>vc("Óbitos — Livre Mulheres",a)+vc("Óbitos — Escravo Mulheres",a)),backgroundColor:CORES.mul,borderWidth:0}];
+  else ds2=[{label:'Livre H',data:anos15.map(a=>vc("Óbitos — Livre Homens",a)),backgroundColor:CORES.livre,borderWidth:0},{label:'Livre M',data:anos15.map(a=>vc("Óbitos — Livre Mulheres",a)),backgroundColor:CORES.hom,borderWidth:0},{label:'Escravo H',data:anos15.map(a=>vc("Óbitos — Escravo Homens",a)),backgroundColor:CORES.escravo,borderWidth:0},{label:'Escravo M',data:anos15.map(a=>vc("Óbitos — Escravo Mulheres",a)),backgroundColor:CORES.mul,borderWidth:0}];
+  chartsD.push(new Chart(document.getElementById('ob_cond'),{type:'bar',data:{labels:anos15,datasets:ds2},options:{plugins:{legend:{display:!!brk,position:'top',labels:{font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}},scales:{x:{stacked:true,ticks:{maxRotation:55,font:{size:10}}},y:{stacked:true,beginAtZero:true,ticks:{callback:v=>fmt(v)}}},animation:{duration:250}}}));
+  // Chart 3 – by disease stacked
+  chartsD.push(new Chart(document.getElementById('ob_doe'),{type:'bar',data:{labels:anos16,datasets:[{label:'Febre amarela',data:anos16.map(a=>vc("Óbitos por doença — Febre amarela",a)),backgroundColor:CORES.febre,borderWidth:0},{label:'Tuberculose',data:anos16.map(a=>vc("Óbitos por doença — Tuberculose",a)),backgroundColor:CORES.tbc,borderWidth:0},{label:'Varíola',data:anos16.map(a=>vc("Óbitos por doença — Varíola",a)),backgroundColor:CORES.var,borderWidth:0},{label:'Doenças diversas',data:anos16.map(a=>vc("Óbitos por doença — Doenças diversas",a)),backgroundColor:CORES.div,borderWidth:0}]},options:{plugins:{legend:{position:'top',labels:{font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}},scales:{x:{stacked:true,ticks:{maxRotation:55,font:{size:10}}},y:{stacked:true,beginAtZero:true,ticks:{callback:v=>fmt(v)}}},animation:{duration:250}}}));
+}
+
+function renderImigracao(){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf'),td=document.getElementById('cargaTabela');
+  if(!cv||!td)return;
+  cv.style.display='none';
+  const vp=(nome)=>{const r=F.cargas.find(c=>c.produto===nome);return r?Number(r.valor):0;};
+  const vc=(nome,ano)=>{const r=F.cargas.find(c=>c.produto===nome&&c.ano===ano);return r?Number(r.valor):0;};
+  const fmt=n=>n.toLocaleString('pt-BR');
+  const pct=(n,d)=>" ("+((n/d)*100).toFixed(1)+"%)";
+  // Temporal series: Imigrantes portugueses 1844-1878
+  const anosPort=Array.from({length:35},(_,i)=>1844+i);
+  const dataPort=anosPort.map(a=>vc("Imigrantes portugueses",a));
+  // 1882 nationalities
+  const nacs=[["Portugueses","#2f5496"],["Italianos","#1d9e75"],["Alemães","#e05c2a"],["Espanhóis","#7f77dd"],["Franceses","#ba7517"],["Ingleses","#c0392b"],["Austríacos","#16a085"],["Outras nacionalidades","#95a5a6"]];
+  const totNac=nacs.reduce((s,[n])=>s+vp("Imig. 1882 — "+n),0);
+  // 1882 destinations
+  const dests=[["São Paulo","#2f5496"],["Rio de Janeiro (província)","#1d9e75"],["Rio Grande do Sul","#e05c2a"],["Minas Gerais","#7f77dd"],["Paraná","#ba7517"],["Santa Catarina","#c0392b"],["Bahia","#16a085"],["Pernambuco","#8e44ad"],["Espírito Santo","#f39c12"],["Pará","#95a5a6"],["Maranhão","#d35400"],["Paraíba","#7d3c98"]];
+  const totDest=dests.reduce((s,[n])=>s+vp("Destino imig. 1882 — "+n),0);
+  td.innerHTML=(
+    "<div style='margin-top:4px'>"
+    +"<div style='margin-bottom:22px'><div style='font-size:12px;font-weight:600;color:#1f3a5f;margin-bottom:6px'>Imigrantes portugueses por ano — 1844 a 1878</div><canvas id='im_port' height='110'></canvas></div>"
+    +"<div style='display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px'>"
+    +"<div style='flex:1;min-width:200px;text-align:center'><div style='font-size:12px;font-weight:600;color:#1f3a5f;margin-bottom:4px'>Imigrantes por nac. (1882) &mdash; total: "+fmt(totNac)+"</div><canvas id='im_nac' style='max-height:200px'></canvas></div>"
+    +"<div style='flex:1;min-width:200px;text-align:center'><div style='font-size:12px;font-weight:600;color:#1f3a5f;margin-bottom:4px'>Destino dos imigrantes (1882) &mdash; total: "+fmt(totDest)+"</div><canvas id='im_dest' style='max-height:200px'></canvas></div>"
+    +"</div></div>"
+  );
+  chartsD.push(new Chart(document.getElementById('im_port'),{type:'bar',data:{labels:anosPort,datasets:[{label:'Imigrantes portugueses',data:dataPort,backgroundColor:'#2f5496',borderWidth:0}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)+' imigrantes'}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}},x:{ticks:{maxRotation:55,font:{size:10}}}},animation:{duration:300}}}));
+  chartsD.push(new Chart(document.getElementById('im_nac'),{type:'doughnut',data:{labels:nacs.map(([n])=>n),datasets:[{data:nacs.map(([n])=>vp("Imig. 1882 — "+n)),backgroundColor:nacs.map(([,c])=>c),borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,totNac)}}},cutout:'50%'}}));
+  chartsD.push(new Chart(document.getElementById('im_dest'),{type:'doughnut',data:{labels:dests.map(([n])=>n),datasets:[{data:dests.map(([n])=>vp("Destino imig. 1882 — "+n)),backgroundColor:dests.map(([,c])=>c),borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,totDest)}}},cutout:'50%'}}));
+}
+
+function renderCenso1890(){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf'),td=document.getElementById('cargaTabela');
+  if(!cv||!td)return;
+  cv.style.display='none';
+  const v=nome=>{const r=F.cargas.find(c=>c.produto===nome);return r?Number(r.valor):0;};
+  const fmt=n=>n.toLocaleString('pt-BR');
+  const pct=(n,d)=>" ("+((n/d)*100).toFixed(1)+"%)";
+  const hBras=v("Pop. 1890 — Brasileira Homens"),hEstr=v("Pop. 1890 — Estrangeira Homens");
+  const mBras=v("Pop. 1890 — Brasileira Mulheres"),mEstr=v("Pop. 1890 — Estrangeira Mulheres");
+  const hTot=hBras+hEstr,mTot=mBras+mEstr,tot=hTot+mTot;
+  const sex=F._censo1890Sex||null;
+  const chipSex=(s,lbl,t)=>{const act=sex===s;return "<button onclick=\"F._censo1890Sex='"+s+"';renderCargas()\" style=\"padding:6px 18px;margin:0 8px 0 0;border-radius:20px;font-size:12px;cursor:pointer;border:2px solid "+(act?"#2f5496":"#d9e0ea")+";background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"400")+"\">"+ lbl+" <span style=\"font-weight:400;opacity:0.8\">("+fmt(t)+")</span></button>";};
+  let wrap="<div style='margin:8px 0'><div style='margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;gap:6px'>";
+  wrap+=chipSex('Homens','&#9794; Homens',hTot)+chipSex('Mulheres','&#9792; Mulheres',mTot);
+  if(sex)wrap+="<button onclick=\"F._censo1890Sex=null;renderCargas()\" style=\"padding:4px 12px;border-radius:16px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:#fff;color:#7a8aa0\">← Visão geral</button>";
+  wrap+="</div>";
+  const mkC=(id,t)=>"<div style='flex:1;min-width:180px;text-align:center'><div style='font-size:11px;font-weight:600;color:#1f3a5f;margin-bottom:4px'>"+t+"</div><canvas id='"+id+"' style='max-height:195px'></canvas></div>";
+  const _optD={plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},cutout:'55%'};
+  const mkChart=(id,lbls,data,cols,d)=>chartsD.push(new Chart(document.getElementById(id),{type:'doughnut',data:{labels:lbls,datasets:[{data,backgroundColor:cols,borderWidth:2}]},options:{plugins:{legend:_optD.plugins.legend,tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,d)}}},cutout:_optD.cutout}}));
+  if(!sex){
+    wrap+="<div style='display:flex;gap:16px;flex-wrap:wrap'>"+mkC('c90_h',"Homens — "+fmt(hTot)+" hab.")+mkC('c90_m',"Mulheres — "+fmt(mTot)+" hab.")+"</div>";
+    td.innerHTML=wrap+"</div>";
+    mkChart('c90_h',['Brasileira','Estrangeira'],[hBras,hEstr],['#2f5496','#7f77dd'],hTot);
+    mkChart('c90_m',['Brasileira','Estrangeira'],[mBras,mEstr],['#2f5496','#7f77dd'],mTot);
+  } else {
+    const isH=(sex==='Homens'),tSex=isH?hTot:mTot,bSex=isH?hBras:mBras,eSex=isH?hEstr:mEstr;
+    wrap+="<div style='display:flex;gap:16px;flex-wrap:wrap'>"+mkC('c90_sex',"Homens vs Mulheres — "+fmt(tot)+" hab.")+mkC('c90_nac',(isH?'Homens':'Mulheres')+" — Nacionalidade")+"</div>";
+    td.innerHTML=wrap+"</div>";
+    mkChart('c90_sex',['Homens','Mulheres'],[hTot,mTot],['#2f5496','#7f77dd'],tot);
+    mkChart('c90_nac',['Brasileira','Estrangeira'],[bSex,eSex],['#1d9e75','#e05c2a'],tSex);
+  }
+}
+
 function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw) return;
   const temRelVal=F.rels.some(r=>r.valor!=null);
   if(!F.cargas.length && !temRelVal){ cw.innerHTML=""; return; }
@@ -650,6 +862,7 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; const usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
   F._agg={porProd,ks,grupos,usarGrupo};
+  if(usarGrupo&&!F._activeGrupo&&grupos.includes("Censo 1872")){F._activeGrupo="Censo 1872";F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo==="Censo 1872").map(k=>baseDe(k)));}
   const ehInventario=!!(F.bens&&F.bens.length);
   let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length && !ehInventario) h+=barraFiltroCargas();
   if(ehInventario) h+="<p style='font-size:11.5px;color:#7a8aa0;margin:2px 0 0'>Totais do inventário (retrato de "+(F.bens[0].ano||"")+", sem série temporal). Veja a distribuição no gráfico de “Bens do inventário” abaixo.</p>";
@@ -657,7 +870,13 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   h+="<div id='cargaTabela'></div>";
   const fonte=F.cargas.find(c=>c.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
   if(F.moeda!=="reis") h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Conversão pela tabela de Moura Filho (2010); só valores monetários (Soma/valor) convertem; ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
-  cw.innerHTML=h; renderGrafico(); renderTabelaSerie();
+  cw.innerHTML=h;
+  if(F._activeGrupo==="Censo 1872"){renderCenso1872();return;}
+  if(F._activeGrupo==="Óbitos"){renderObitos();return;}
+  if(F._activeGrupo==="Imigração"){renderImigracao();return;}
+  if(F._activeGrupo==="Censo 1890"){renderCenso1890();return;}
+  if(usarGrupo&&!F._activeGrupo){const cv2=document.getElementById("graf"),td2=document.getElementById("cargaTabela");if(cv2)cv2.style.display="none";if(td2)td2.innerHTML="<p style='color:#7a8aa0;font-size:12px;margin:16px 4px'>Selecione uma aba acima para visualizar os dados.</p>";return;}
+  renderGrafico(); renderTabelaSerie();
 }
 function autoModo(){
   // Quando produtos específicos estão selecionados, a tabela usa o bloco agregado por produto (modo="")
@@ -687,7 +906,7 @@ function renderTabelaSerie(){
     const byY={}, flagY={};
     for(const c of cargasFiltradas()){ if(c.ano==null) continue; if(isGrp?(grpDe(c.notes)!==key):(c.produto!==key)) continue; if(c.valor!=null) byY[c.ano]=(byY[c.ano]||0)+Number(c.valor); const f=flagDe(c.notes); if(f) flagY[c.ano]=f; }
     const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
-    const mon=isGrp?true:isMonet(key,null);
+    const mon=isGrp?cargasFiltradas().some(c=>grpDe(c.notes)===key&&isMonet(c.produto,c.moeda)):isMonet(key,null);
     const titulo=isGrp?(key+" — total por ano"):key;
     h+="<div style='margin-top:8px;font-weight:600;color:#1f3a5f;font-size:12.8px'>"+esc(titulo)+"</div>";
     h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
@@ -731,7 +950,7 @@ function renderGrafico(){
     const maxVals=series.map(s=>s.mx).filter(v=>v>0);
     const eixoDuplo=maxVals.length>=2&&Math.max(...maxVals)/Math.min(...maxVals)>10;
     const datasets=series.map((s,i)=>({
-      label:s.prod+" ("+simb+")",
+      label:isMonet(s.prod,null)?s.prod+" ("+simb+")":s.prod,
       data:todosAnos.map(y=>s.byY[y]!=null?Math.round(s.byY[y]):null),
       borderColor:CORES[i%CORES.length], backgroundColor:CORES[i%CORES.length]+"28",
       tension:.2, fill:false, spanGaps:true,
@@ -805,13 +1024,6 @@ function exportFichaCSV(){
   baixarCSV("dossie_"+(F.info.nome||"registro").replace(/[^a-z0-9]+/gi,"_").slice(0,40)+".csv",L);
 }
 
-async function carregarOrigens(){
-  try{ const {dados}=await getJSON("v_origens?select=origem,atores&order=atores.desc");
-    const sel=document.getElementById("origem");
-    dados.forEach(d=>{ const o=document.createElement("option"); o.value=d.origem; o.textContent=d.origem+" ("+d.atores+")"; sel.appendChild(o); });
-  }catch(e){}
-}
-carregarOrigens();
 async function carregarCategorias(){
   try{ const {dados}=await getJSON("v_categorias?select=categoria_social,atores&order=atores.desc");
     const sel=document.getElementById("catsoc");
@@ -821,7 +1033,8 @@ async function carregarCategorias(){
 carregarCategorias();
 document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
-buscar();
+buscar();setTimeout(()=>setSort("pontuacao"),0);
 </script>
 </body>
 </html>
+                                                                                                                    
