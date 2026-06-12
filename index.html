@@ -61,6 +61,11 @@
   .item a{ color:var(--azul2); cursor:pointer; text-decoration:none; }
   .item .ano{ color:#7a8aa0; font-size:11.5px; } .item .val{ color:#0f6e56; font-weight:600; }
   .item .nota{ display:block; color:#7a8aa0; font-size:11px; }
+  .src{ color:#aab4c4; cursor:pointer; font-size:12px; margin-left:3px; vertical-align:baseline; user-select:none; }
+  .src:hover{ color:#2f5496; }
+  #fontePop{ position:fixed; z-index:120; max-width:340px; background:#fff; border:1px solid #c9d3e0; border-radius:9px; box-shadow:0 6px 24px rgba(0,0,0,.18); padding:10px 12px; font-size:11.8px; color:#41526b; line-height:1.5; display:none; }
+  #fontePop .ttl{ font-weight:600; color:#1f3a5f; margin-bottom:3px; }
+  #fontePop a{ color:#2f5496; text-decoration:none; }
   .mais{ font-size:12px; color:var(--azul2); padding-top:4px; cursor:pointer; }
   .legenda{ font-size:11.5px; color:#5f5e5a; padding:8px 16px; border-top:1px solid var(--borda); background:#fafbfd; }
   .legenda .badge{ margin-right:6px; }
@@ -110,6 +115,7 @@
   </div>
 </div>
 
+<div id="fontePop"></div>
 <div class="overlay" id="overlay">
   <div class="modal">
     <header>
@@ -249,18 +255,19 @@ async function abrirFicha(id){
   try{
     const det=(await getJSON("v_actor_detalhe?actor_id=eq."+id)).dados[0]||{nome:"(sem nome)"};
     const mv=(await getJSON("mv_busca_atores?actor_id=eq."+id+"&select=tipo,origem,fonte,fonte_autor,ano_min,ano_max,n_registros,n_relacoes,nome_incompleto")).dados[0]||{};
-    const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes&order=relation_name.asc&limit=1000",true);
+    const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes,source_id,fonte_ref,fonte_url&order=relation_name.asc&limit=1000",true);
     const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte&order=ano.asc&limit=1500");
     const ben=await getJSON("v_inventario_bens?actor_id=eq."+id+"&select=item_id,categoria,subcategoria,descricao,quantidade,unidade,valor,moeda,ano,local,rel_actor_id,rel_nome,notes,fonte&order=valor.desc.nullslast&limit=2000");
-    const cot=await getJSON("v_cotacoes?actor_id=eq."+id+"&select=ano,nome_ativo,ativo,tipo,categoria_epoca,fase_historica,min_reis,max_reis,avg_reis,volume,faixa_preco,is_percent,moeda,fonte&order=ativo.asc,ano.asc&limit=3000");
-    let bolsaAno=[], bolsaSetor=[];
+    const cot=await getJSON("v_cotacoes?actor_id=eq."+id+"&select=ano,nome_ativo,ativo,tipo,categoria_epoca,fase_historica,min_reis,max_reis,avg_reis,volume,faixa_preco,is_percent,moeda,fonte,base_dados&order=ativo.asc,ano.asc&limit=3000");
+    let bolsaAno=[], bolsaSetor=[], bolsaFonte=null;
     if((det.institution_type||"")==="Bolsa de valores"){
       bolsaAno=(await getJSON("v_bolsa_por_ano?select=ano,emissores,ativos,volume_total&order=ano.asc")).dados;
       bolsaSetor=(await getJSON("v_bolsa_por_setor?select=setor,emissores,ativos&order=ativos.desc")).dados;
+      bolsaFonte=(await getJSON("v_bolsa_fonte?select=fonte,base_dados,autor")).dados[0]||null;
     }
     const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
     let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
-    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, bens:ben.dados, cotacoes:cot.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
+    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, bens:ben.dados, cotacoes:cot.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
     renderHead(); renderRede(); renderFichaTudo();
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
@@ -358,7 +365,11 @@ function renderCotacoes(){
     const toggle="F.expand['"+esc(ek)+"']="+(aberto?"0":"1")+";renderCotacoes()";
     h+="<div class='grp'><h4 style='cursor:pointer' onclick=\""+toggle+"\"><span class='badge' style='background:#1d6e56'>"+esc(k)+"</span> <span class='cnt'>"+o.linhas.length+" anos</span> · "+esc(banda)+(o.categoria?(" · "+esc(o.categoria)):"")+" <span class='ano'>["+(aberto?"−":"+")+"]</span></h4>"+det+"</div>";
   }
-  const fonte=cot.find(c=>c.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
+  const frow=cot.find(c=>c.fonte)||cot.find(c=>c.base_dados);
+  if(frow){ let fh="";
+    if(frow.fonte) fh+="<div>Fonte primária: "+esc(frow.fonte)+"</div>";
+    if(frow.base_dados) fh+="<div>Base de dados: "+esc(frow.base_dados)+"</div>";
+    h+="<div style='font-size:11.5px;color:#7a8aa0;margin-top:8px;line-height:1.5'>"+fh+"</div>"; }
   w.innerHTML=h;
   // gráfico: faixa min-max por ano (área) agregando todos os ativos do emissor
   const cv=document.getElementById("grafCot");
@@ -392,6 +403,11 @@ function renderBolsa(){
   h+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:4px 0'>Ativos e emissores negociados por ano</div>";
   h+="<canvas id='grafBolsaA' height='150'></canvas>";
   h+="<div style='position:relative;height:240px;margin-top:14px'><div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:4px 0'>Ativos por setor (reclassificado)</div><canvas id='grafBolsaS'></canvas></div>";
+  const bf=F.bolsaFonte;
+  if(bf){ let fh="";
+    if(bf.fonte) fh+="<div>Fonte primária: "+esc(bf.fonte)+"</div>";
+    if(bf.base_dados) fh+="<div>Base de dados: "+esc(bf.base_dados)+"</div>";
+    h+="<div style='font-size:11.5px;color:#7a8aa0;margin-top:12px;line-height:1.5'>"+fh+"</div>"; }
   w.innerHTML=h;
   if(typeof Chart==="undefined") return;
   if(chartBolsaA){chartBolsaA.destroy();chartBolsaA=null;}
@@ -559,8 +575,22 @@ function relFiltradas(){
     return true;
   });
 }
+function ehCredito(n){ return /^\s*BD\b[\s\S]*\)\.?\s*$/i.test(n||""); }
+function fonteBox(ev,sid){
+  ev.stopPropagation();
+  const pop=document.getElementById("fontePop"); if(!pop) return;
+  const f=(F.fontesMap||{})[sid];
+  if(!f){ pop.style.display="none"; return; }
+  let html="<div class='ttl'>Fonte</div><div>"+esc(f.ref||"(referência não informada)")+"</div>";
+  if(f.url) html+="<div style='margin-top:6px'><a href='"+esc(f.url)+"' target='_blank' rel='noopener'>🔗 ver no acervo</a></div>";
+  pop.innerHTML=html; pop.style.display="block";
+  const x=Math.min(ev.clientX,(window.innerWidth||800)-360), y=Math.min(ev.clientY+12,(window.innerHeight||600)-170);
+  pop.style.left=Math.max(8,x)+"px"; pop.style.top=Math.max(8,y)+"px";
+}
+document.addEventListener("click",function(e){ const p=document.getElementById("fontePop"); if(p&&p.style.display==="block"&&!p.contains(e.target)&&!(e.target.classList&&e.target.classList.contains("src"))) p.style.display="none"; });
 function renderRelacoes(){
   const wrap=document.getElementById("relWrap"); if(!wrap) return;
+  F.fontesMap={}; (F.rels||[]).forEach(r=>{ if(r.source_id && !F.fontesMap[r.source_id]) F.fontesMap[r.source_id]={ref:r.fonte_ref,url:r.fonte_url}; });
   const dados=relFiltradas(); const porTipo={};
   for(const r of dados){ const k=r.relation_name||"relação"; (porTipo[k]=porTipo[k]||[]).push(r); }
   const chaves=Object.keys(porTipo).sort((a,b)=>porTipo[b].length-porTipo[a].length);
@@ -571,8 +601,9 @@ function renderRelacoes(){
       const val=(r.valor==null)?"":((r.moeda&&/r[eé]is/i.test(r.moeda))?fmtDinheiro(Number(r.valor),r.ano):milreis(r.valor,r.moeda));
       const aH=per?(' <span class="ano">'+esc(per)+'</span>'):''; const vH=val?(' <span class="val">'+esc(val)+'</span>'):'';
       const pH=r.role_name?(' <span class="ano">('+esc(String(r.role_name).replace(/\|/g," · "))+')</span>'):'';
-      const nH=r.notes?('<span class="nota">'+esc(r.notes)+'</span>'):'';
-      return '<div class="item"><a onclick="abrirFicha('+r.rel_actor_id+')">'+esc(r.rel_nome||"(sem nome)")+'</a>'+aH+vH+pH+nH+'</div>';
+      const sH=r.source_id?(' <span class="src" title="'+esc(r.fonte_ref||"Fonte").replace(/"/g,"&quot;")+'" onclick="fonteBox(event,'+r.source_id+')">ⓘ</span>'):'';
+      const nH=(r.notes && !ehCredito(r.notes))?('<span class="nota">'+esc(r.notes)+'</span>'):'';
+      return '<div class="item"><a onclick="abrirFicha('+r.rel_actor_id+')">'+esc(r.rel_nome||"(sem nome)")+'</a>'+aH+vH+pH+sH+nH+'</div>';
     }).join("");
     if(arr.length>LIM) its+='<div class="mais" onclick="F.expand[\''+esc(k).replace(/'/g,"")+'\']=1;renderRelacoes()">+ '+(arr.length-LIM)+' mais…</div>';
     h+="<div class='grp'><h4><span class='badge' style='background:"+(COR[arr[0].rel_tipo]||"#888")+"'>"+esc(relpt(k))+"</span> <span class='cnt'>"+arr.length+"</span></h4>"+its+"</div>";
@@ -583,7 +614,7 @@ function renderRelacoes(){
 }
 async function carregarTodasRel(){
   const id=F.info.actor_id;
-  const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes&order=relation_name.asc&limit="+F.relsTotal,true);
+  const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes,source_id,fonte_ref,fonte_url&order=relation_name.asc&limit="+F.relsTotal,true);
   F.rels=rel.dados; F.relsTotal=rel.total; renderHead(); renderRede();
   const f=document.getElementById("ficha"); document.querySelector(".ffiltros").outerHTML=filtrosFichaHTML(); renderRelacoes();
 }
