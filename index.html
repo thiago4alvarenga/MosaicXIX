@@ -263,8 +263,7 @@ async function buscar(){
     const {dados,total}=await getJSON(montarURL(),true); ultimaBusca=dados;
     if(!dados.length){ tbody.innerHTML='<tr><td colspan="5" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
     tbody.innerHTML=dados.map(d=>{ const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
-      return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+tituloParen(d.nome,d.honorifico)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+
-        '</span></td><td style="font-size:11.5px;color:#5b6b86">'+esc(d.institution_type||"")+'</td><td>'+esc(per)+'</td><td class="num" style="color:#7a8aa0;font-size:11px">'+esc(d.pontuacao)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
+      return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+tituloParen(d.nome,d.honorifico)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+'</span>'+(d.institution_type?'<br><span style="font-size:10.5px;color:#9aa6b5">'+esc(d.institution_type)+'</span>':'')+'</td><td>'+esc(per)+'</td><td class="num" style="color:#7a8aa0;font-size:11px">'+esc(d.pontuacao)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
     }).join("");
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
   }catch(e){ status.textContent="Erro: "+e.message; }
