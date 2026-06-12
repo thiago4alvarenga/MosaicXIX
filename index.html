@@ -92,11 +92,13 @@
     <div class="campo full"><label>Buscar por nome</label>
       <input id="texto" type="text" placeholder="ex.: Rosário, Joaquim Pedro Belo, Caixa, Companhia Geral..." /></div>
     <div class="campo"><label>Tipo</label>
-      <select id="tipo"><option value="">Todos os tipos</option><option>Pessoa</option><option>Embarcação</option><option>Companhia</option><option>Instituição</option></select></div>
+      <select id="tipo" onchange="onTipoChange()"><option value="">Todos os tipos</option><option>Pessoa</option><option>Embarcação</option><option>Companhia</option><option>Instituição</option></select></div>
+    <div class="campo" id="campo-subtipo" style="display:none"><label>Subtipo</label>
+      <select id="subtipo"><option value="">Todos</option></select></div>
     <div class="campo"><label>Ano (aparece em)</label><input id="ano" type="number" min="1700" max="1950" placeholder="ex.: 1790" /></div>
-    <div class="campo"><label>Categoria social</label>
+    <div class="campo" id="campo-catsoc" style="display:none"><label>Categoria social</label>
       <select id="catsoc"><option value="">Todas</option></select></div>
-    <div class="campo"><label>Gênero</label>
+    <div class="campo" id="campo-genero" style="display:none"><label>Gênero</label>
       <select id="genero"><option value="">Todos</option><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="__null__">Não identificado</option></select></div>
     <div class="campo"><label>Limite</label><select id="limite"><option>100</option><option selected>300</option><option>1000</option></select></div>
     <div class="campo"><label>&nbsp;</label><div class="acoes">
@@ -150,7 +152,9 @@ const HDRS={ apikey:ANON, Authorization:"Bearer "+ANON };
 const esc=s=>(s==null?"":String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const COR={ "Pessoa":"#3a7bd5","Embarcação":"#1d9e75","Companhia":"#7f77dd","Instituição":"#ba7517","Desconhecido":"#8a97a8" };
 const RELPT={ CaptainOf:"capitão", OwnerOf:"proprietário", Deposit:"depósito/poupança", Debt:"dívida",
-  OfficeHolding:"cargo", FatherOf:"pai de", SonOf:"filho de", MotherOf:"mãe de", DaughterOf:"filha de", EnslavedBy:"escravizado por" };
+  OfficeHolding:"cargo", FatherOf:"pai de", SonOf:"filho de", MotherOf:"mãe de", DaughterOf:"filha de", EnslavedBy:"escravizado por",
+  HasLegislature:"tem câmara/legislativo", HasSubdivision:"tem subdivisão", LegislatureOf:"legislativo de",
+  SubdivisionOf:"subdivisão de", RelativeOf:"parente de" };
 const relpt=r=>RELPT[r]||(r||"relação");
 const RATES={1795:[3.56,3.56,0.78,0.78],1796:[3.56,3.56,0.83,0.8],1797:[3.56,3.56,0.8,0.8],1798:[3.56,3.56,0.81,0.8],1799:[3.56,3.56,0.86,0.8],1800:[3.56,3.56,0.78,0.8],1801:[3.56,3.56,0.81,0.8],1802:[3.56,3.56,0.79,0.81],1803:[3.56,3.54,0.78,0.8],1804:[3.56,3.52,0.78,0.8],1805:[3.56,3.5,0.82,0.8],1806:[3.56,3.48,0.8,0.8],1807:[3.56,3.45,0.8,0.79],1808:[3.43,3.41,0.74,0.78],1809:[3.33,3.34,0.73,0.77],1810:[3.29,3.31,0.76,0.76],1811:[3.36,3.36,0.88,0.77],1812:[3.24,3.39,0.9,0.78],1813:[3.09,3.37,0.82,0.77],1814:[2.73,3.39,0.64,0.77],1815:[3.23,3.46,0.66,0.78],1816:[4.16,3.59,0.8,0.8],1817:[3.84,3.73,0.83,0.82],1818:[3.36,3.87,0.75,0.84],1819:[3.64,4.04,0.81,0.87],1820:[4.19,4.22,0.93,0.9],1821:[4.71,4.38,0.98,0.93],1822:[4.9,4.48,0.98,0.94],1823:[4.74,4.64,0.99,0.97],1824:[4.98,4.87,1.02,1.02],1825:[4.63,5.1,0.96,1.06],1826:[5.0,5.31,1.02,1.11],1827:[6.8,5.51,1.38,1.15],1828:[7.75,5.64,1.57,1.17],1829:[9.71,5.79,2.0,1.2],1830:[10.49,5.89,2.2,1.23],1831:[9.62,6.03,1.98,1.25],1832:[6.8,6.23,1.4,1.28],1833:[6.42,6.51,1.34,1.34],1834:[6.31,6.73,1.36,1.38],1835:[6.15,6.89,1.27,1.41],1836:[6.18,7.04,1.28,1.43],1837:[7.18,7.22,1.41,1.47],1838:[8.34,7.43,1.7,1.51],1839:[8.07,7.7,1.62,1.56],1840:[7.67,7.99,1.53,1.62],1841:[7.83,8.26,1.57,1.68],1842:[8.44,8.5,1.76,1.72],1843:[9.13,8.67,1.91,1.77],1844:[9.41,8.77,1.94,1.79],1845:[9.48,8.84,1.95,1.81],1846:[9.17,8.89,1.9,1.82],1847:[8.74,8.95,1.82,1.84],1848:[9.08,8.97,1.87,1.84],1849:[9.44,8.92,1.96,1.82],1850:[8.81,8.85,1.81,1.81],1851:[8.3,8.78,1.69,1.79],1852:[8.5,8.75,1.73,1.79],1853:[8.59,8.8,1.76,1.79],1854:[8.56,8.83,1.75,1.8],1855:[8.7,8.83,1.78,1.8],1856:[8.71,8.88,1.77,1.81],1857:[8.87,8.97,1.81,1.83],1858:[9.22,9.01,1.9,1.84],1859:[9.49,9.04,1.94,1.85],1860:[9.44,9.11,1.95,1.86],1861:[9.35,9.17,1.96,1.87],1862:[9.26,9.23,1.67,1.89],1863:[8.97,9.29,1.27,1.9],1864:[8.89,9.32,0.89,1.9],1865:[9.28,9.33,1.21,1.91],1866:[9.78,9.36,1.42,1.91],1867:[10.33,9.4,1.53,1.92],1868:[12.54,9.43,1.84,1.93],1869:[13.57,9.47,2.09,1.94],1870:[11.79,9.48,2.11,1.94],1871:[10.41,9.46,1.91,1.94],1872:[9.79,9.48,1.8,1.94],1873:[9.59,9.55,1.73,1.96],1874:[9.44,9.67,1.74,1.98],1875:[9.0,9.8,1.61,2.01],1876:[9.06,9.91,1.67,2.03],1877:[9.58,10.04,1.89,2.06],1878:[10.12,10.17,2.07,2.09],1879:[10.85,10.33,2.24,2.12],1880:[10.98,10.59,2.27,2.18],1881:[10.87,10.94,2.25,2.25],1882:[11.15,11.19,2.29,2.3],1883:[11.24,11.41,2.32,2.35],1884:[11.37,11.59,2.34,2.38],1885:[12.26,11.73,2.52,2.41],1886:[12.89,11.87,2.65,2.44],1887:[11.78,12.05,2.43,2.47],1888:[9.51,12.21,1.95,2.51],1889:[9.08,12.38,1.86,2.54],1890:[10.64,12.56,2.19,2.58],1891:[16.18,12.68,3.33,2.6],1892:[20.04,12.76,4.11,2.62],1893:[20.83,12.95,4.29,2.66],1894:[23.92,13.15,4.9,2.7],1895:[24.27,13.35,4.96,2.74],1896:[26.67,13.54,5.48,2.78],1897:[31.85,13.74,6.55,2.82],1898:[33.67,13.94,6.94,2.86],1899:[32.57,14.13,6.7,2.9],1900:[25.64,14.33,5.27,2.94],1901:[21.12,14.49,4.34,2.98],1902:[20.21,14.7,4.15,3.02],1903:[20.14,14.9,4.14,3.06],1904:[19.72,15.09,4.05,3.1],1905:[15.31,15.16,3.14,3.11],1906:[15.06,15.22,3.1,3.13],1907:[15.9,15.26,3.27,3.14],1908:[15.98,15.29,3.28,3.14],1909:[15.96,15.39,3.28,3.16],1910:[14.9,15.43,3.07,3.17],1911:[15.02,15.41,3.09,3.17],1912:[15.0,15.19,3.08,3.12],1913:[15.0,15.34,3.08,3.15],1914:[16.01,null,3.25,null]};
 const RATE_MIN=1795, RATE_MAX=1914;
@@ -197,7 +201,7 @@ function controleMoeda(){
 let net=null, chart=null, chartBens=null, chartCot=null, chartBolsaA=null, chartBolsaS=null, topo=70;
 let chartsD=[];
 let sortCol="pontuacao",sortDir="desc";
-function setSort(col){if(sortCol===col)sortDir=sortDir==="desc"?"asc":"desc";else{sortCol=col;sortDir=col==="nome"?"asc":"desc";} ["nome","pontuacao","n_registros","n_relacoes"].forEach(c=>{const el=document.getElementById("th_"+c);if(!el)return;el.style.fontWeight=sortCol===c?"700":"400";el.style.color=sortCol===c?"#1f3a5f":"inherit";const base=el.textContent.replace(/ [▼▲]$/,"");el.textContent=base+(sortCol===c?(sortDir==="desc"?" ▼":" ▲"):"");});buscar();}
+function _updSortArrows(){["nome","pontuacao","n_registros","n_relacoes"].forEach(c=>{const el=document.getElementById("th_"+c);if(!el)return;el.style.fontWeight=sortCol===c?"700":"400";el.style.color=sortCol===c?"#1f3a5f":"inherit";const base=el.textContent.replace(/ [▼▲]$/,"");el.textContent=base+(sortCol===c?(sortDir==="desc"?" ▼":" ▲"):"");});}function setSort(col){if(sortCol===col)sortDir=sortDir==="desc"?"asc":"desc";else{sortCol=col;sortDir=col==="nome"?"asc":"desc";} _updSortArrows();buscar();}
 let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
 let ultimaBusca=[];
 
@@ -224,6 +228,24 @@ function tituloParen(nome,hon){
   if((nome||"").toLowerCase().includes(t.toLowerCase())) return "";
   return ' <span style="color:#7a8aa0;font-weight:400">('+esc(t)+')</span>';
 }
+function onTipoChange(){
+  const tp=document.getElementById("tipo").value;
+  const isPessoa=tp==="Pessoa", isInst=tp==="Instituição";
+  ["campo-catsoc","campo-genero"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isPessoa?"":"none";});
+  if(!isPessoa){document.getElementById("catsoc").value="";document.getElementById("genero").value="";}
+  const campoSub=document.getElementById("campo-subtipo");
+  if(campoSub)campoSub.style.display=isInst?"":"none";
+  if(!isInst)document.getElementById("subtipo").value="";
+  buscar();
+}
+async function carregarSubtipos(){
+  try{
+    const {dados}=await getJSON("v_busca_atores?select=institution_type&tipo=eq.Instituição&institution_type=not.is.null&order=institution_type.asc&limit=1000");
+    const tipos=[...new Set(dados.map(d=>d.institution_type).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt"));
+    const sel=document.getElementById("subtipo");
+    tipos.forEach(t=>{const o=document.createElement("option");o.value=t;o.textContent=t;sel.appendChild(o);});
+  }catch(e){}
+}
 function montarURL(){
   const p=["select=actor_id,nome,honorifico,tipo,origem,ano_min,ano_max,n_registros,n_relacoes,pontuacao,nome_incompleto","order="+(sortCol+(sortDir==="desc"?".desc":".asc")+",nome.asc"),
            "limit="+encodeURIComponent(document.getElementById("limite").value)];
@@ -232,6 +254,7 @@ function montarURL(){
   const cs=document.getElementById("catsoc").value; if(cs)p.push("categoria_social=eq."+encodeURIComponent(cs));
   const g=document.getElementById("genero").value; if(g==="__null__")p.push("genero=is.null"); else if(g)p.push("genero=eq."+encodeURIComponent(g));
   const an=document.getElementById("ano").value; if(an)p.push("anos=cs."+encodeURIComponent("{"+an+"}"));
+  const sub=document.getElementById("subtipo").value; if(sub)p.push("institution_type=eq."+encodeURIComponent(sub));
   return "v_busca_atores?"+p.join("&");
 }
 async function buscar(){
@@ -241,12 +264,12 @@ async function buscar(){
     if(!dados.length){ tbody.innerHTML='<tr><td colspan="5" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
     tbody.innerHTML=dados.map(d=>{ const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
       return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+tituloParen(d.nome,d.honorifico)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+
-        '</span></td><td>'+esc(per)+'</td><td class="num" style="color:#7a8aa0;font-size:11px">'+esc(d.pontuacao)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
+        '</span></td><td style="font-size:11.5px;color:#5b6b86">'+esc(d.institution_type||"")+'</td><td>'+esc(per)+'</td><td class="num" style="color:#7a8aa0;font-size:11px">'+esc(d.pontuacao)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
     }).join("");
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
   }catch(e){ status.textContent="Erro: "+e.message; }
 }
-function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("limite").value="300"; buscar(); }
+function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("subtipo").value=""; ["campo-catsoc","campo-genero","campo-subtipo"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";}); document.getElementById("limite").value="300"; buscar(); }
 
 /* ----- DOSSIÊ ----- */
 async function abrirFicha(id){
@@ -631,7 +654,7 @@ function barraFiltroCargas(){
   const A=F._agg||{porProd:{},ks:[],grupos:[],usarGrupo:false};
   let h="<div style='background:#f7f9fc;border:1px solid #d9e0ea;border-radius:9px;padding:8px 10px;margin:8px 0;font-size:12px'>";
   if(A.usarGrupo){
-    const _prio=["Censo 1872","Censo 1890"];const _ocultos=["Pop. histórica"];const _og=[..._prio.filter(g=>A.grupos.includes(g)&&!_ocultos.includes(g)),...A.grupos.filter(g=>!_prio.includes(g)&&g!=="Outros"&&!_ocultos.includes(g)),...(A.grupos.includes("Outros")?["Outros"]:[])];
+    const _prio=["Censo 1872","Censo 1890","Totais","Açúcar","Madeiras"];const _ocultos=["Pop. histórica"];const _og=[..._prio.filter(g=>A.grupos.includes(g)&&!_ocultos.includes(g)),...A.grupos.filter(g=>!_prio.includes(g)&&g!=="Outros"&&!_ocultos.includes(g)),...(A.grupos.includes("Outros")?["Outros"]:[])];
     const grupoAtivo=_og.find(g=>{
       const _bs=new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===g).map(k=>baseDe(k)));
       return _bs.size>0&&F.cargaProds.size===_bs.size&&[..._bs].every(b=>F.cargaProds.has(b));
@@ -660,8 +683,8 @@ function barraFiltroCargas(){
     }
   } else {
     const bases=[...new Set(F.cargas.map(c=>baseDe(c.produto)))].sort();
-    const chip=(act,onc,lab)=>"<button onclick='"+onc+"' style='padding:3px 8px;margin:0 4px 4px 0;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid #d9e0ea;background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+"'>"+lab+"</button>";
-    h+="<div style='margin-bottom:4px'><b style='color:#41526b'>Produtos:</b> "+chip(F.cargaProds.size===0,"todosProd()","Todos");
+    const chip=(act,onc,lab)=>"<button onclick=\""+onc+"\" style='padding:3px 8px;margin:0 4px 4px 0;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid #d9e0ea;background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+"'>"+lab+"</button>";
+    h+="<div style='margin-bottom:4px'><b style='color:#41526b'>Produtos:</b> ";
     for(const b of bases)h+=chip(F.cargaProds.has(b),"toggleProd('"+esc1(b)+"')",esc(b));
     h+="</div>";
   }
@@ -854,15 +877,26 @@ function renderCenso1890(){
   }
 }
 
+function _autoGrpEmb(nome){
+  const p=(nome||"").toLowerCase();
+  if(p.startsWith("total")) return "Totais";
+  if(p.includes("ácar")||p.includes("acucar")||p==="​meço"||p==="melaço"||p==="rapadura") return "Açúcar";
+  if(p.startsWith("pau ")||p.startsWith("paus")||p.startsWith("taboado")||
+     p.startsWith("aduela")||p.startsWith("varas")||p.includes("madeira")||
+     p==="br. de molhado"||p==="br. de seco") return "Madeiras";
+  return "Outros";
+}
 function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw) return;
   const temRelVal=F.rels.some(r=>r.valor!=null);
   if(!F.cargas.length && !temRelVal){ cw.innerHTML=""; return; }
   const porProd={};
   for(const c of cargasFiltradas()){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:""}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
-  const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; const usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
+  const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; let usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
+  if(!usarGrupo&&F.mv&&F.mv.tipo==="Embarcação"){for(const k in porProd)porProd[k].grupo=_autoGrpEmb(baseDe(k));grupos.length=0;[...new Set(Object.keys(porProd).map(k=>porProd[k].grupo))].forEach(g=>grupos.push(g));const _emOrd=["Totais","Açúcar","Madeiras","Outros"];grupos.sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));usarGrupo=!(grupos.length===1&&grupos[0]==="Outros");}
   F._agg={porProd,ks,grupos,usarGrupo};
-  if(usarGrupo&&!F._activeGrupo&&grupos.includes("Censo 1872")){F._activeGrupo="Censo 1872";F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo==="Censo 1872").map(k=>baseDe(k)));}
+  if(usarGrupo&&!F._activeGrupo){const _prio=["Censo 1872","Censo 1890","Totais"];const _firstG=_prio.find(g=>grupos.includes(g))||grupos.find(g=>g!=="Outros")||grupos[0];if(_firstG){F._activeGrupo=_firstG;F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo===_firstG).map(k=>baseDe(k)));}}
+  if(!usarGrupo&&!F._initialized){const _fBases=[...new Set(ks.map(k=>baseDe(k)))];const _fDef=_fBases.find(b=>/total acumulado/i.test(b))||_fBases.find(b=>/acumul/i.test(b));if(_fDef)F.cargaProds.add(_fDef);}F._initialized=true;
   const ehInventario=!!(F.bens&&F.bens.length);
   let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length && !ehInventario) h+=barraFiltroCargas();
   if(ehInventario) h+="<p style='font-size:11.5px;color:#7a8aa0;margin:2px 0 0'>Totais do inventário (retrato de "+(F.bens[0].ano||"")+", sem série temporal). Veja a distribuição no gráfico de “Bens do inventário” abaixo.</p>";
@@ -875,7 +909,6 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   if(F._activeGrupo==="Óbitos"){renderObitos();return;}
   if(F._activeGrupo==="Imigração"){renderImigracao();return;}
   if(F._activeGrupo==="Censo 1890"){renderCenso1890();return;}
-  if(usarGrupo&&!F._activeGrupo){const cv2=document.getElementById("graf"),td2=document.getElementById("cargaTabela");if(cv2)cv2.style.display="none";if(td2)td2.innerHTML="<p style='color:#7a8aa0;font-size:12px;margin:16px 4px'>Selecione uma aba acima para visualizar os dados.</p>";return;}
   renderGrafico(); renderTabelaSerie();
 }
 function autoModo(){
@@ -1033,7 +1066,7 @@ async function carregarCategorias(){
 carregarCategorias();
 document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
-buscar();setTimeout(()=>setSort("pontuacao"),0);
+buscar();carregarSubtipos();setTimeout(()=>_updSortArrows(),100);
 </script>
 </body>
 </html>
