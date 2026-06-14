@@ -290,7 +290,7 @@ async function abrirFicha(id){
     }
     const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
     let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
-    F={ info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados, bens:ben.dados, cotacoes:cot.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
+    F={ idAtual:id, info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados.filter(c=>!/Bolsa do RJ/i.test(c.produto||"")), bens:ben.dados, cotacoes:cot.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
     renderHead(); renderRede(); renderFichaTudo();
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
@@ -364,7 +364,7 @@ function renderCotacoes(){
   const ats=cotacoesPorAtivo();
   const ks=Object.keys(ats).sort((a,b)=>ats[b].linhas.length-ats[a].linhas.length);
   let h="<div class='sech'>Cotações na Bolsa do RJ <span class='cnt'>"+cot.length+" registros"+(faixa?(" · "+faixa):"")+" · "+ks.length+" ativo(s)</span></div>";
-  h+="<p style='font-size:11.5px;color:#7a8aa0;margin:2px 0 6px'>Cotações mín./máx. anuais (Retrospecto Commercial do Jornal do Commercio). Série temporal no gráfico de “Cargas/estatísticas” acima.</p>";
+  h+="<p style='font-size:11.5px;color:#7a8aa0;margin:2px 0 6px'>Cotações mín./máx. anuais (Retrospecto Commercial do Jornal do Commercio). Veja a faixa por ano no gráfico abaixo.</p>";
   h+="<canvas id='grafCot' height='150'></canvas>";
   for(const k of ks){ const o=ats[k]; const ek="cot:"+k.replace(/'/g,""); const aberto=F.expand[ek]; const arr=o.linhas.slice().sort((a,b)=>a.ano-b.ano);
     const banda = o.is_pct ? "% do par" : ((o.min!=null?milreis(o.min,"réis"):"?")+" – "+(o.max!=null?milreis(o.max,"réis"):"?"));
@@ -653,7 +653,7 @@ function barraFiltroCargas(){
   const A=F._agg||{porProd:{},ks:[],grupos:[],usarGrupo:false};
   let h="<div style='background:#f7f9fc;border:1px solid #d9e0ea;border-radius:9px;padding:8px 10px;margin:8px 0;font-size:12px'>";
   if(A.usarGrupo){
-    const _prio=["Censo 1872","Censo 1890","Totais","Açúcar","Madeiras"];const _ocultos=["Pop. histórica"];const _og=[..._prio.filter(g=>A.grupos.includes(g)&&!_ocultos.includes(g)),...A.grupos.filter(g=>!_prio.includes(g)&&g!=="Outros"&&!_ocultos.includes(g)),...(A.grupos.includes("Outros")?["Outros"]:[])];
+    const _prio=["Censo 1872","Raças 1872","Faixa etária 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Censo 1890","Açúcar","Madeiras","Totais"];const _ocultos=["Pop. histórica"];const _og=[..._prio.filter(g=>A.grupos.includes(g)&&!_ocultos.includes(g)),...A.grupos.filter(g=>!_prio.includes(g)&&g!=="Outros"&&!_ocultos.includes(g)),...(A.grupos.includes("Outros")?["Outros"]:[])];
     const grupoAtivo=_og.find(g=>{
       const _bs=new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===g).map(k=>baseDe(k)));
       return _bs.size>0&&F.cargaProds.size===_bs.size&&[..._bs].every(b=>F.cargaProds.has(b));
@@ -667,8 +667,8 @@ function barraFiltroCargas(){
       h+="<button onclick='selecionarGrupo(\""+esc1(_g)+"\")' style='"+tabSt(_g===grupoAtivo)+"'>"+esc(_g)+"</button>";
     }
     h+="</div>";
-    const _customGrps=["Censo 1872","Óbitos","Imigração","Censo 1890"];if(grupoAtivo&&!_customGrps.includes(grupoAtivo)){
-      const _prods=(A.ks||[]).filter(k=>A.porProd[k].grupo===grupoAtivo).map(k=>baseDe(k));
+    const _customGrps=["Censo 1872","Raças 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Faixa etária 1872","Óbitos","Imigração","Censo 1890"];if(grupoAtivo&&!_customGrps.includes(grupoAtivo)){
+      const _prods=[...new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===grupoAtivo).map(k=>baseDe(k)))];
       if(_prods.length>1){
         h+="<div style='margin-bottom:6px'>";
         const _allSel=_prods.every(b=>F.cargaProds.has(b));
@@ -693,7 +693,7 @@ function barraFiltroCargas(){
 }
 
 function toggleProd(b){ if(F.cargaProds.has(b))F.cargaProds.delete(b); else F.cargaProds.add(b); renderCargas(); }
-function selecionarGrupo(g){const A=F._agg||{};F.cargaProds=new Set((A.ks||[]).filter(k=>(A.porProd||{})[k]?.grupo===g).map(k=>baseDe(k)));F._activeGrupo=g;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;renderCargas();}function todosProd(){F._activeGrupo=null;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null; F.cargaProds.clear(); renderCargas(); }
+function selecionarGrupo(g){const A=F._agg||{};F.cargaProds=new Set((A.ks||[]).filter(k=>(A.porProd||{})[k]?.grupo===g).map(k=>baseDe(k)));F._activeGrupo=g;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null;renderCargas();}function todosProd(){F._activeGrupo=null;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null; F.cargaProds.clear(); renderCargas(); }
 function setUnid(u){ F.cargaUnid=u; renderCargas(); }
 function limparCargas(){ F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderCargas(); }
 function grpDe(n){ const m=(n||"").match(/grupo=([^|]+)/); return m?m[1].trim():"Outros"; }
@@ -762,6 +762,157 @@ function renderCenso1872(){
     chartsD.push(new Chart(document.getElementById('dn_lnac'),{type:'doughnut',data:{labels:['Brasileira','Estrangeira'],datasets:[{data:[lBras,lEstr],backgroundColor:['#2f5496','#7f77dd'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,lTot)}}},cutout:'55%'}}));
     chartsD.push(new Chart(document.getElementById('dn_enac'),{type:'doughnut',data:{labels:['Brasileira','Africana'],datasets:[{data:[eBras,eAfr],backgroundColor:['#ba7517','#c0392b'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,eTot)}}},cutout:'55%'}}));
   }
+}
+
+function renderRacas(){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf');
+  const td=document.getElementById('cargaTabela');
+  if(!cv||!td)return;
+  cv.style.display='none';
+  const v=nome=>{const c=F.cargas.find(c=>c.produto===nome);return c?Number(c.valor):0;};
+  const RA=[['Branca','#d8b25a'],['Parda','#b9763f'],['Preta','#5b4636'],['Cabocla','#1d9e75']];
+  const vs=(r,sx)=>v('Raça 1872 — '+r+' '+sx);
+  const totH=RA.reduce((s,[r])=>s+vs(r,'Homens'),0);
+  const totM=RA.reduce((s,[r])=>s+vs(r,'Mulheres'),0);
+  const temSexo=(totH+totM)>0;
+  const fmt=n=>n.toLocaleString('pt-BR');
+  const pct=(n,d)=>d?" ("+((n/d)*100).toFixed(1)+"%)":"";
+  const mkDough=(id,data,d)=>chartsD.push(new Chart(document.getElementById(id),{type:'doughnut',data:{labels:RA.map(([r])=>r),datasets:[{data,backgroundColor:RA.map(([,c])=>c),borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,d)}}},cutout:'55%'}}));
+  const titulo=t=>"<div style='font-size:12px;font-weight:600;color:#1f3a5f;margin:0 0 6px;text-align:center'>"+t+"</div>";
+  const box="<div style='max-width:330px;margin:0 auto'><canvas id='dn_racas' style='max-height:240px'></canvas></div>";
+  if(!temSexo){ // compatibilidade: dados só com total por raça
+    const data=RA.map(([r])=>v('Raça 1872 — '+r));
+    const tot=data.reduce((a,b)=>a+b,0);
+    td.innerHTML="<div style='margin:8px 0'>"+titulo("Composição por raça &mdash; 1872 ("+fmt(tot)+" hab.)")+box+"</div>";
+    mkDough('dn_racas',data,tot); return;
+  }
+  const tot=totH+totM;
+  const sex=F._racasSex||null;
+  const chip=(s,lbl,t)=>{const act=sex===s;return "<button onclick=\"F._racasSex='"+s+"';renderCargas()\" style=\"padding:6px 18px;margin:0 8px 0 0;border-radius:20px;font-size:12px;cursor:pointer;border:2px solid "+(act?"#2f5496":"#d9e0ea")+";background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"400")+"\">"+lbl+" <span style=\"font-weight:400;opacity:0.8\">("+fmt(t)+")</span></button>";};
+  let wrap="<div style='margin:8px 0'><div style='margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;gap:6px'>";
+  wrap+=chip('Homens','&#9794; Homens',totH)+chip('Mulheres','&#9792; Mulheres',totM);
+  if(sex)wrap+="<button onclick=\"F._racasSex=null;renderCargas()\" style=\"padding:4px 12px;border-radius:16px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:#fff;color:#7a8aa0\">&#8592; Visão geral</button>";
+  wrap+="</div>";
+  if(!sex){
+    wrap+=titulo("Composição por raça &mdash; 1872 ("+fmt(tot)+" hab.)")+box+"</div>";
+    td.innerHTML=wrap;
+    mkDough('dn_racas',RA.map(([r])=>vs(r,'Homens')+vs(r,'Mulheres')),tot);
+  } else {
+    const t=sex==='Homens'?totH:totM;
+    wrap+=titulo("Raça &mdash; "+sex+" 1872 ("+fmt(t)+" hab.)")+box+"</div>";
+    td.innerHTML=wrap;
+    mkDough('dn_racas',RA.map(([r])=>vs(r,sex)),t);
+  }
+}
+
+/* ----- Renderer genérico p/ grupos de composição por sexo (Religião, Estado civil, Instrução, ...) ----- */
+const _grpComposicao={
+  'Religião 1872':{cats:[['Católicos','#2f5496'],['Acatólicos','#e05c2a']]},
+  'Estado civil 1872':{cats:[['Solteiro','#2f5496'],['Casado','#1d9e75'],['Viúvo','#e05c2a']]},
+  'Instrução 1872':{cats:[['Sabem ler e escrever','#1d9e75'],['Analfabetos','#c0392b']]},
+  'Instrução escolar 1872':{cats:[['Frequentam Escola','#1d9e75'],['Não Frequentam Escola','#c0392b'],['Sem informação','#95a5a6']],nota:'População escolar de 6 a 15 anos'},
+  'Presença 1872':{cats:[['Ausentes','#e05c2a'],['Transeuntes','#2f5496']],somavel:false},
+  'Defeitos físicos 1872':{cats:[['Cegos','#2f5496'],['Surdos-Mudos','#1d9e75'],['Aleijados','#e05c2a'],['Dementes','#8e44ad'],['Alienados','#c0392b']],chart:'bar',nota:'Categorias e termos reproduzidos conforme o Recenseamento de 1872, refletindo a linguagem e as classificações da época.'}
+};
+// Alertas de qualidade de dados por ator+grupo (actor_id → {grupo: mensagem}). Exibidos como faixa vermelha no gráfico.
+const _flagsComp={
+  29052:{'Presença 1872':'⚠ Dado sob revisão: o nº de "Ausentes" (≈ toda a população do município) é provavelmente um erro de origem (CSV tidy) e está sendo verificado na fonte. Não usar este valor.'}
+};
+function renderComposicao(cfg){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf');
+  const td=document.getElementById('cargaTabela');
+  if(!cv||!td)return;
+  cv.style.display='none';
+  const base=F._activeGrupo; // prefixo da métrica = nome do grupo (ex.: "Religião 1872")
+  const v=nome=>{const c=F.cargas.find(c=>c.produto===nome);return c?Number(c.valor):0;};
+  const cats=cfg.cats;
+  const vs=(cat,sx)=>v(base+' — '+cat+' '+sx);
+  const totH=cats.reduce((s,[c])=>s+vs(c,'Homens'),0);
+  const totM=cats.reduce((s,[c])=>s+vs(c,'Mulheres'),0);
+  const tot=totH+totM;
+  const fmt=n=>n.toLocaleString('pt-BR');
+  const pct=(n,d)=>d?" ("+((n/d)*100).toFixed(1)+"%)":"";
+  const titulo=t=>"<div style='font-size:12px;font-weight:600;color:#1f3a5f;margin:0 0 6px;text-align:center'>"+t+"</div>";
+  const ehBarra=cfg.chart==='bar';
+  const box="<div style='max-width:"+(ehBarra?'560px':'330px')+";margin:0 auto'><canvas id='dn_comp' style='max-height:"+(ehBarra?'300px':'240px')+"'></canvas></div>";
+  const mkDough=(data,d)=>chartsD.push(new Chart(document.getElementById('dn_comp'),{type:'doughnut',data:{labels:cats.map(([c])=>c),datasets:[{data,backgroundColor:cats.map(([,c])=>c),borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,d)}}},cutout:'55%'}}));
+  const mkBar=(datasets)=>chartsD.push(new Chart(document.getElementById('dn_comp'),{type:'bar',data:{labels:cats.map(([c])=>c),datasets},options:{plugins:{legend:{display:datasets.length>1,position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}}}));
+  const nome=base.replace(/ 1872$/,'');
+  const sex=F._compSex||null;
+  const chip=(s,lbl,t)=>{const act=sex===s;return "<button onclick=\"F._compSex='"+s+"';renderCargas()\" style=\"padding:6px 18px;margin:0 8px 0 0;border-radius:20px;font-size:12px;cursor:pointer;border:2px solid "+(act?"#2f5496":"#d9e0ea")+";background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"400")+"\">"+lbl+" <span style=\"font-weight:400;opacity:0.8\">("+fmt(t)+")</span></button>";};
+  const flagMsg=((_flagsComp[F.idAtual]||{})[base])||null;
+  const flagBanner=flagMsg?"<div style='margin:0 0 12px;padding:8px 12px;border-radius:8px;background:#fdecea;border:1px solid #f5c6c2;color:#a32d2d;font-size:11.5px;line-height:1.45'>"+flagMsg+"</div>":"";
+  let wrap="<div style='margin:8px 0'>"+flagBanner+"<div style='margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;gap:6px'>";
+  wrap+=chip('Homens','&#9794; Homens',totH)+chip('Mulheres','&#9792; Mulheres',totM);
+  if(sex)wrap+="<button onclick=\"F._compSex=null;renderCargas()\" style=\"padding:4px 12px;border-radius:16px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:#fff;color:#7a8aa0\">&#8592; Visão geral</button>";
+  wrap+="</div>";
+  const rodape=cfg.nota?"<div style='font-size:10px;color:#7a8aa0;text-align:center;margin-top:6px'>"+cfg.nota+"</div>":"";
+  const tLbl=cfg.somavel===false?fmt(tot)+" reg.":fmt(tot)+" hab.";
+  if(ehBarra){
+    if(!sex){
+      wrap+=titulo(nome+" &mdash; 1872 ("+tLbl+")")+box+rodape+"</div>";
+      td.innerHTML=wrap;
+      mkBar([{label:'Homens',data:cats.map(([c])=>vs(c,'Homens')),backgroundColor:'#2f5496'},{label:'Mulheres',data:cats.map(([c])=>vs(c,'Mulheres')),backgroundColor:'#e07b9a'}]);
+    } else {
+      const t=sex==='Homens'?totH:totM;
+      wrap+=titulo(nome+" &mdash; "+sex+" 1872 ("+fmt(t)+")")+box+rodape+"</div>";
+      td.innerHTML=wrap;
+      mkBar([{label:sex,data:cats.map(([c])=>vs(c,sex)),backgroundColor:cats.map(([,c])=>c)}]);
+    }
+    return;
+  }
+  if(!sex){
+    wrap+=titulo(nome+" &mdash; 1872 ("+tLbl+")")+box+rodape+"</div>";
+    td.innerHTML=wrap; mkDough(cats.map(([c])=>vs(c,'Homens')+vs(c,'Mulheres')),tot);
+  } else {
+    const t=sex==='Homens'?totH:totM;
+    wrap+=titulo(nome+" &mdash; "+sex+" 1872 ("+(cfg.somavel===false?fmt(t)+" reg.":fmt(t)+" hab.")+")")+box+rodape+"</div>";
+    td.innerHTML=wrap; mkDough(cats.map(([c])=>vs(c,sex)),t);
+  }
+}
+
+// Pirâmide etária 1872 (só nível província). Agrupa as faixas finas em bins p/ visual de pirâmide.
+function renderPiramide(){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf'),td=document.getElementById('cargaTabela');
+  if(!cv||!td)return; cv.style.display='none';
+  const base='Faixa etária 1872';
+  const v=nome=>{const c=F.cargas.find(c=>c.produto===nome);return c?Number(c.valor):0;};
+  const vs=(cat,sx)=>v(base+' — '+cat+' '+sx);
+  const meses=['1 mês','2 meses','3 meses','4 meses','5 meses','6 meses','7 meses','8 meses','9 meses','10 meses','11 meses'];
+  // bins de exibição (jovem→velho): [rótulo, [categorias-fonte]]
+  const bins=[
+    ['< 1 ano',meses],
+    ['1–5 anos',['1 ano','2 anos','3 anos','4 anos','5 anos']],
+    ['6–10',['6-10 anos']],['11–15',['11-15 anos']],['16–20',['16-20 anos']],['21–25',['21-25 anos']],
+    ['26–30',['26-30 anos']],['31–40',['31-40 anos']],['41–50',['41-50 anos']],['51–60',['51-60 anos']],
+    ['61–70',['61-70 anos']],['71–80',['71-80 anos']],['81–90',['81-90 anos']],['91–100',['91-100 anos']],
+    ['> 100',['Maiores de 100']]
+  ];
+  const sum=(srcs,sx)=>srcs.reduce((a,c)=>a+vs(c,sx),0);
+  // do mais velho (topo) ao mais novo (base) p/ a pirâmide
+  const ord=[...bins].reverse();
+  const labels=ord.map(b=>b[0]);
+  const dataH=ord.map(b=>-sum(b[1],'Homens'));   // negativo → esquerda
+  const dataM=ord.map(b=>sum(b[1],'Mulheres'));   // positivo → direita
+  const totH=bins.reduce((a,b)=>a+sum(b[1],'Homens'),0);
+  const totM=bins.reduce((a,b)=>a+sum(b[1],'Mulheres'),0);
+  const sinf=vs('S/inf.','Homens')+vs('S/inf.','Mulheres');
+  const fmt=n=>Math.abs(n).toLocaleString('pt-BR');
+  const titulo="<div style='font-size:12px;font-weight:600;color:#1f3a5f;margin:0 0 6px;text-align:center'>Pirâmide etária &mdash; 1872 ("+ (totH+totM).toLocaleString('pt-BR') +" hab.)</div>";
+  const box="<div style='max-width:600px;margin:0 auto'><canvas id='dn_comp' style='max-height:380px'></canvas></div>";
+  const leg="<div style='display:flex;justify-content:center;gap:18px;font-size:11px;color:#41526b;margin-top:4px'><span><span style='display:inline-block;width:10px;height:10px;background:#2f5496;margin-right:4px'></span>Homens ("+totH.toLocaleString('pt-BR')+")</span><span><span style='display:inline-block;width:10px;height:10px;background:#e07b9a;margin-right:4px'></span>Mulheres ("+totM.toLocaleString('pt-BR')+")</span></div>";
+  const rodape="<div style='font-size:10px;color:#7a8aa0;text-align:center;margin-top:6px'>Faixas conforme o Recenseamento de 1872 (larguras desiguais)."+(sinf?" Excluídos "+sinf.toLocaleString('pt-BR')+" hab. sem informação de idade.":"")+"</div>";
+  td.innerHTML="<div style='margin:8px 0'>"+titulo+box+leg+rodape+"</div>";
+  chartsD.push(new Chart(document.getElementById('dn_comp'),{type:'bar',data:{labels,datasets:[
+    {label:'Homens',data:dataH,backgroundColor:'#2f5496'},
+    {label:'Mulheres',data:dataM,backgroundColor:'#e07b9a'}
+  ]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.x)}}},scales:{x:{stacked:true,ticks:{font:{size:10},callback:v=>Math.abs(v).toLocaleString('pt-BR')}},y:{stacked:true,ticks:{font:{size:10}}}}}}));
 }
 
 function renderObitos(){
@@ -877,12 +1028,12 @@ function renderCenso1890(){
 }
 
 function _autoGrpEmb(nome){
-  const p=(nome||"").toLowerCase();
+  const p=(nome||"").toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   if(p.startsWith("total")) return "Totais";
-  if(p.includes("ácar")||p.includes("acucar")||p==="​meço"||p==="melaço"||p==="rapadura") return "Açúcar";
+  if(p.includes("acucar")||p.includes("assucar")||p.includes("melaco")||p.includes("rapadura")) return "Açúcar";
   if(p.startsWith("pau ")||p.startsWith("paus")||p.startsWith("taboado")||
-     p.startsWith("aduela")||p.startsWith("varas")||p.includes("madeira")||
-     p==="br. de molhado"||p==="br. de seco") return "Madeiras";
+     p.startsWith("aduela")||p.startsWith("varas")||p.includes("madeira")||p.includes("construcao")||
+     p.startsWith("br. de")) return "Madeiras";
   return "Outros";
 }
 function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw) return;
@@ -892,9 +1043,9 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   for(const c of cargasFiltradas()){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:""}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; let usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
-  if(!usarGrupo&&F.mv&&F.mv.tipo==="Embarcação"){for(const k in porProd)porProd[k].grupo=_autoGrpEmb(baseDe(k));grupos.length=0;[...new Set(Object.keys(porProd).map(k=>porProd[k].grupo))].forEach(g=>grupos.push(g));const _emOrd=["Totais","Açúcar","Madeiras","Outros"];grupos.sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));usarGrupo=!(grupos.length===1&&grupos[0]==="Outros");}
+  if(!usarGrupo&&F.mv&&F.mv.tipo==="Embarcação"){for(const k in porProd)porProd[k].grupo=_autoGrpEmb(baseDe(k));grupos.length=0;[...new Set(Object.keys(porProd).map(k=>porProd[k].grupo))].forEach(g=>grupos.push(g));const _emOrd=["Açúcar","Madeiras","Outros","Totais"];grupos.sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));usarGrupo=!(grupos.length===1&&grupos[0]==="Outros");}
   F._agg={porProd,ks,grupos,usarGrupo};
-  if(usarGrupo&&!F._activeGrupo){const _prio=["Censo 1872","Censo 1890","Totais"];const _firstG=_prio.find(g=>grupos.includes(g))||grupos.find(g=>g!=="Outros")||grupos[0];if(_firstG){F._activeGrupo=_firstG;F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo===_firstG).map(k=>baseDe(k)));}}
+  if(usarGrupo&&!F._activeGrupo){const _prio=["Censo 1872","Raças 1872","Censo 1890"];const _firstG=_prio.find(g=>grupos.includes(g))||grupos.find(g=>g!=="Outros")||grupos[0];if(_firstG){F._activeGrupo=_firstG;F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo===_firstG).map(k=>baseDe(k)));}}
   if(!usarGrupo&&!F._initialized){const _fBases=[...new Set(ks.map(k=>baseDe(k)))];const _fDef=_fBases.find(b=>/total acumulado/i.test(b))||_fBases.find(b=>/acumul/i.test(b));if(_fDef)F.cargaProds.add(_fDef);}F._initialized=true;
   const ehInventario=!!(F.bens&&F.bens.length);
   let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length && !ehInventario) h+=barraFiltroCargas();
@@ -905,6 +1056,9 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   if(F.moeda!=="reis") h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Conversão pela tabela de Moura Filho (2010); só valores monetários (Soma/valor) convertem; ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
   cw.innerHTML=h;
   if(F._activeGrupo==="Censo 1872"){renderCenso1872();return;}
+  if(F._activeGrupo==="Raças 1872"){renderRacas();return;}
+  if(F._activeGrupo==='Faixa etária 1872'){renderPiramide();return;}
+  if(_grpComposicao[F._activeGrupo]){renderComposicao(_grpComposicao[F._activeGrupo]);return;}
   if(F._activeGrupo==="Óbitos"){renderObitos();return;}
   if(F._activeGrupo==="Imigração"){renderImigracao();return;}
   if(F._activeGrupo==="Censo 1890"){renderCenso1890();return;}
@@ -978,10 +1132,36 @@ function renderGrafico(){
       return {prod,byY,anos,mx};
     }).filter(s=>s.anos.length>0);
     if(!series.length) return;
-    const todosAnos=[...new Set(series.flatMap(s=>s.anos))].sort((a,b)=>a-b);
-    const maxVals=series.map(s=>s.mx).filter(v=>v>0);
+    /* — Muitas divisões → agrega os tipos menos representativos em "Outros tipos de …" (legível; o detalhe completo permanece na tabela abaixo). Genérico p/ qualquer ator. — */
+    const MAXIND=8;
+    let S=series;
+    if(series.length>MAXIND){
+      const tot=s=>Object.values(s.byY).reduce((a,b)=>a+b,0);
+      const ord=[...series].sort((a,b)=>tot(b)-tot(a));
+      const top=ord.slice(0,MAXIND-1), resto=ord.slice(MAXIND-1);
+      const aggY={}; for(const s of resto) for(const y in s.byY) aggY[y]=(aggY[y]||0)+s.byY[y];
+      const _ag=F._activeGrupo;
+      const rot=((_ag&&_ag!=="Outros")?("Outros tipos de "+_ag.toLowerCase()):"Outros tipos")+" ("+resto.length+")";
+      const aggAnos=Object.keys(aggY).map(Number).sort((a,b)=>a-b);
+      S=[...top,{prod:rot,byY:aggY,anos:aggAnos,mx:aggAnos.length?Math.max(...aggAnos.map(y=>aggY[y])):0}];
+    }
+    const todosAnos=[...new Set(S.flatMap(s=>s.anos))].sort((a,b)=>a-b);
+    /* — Embarcação: muitas séries em unidades diferentes → barras, eixo único (sem 2º eixo) — */
+    if(F.mv&&F.mv.tipo==="Embarcação"){
+      const datasets=S.map((s,i)=>({
+        label:isMonet(s.prod,null)?s.prod+" ("+simb+")":s.prod,
+        data:todosAnos.map(y=>s.byY[y]!=null?Math.round(s.byY[y]):null),
+        backgroundColor:CORES[i%CORES.length], borderColor:CORES[i%CORES.length], borderWidth:0
+      }));
+      if(typeof Chart!=="undefined") chart=new Chart(cv,{type:"bar",
+        data:{labels:todosAnos,datasets},
+        options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},
+                 scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});
+      return;
+    }
+    const maxVals=S.map(s=>s.mx).filter(v=>v>0);
     const eixoDuplo=maxVals.length>=2&&Math.max(...maxVals)/Math.min(...maxVals)>10;
-    const datasets=series.map((s,i)=>({
+    const datasets=S.map((s,i)=>({
       label:isMonet(s.prod,null)?s.prod+" ("+simb+")":s.prod,
       data:todosAnos.map(y=>s.byY[y]!=null?Math.round(s.byY[y]):null),
       borderColor:CORES[i%CORES.length], backgroundColor:CORES[i%CORES.length]+"28",
@@ -990,7 +1170,7 @@ function renderGrafico(){
     }));
     const scales={y1:{type:"linear",position:"left",ticks:{font:{size:10}}}};
     if(eixoDuplo) scales.y2={type:"linear",position:"right",grid:{drawOnChartArea:false},ticks:{font:{size:10}},
-      title:{display:true,text:series.slice(1).map(s=>s.prod).join(", "),font:{size:10}}};
+      title:{display:true,text:S.slice(1).map(s=>s.prod).join(", "),font:{size:10}}};
     if(typeof Chart!=="undefined") chart=new Chart(cv,{type:"line",
       data:{labels:todosAnos,datasets},
       options:{plugins:{legend:{display:true,labels:{font:{size:11}}}},
