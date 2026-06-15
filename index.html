@@ -53,8 +53,18 @@
   .ident{ background:#f7f9fc; border:1px solid var(--borda); border-radius:9px; padding:10px 12px; margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; }
   .ident div{ font-size:12.4px; } .ident b{ color:#41526b; font-weight:600; }
   .sech{ margin:6px 0 8px; color:#1f3a5f; font-size:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .ffiltros{ display:flex; gap:8px; margin:0 0 10px; flex-wrap:wrap; }
+  .ffiltros{ display:flex; gap:8px; margin:0 0 10px; flex-wrap:wrap; align-items:center; }
   .ffiltros select,.ffiltros input{ padding:5px 7px; border:1px solid var(--borda); border-radius:6px; font-size:12px; }
+  .relchips{ display:flex; gap:5px; flex-wrap:wrap; margin:0 0 10px; }
+  .relchip{ cursor:pointer; font-size:11.5px; padding:3px 9px; border-radius:12px; border:1px solid #cfd8e3; background:#fff; color:#42526b; user-select:none; white-space:nowrap; }
+  .relchip:hover{ border-color:#1d6e56; }
+  .relchip.on{ background:#1d6e56; border-color:#1d6e56; color:#fff; font-weight:600; }
+  .relchip b{ font-weight:600; opacity:.85; margin-left:2px; }
+  .relchip.on b{ opacity:1; }
+  .grp .soma{ font-size:11px; color:#0f6e56; font-weight:600; }
+  .pesobtns{ display:inline-flex; gap:0; border:1px solid #cfd8e3; border-radius:6px; overflow:hidden; }
+  .pesobtns button{ border:none; background:#fff; color:#42526b; font-size:11px; padding:3px 8px; cursor:pointer; }
+  .pesobtns button.on{ background:#2f5496; color:#fff; font-weight:600; }
   .grp{ margin-bottom:12px; }
   .grp h4{ margin:0 0 5px; font-size:12.8px; display:flex; align-items:center; gap:8px; }
   .grp .cnt{ font-size:11.5px; color:#7a8aa0; font-weight:400; }
@@ -132,7 +142,11 @@
     <div class="modal-body">
       <div class="col-rede">
         <div class="rede-tools"><span id="redeinfo"></span>
-          <button class="btn-sm" id="btnExpRede" onclick="expandirRede()" style="margin-left:auto">Expandir rede</button></div>
+          <span id="redePesoCtrl" style="margin-left:auto;display:none;align-items:center;gap:6px">
+            <span style="color:#7a8aa0">Peso:</span>
+            <span class="pesobtns"><button id="peso_count" onclick="setRedePeso('count')">nº relações</button><button id="peso_valor" onclick="setRedePeso('valor')">valor</button><button id="peso_neg" onclick="setRedePeso('negociacao')" style="display:none">negociação</button></span>
+          </span>
+          <button class="btn-sm" id="btnExpRede" onclick="expandirRede()">Expandir rede</button></div>
         <div id="rede"></div>
       </div>
       <div class="ficha" id="ficha"></div>
@@ -154,7 +168,7 @@ const COR={ "Pessoa":"#3a7bd5","Embarcação":"#1d9e75","Companhia":"#7f77dd","I
 const RELPT={ CaptainOf:"capitão", OwnerOf:"proprietário", Deposit:"depósito/poupança", Debt:"dívida",
   OfficeHolding:"cargo", FatherOf:"pai de", SonOf:"filho de", MotherOf:"mãe de", DaughterOf:"filha de", EnslavedBy:"escravizado por",
   HasLegislature:"tem câmara/legislativo", HasSubdivision:"tem subdivisão", LegislatureOf:"legislativo de",
-  SubdivisionOf:"subdivisão de", RelativeOf:"parente de" };
+  SubdivisionOf:"subdivisão de", RelativeOf:"parente de", LocatedIn:"sediada em", LocationOf:"sede de", ShareholderOf:"acionista de", HasShareholder:"tem acionista", SenatorFor:"senador por", HadSenator:"representada no Senado por", MemberOf:"membro de", HasMember:"tem como membro", HeadedCabinet:"presidente do Conselho de Ministros", CabinetHeadedBy:"gabinete presidido por" };
 const relpt=r=>RELPT[r]||(r||"relação");
 const RATES={1795:[3.56,3.56,0.78,0.78],1796:[3.56,3.56,0.83,0.8],1797:[3.56,3.56,0.8,0.8],1798:[3.56,3.56,0.81,0.8],1799:[3.56,3.56,0.86,0.8],1800:[3.56,3.56,0.78,0.8],1801:[3.56,3.56,0.81,0.8],1802:[3.56,3.56,0.79,0.81],1803:[3.56,3.54,0.78,0.8],1804:[3.56,3.52,0.78,0.8],1805:[3.56,3.5,0.82,0.8],1806:[3.56,3.48,0.8,0.8],1807:[3.56,3.45,0.8,0.79],1808:[3.43,3.41,0.74,0.78],1809:[3.33,3.34,0.73,0.77],1810:[3.29,3.31,0.76,0.76],1811:[3.36,3.36,0.88,0.77],1812:[3.24,3.39,0.9,0.78],1813:[3.09,3.37,0.82,0.77],1814:[2.73,3.39,0.64,0.77],1815:[3.23,3.46,0.66,0.78],1816:[4.16,3.59,0.8,0.8],1817:[3.84,3.73,0.83,0.82],1818:[3.36,3.87,0.75,0.84],1819:[3.64,4.04,0.81,0.87],1820:[4.19,4.22,0.93,0.9],1821:[4.71,4.38,0.98,0.93],1822:[4.9,4.48,0.98,0.94],1823:[4.74,4.64,0.99,0.97],1824:[4.98,4.87,1.02,1.02],1825:[4.63,5.1,0.96,1.06],1826:[5.0,5.31,1.02,1.11],1827:[6.8,5.51,1.38,1.15],1828:[7.75,5.64,1.57,1.17],1829:[9.71,5.79,2.0,1.2],1830:[10.49,5.89,2.2,1.23],1831:[9.62,6.03,1.98,1.25],1832:[6.8,6.23,1.4,1.28],1833:[6.42,6.51,1.34,1.34],1834:[6.31,6.73,1.36,1.38],1835:[6.15,6.89,1.27,1.41],1836:[6.18,7.04,1.28,1.43],1837:[7.18,7.22,1.41,1.47],1838:[8.34,7.43,1.7,1.51],1839:[8.07,7.7,1.62,1.56],1840:[7.67,7.99,1.53,1.62],1841:[7.83,8.26,1.57,1.68],1842:[8.44,8.5,1.76,1.72],1843:[9.13,8.67,1.91,1.77],1844:[9.41,8.77,1.94,1.79],1845:[9.48,8.84,1.95,1.81],1846:[9.17,8.89,1.9,1.82],1847:[8.74,8.95,1.82,1.84],1848:[9.08,8.97,1.87,1.84],1849:[9.44,8.92,1.96,1.82],1850:[8.81,8.85,1.81,1.81],1851:[8.3,8.78,1.69,1.79],1852:[8.5,8.75,1.73,1.79],1853:[8.59,8.8,1.76,1.79],1854:[8.56,8.83,1.75,1.8],1855:[8.7,8.83,1.78,1.8],1856:[8.71,8.88,1.77,1.81],1857:[8.87,8.97,1.81,1.83],1858:[9.22,9.01,1.9,1.84],1859:[9.49,9.04,1.94,1.85],1860:[9.44,9.11,1.95,1.86],1861:[9.35,9.17,1.96,1.87],1862:[9.26,9.23,1.67,1.89],1863:[8.97,9.29,1.27,1.9],1864:[8.89,9.32,0.89,1.9],1865:[9.28,9.33,1.21,1.91],1866:[9.78,9.36,1.42,1.91],1867:[10.33,9.4,1.53,1.92],1868:[12.54,9.43,1.84,1.93],1869:[13.57,9.47,2.09,1.94],1870:[11.79,9.48,2.11,1.94],1871:[10.41,9.46,1.91,1.94],1872:[9.79,9.48,1.8,1.94],1873:[9.59,9.55,1.73,1.96],1874:[9.44,9.67,1.74,1.98],1875:[9.0,9.8,1.61,2.01],1876:[9.06,9.91,1.67,2.03],1877:[9.58,10.04,1.89,2.06],1878:[10.12,10.17,2.07,2.09],1879:[10.85,10.33,2.24,2.12],1880:[10.98,10.59,2.27,2.18],1881:[10.87,10.94,2.25,2.25],1882:[11.15,11.19,2.29,2.3],1883:[11.24,11.41,2.32,2.35],1884:[11.37,11.59,2.34,2.38],1885:[12.26,11.73,2.52,2.41],1886:[12.89,11.87,2.65,2.44],1887:[11.78,12.05,2.43,2.47],1888:[9.51,12.21,1.95,2.51],1889:[9.08,12.38,1.86,2.54],1890:[10.64,12.56,2.19,2.58],1891:[16.18,12.68,3.33,2.6],1892:[20.04,12.76,4.11,2.62],1893:[20.83,12.95,4.29,2.66],1894:[23.92,13.15,4.9,2.7],1895:[24.27,13.35,4.96,2.74],1896:[26.67,13.54,5.48,2.78],1897:[31.85,13.74,6.55,2.82],1898:[33.67,13.94,6.94,2.86],1899:[32.57,14.13,6.7,2.9],1900:[25.64,14.33,5.27,2.94],1901:[21.12,14.49,4.34,2.98],1902:[20.21,14.7,4.15,3.02],1903:[20.14,14.9,4.14,3.06],1904:[19.72,15.09,4.05,3.1],1905:[15.31,15.16,3.14,3.11],1906:[15.06,15.22,3.1,3.13],1907:[15.9,15.26,3.27,3.14],1908:[15.98,15.29,3.28,3.14],1909:[15.96,15.39,3.28,3.16],1910:[14.9,15.43,3.07,3.17],1911:[15.02,15.41,3.09,3.17],1912:[15.0,15.19,3.08,3.12],1913:[15.0,15.34,3.08,3.15],1914:[16.01,null,3.25,null]};
 const RATE_MIN=1795, RATE_MAX=1914;
@@ -198,11 +212,13 @@ function controleMoeda(){
   h+="</div>"; return h;
 }
 
-let net=null, chart=null, chartBens=null, chartCot=null, chartBolsaA=null, chartBolsaS=null, topo=70;
+let net=null, chart=null, chartBens=null, chartCot=null, chartCotAtiv=null, chartBolsaA=null, chartBolsaS=null, topo=40;
 let chartsD=[];
+let senCharts=[];
+let conCharts=[];
 let sortCol="pontuacao",sortDir="desc";
 function _updSortArrows(){["nome","pontuacao","n_registros","n_relacoes"].forEach(c=>{const el=document.getElementById("th_"+c);if(!el)return;el.style.fontWeight=sortCol===c?"700":"400";el.style.color=sortCol===c?"#1f3a5f":"inherit";const base=el.textContent.replace(/ [▼▲]$/,"");el.textContent=base+(sortCol===c?(sortDir==="desc"?" ▼":" ▲"):"");});}function setSort(col){if(sortCol===col)sortDir=sortDir==="desc"?"asc":"desc";else{sortCol=col;sortDir=col==="nome"?"asc":"desc";} _updSortArrows();buscar();}
-let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
+let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:"count", redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
 let ultimaBusca=[];
 
 async function getJSON(path,count){
@@ -240,10 +256,10 @@ function onTipoChange(){
 }
 async function carregarSubtipos(){
   try{
-    const {dados}=await getJSON("v_busca_atores?select=institution_type&tipo=eq.Instituição&institution_type=not.is.null&order=institution_type.asc&limit=1000");
-    const tipos=[...new Set(dados.map(d=>d.institution_type).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt"));
+    const {dados}=await getJSON("v_subtipos_instituicao?select=subtipo,n&order=subtipo.asc&limit=1000");
+    const tipos=dados.filter(d=>d.subtipo).sort((a,b)=>a.subtipo.localeCompare(b.subtipo,"pt"));
     const sel=document.getElementById("subtipo");
-    tipos.forEach(t=>{const o=document.createElement("option");o.value=t;o.textContent=t;sel.appendChild(o);});
+    tipos.forEach(d=>{const o=document.createElement("option");o.value=d.subtipo;o.textContent=d.subtipo+(d.n!=null?(" ("+d.n+")"):"");sel.appendChild(o);});
   }catch(e){}
 }
 function montarURL(){
@@ -274,62 +290,134 @@ function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value="
 async function abrirFicha(id){
   document.getElementById("overlay").classList.add("on");
   document.getElementById("mhead").innerHTML="<p style='margin:0;color:#fff'>Carregando…</p>";
-  document.getElementById("ficha").innerHTML=""; document.getElementById("rede").innerHTML=""; topo=70;
+  document.getElementById("ficha").innerHTML=""; document.getElementById("rede").innerHTML=""; topo=40;
   try{
     const det=(await getJSON("v_actor_detalhe?actor_id=eq."+id)).dados[0]||{nome:"(sem nome)"};
     const mv=(await getJSON("mv_busca_atores?actor_id=eq."+id+"&select=tipo,origem,fonte,fonte_autor,ano_min,ano_max,n_registros,n_relacoes,nome_incompleto")).dados[0]||{};
-    const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes,source_id,fonte_ref,fonte_url&order=relation_name.asc&limit=1000",true);
-    const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte&order=ano.asc&limit=1500");
-    const ben=await getJSON("v_inventario_bens?actor_id=eq."+id+"&select=item_id,categoria,subcategoria,descricao,quantidade,unidade,valor,moeda,ano,local,rel_actor_id,rel_nome,notes,fonte&order=valor.desc.nullslast&limit=2000");
-    const cot=await getJSON("v_cotacoes?actor_id=eq."+id+"&select=ano,nome_ativo,ativo,tipo,categoria_epoca,fase_historica,min_reis,max_reis,avg_reis,volume,faixa_preco,is_percent,moeda,fonte,base_dados&order=ativo.asc,ano.asc&limit=3000");
+    const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes,source_id,fonte_ref,fonte_url,fonte_contribuidor&order=relation_name.asc&limit=1000",true);
+    const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte,contribuidor&order=ano.asc&limit=1500");
+    const ben=await getJSON("v_inventario_bens?actor_id=eq."+id+"&select=item_id,categoria,subcategoria,descricao,quantidade,unidade,valor,moeda,ano,local,rel_actor_id,rel_nome,notes,fonte,contribuidor&order=valor.desc.nullslast&limit=2000");
+    const cot=await getJSON("v_cotacoes?actor_id=eq."+id+"&select=ano,nome_ativo,ativo,tipo,categoria_epoca,fase_historica,min_reis,max_reis,avg_reis,volume,faixa_preco,is_percent,moeda,fonte,base_dados,contribuidor&order=ativo.asc,ano.asc&limit=3000");
     let bolsaAno=[], bolsaSetor=[], bolsaFonte=null;
     if((det.institution_type||"")==="Bolsa de valores"){
       bolsaAno=(await getJSON("v_bolsa_por_ano?select=ano,emissores,ativos,volume_total&order=ano.asc")).dados;
       bolsaSetor=(await getJSON("v_bolsa_por_setor?select=setor,emissores,ativos&order=ativos.desc")).dados;
-      bolsaFonte=(await getJSON("v_bolsa_fonte?select=fonte,base_dados,autor")).dados[0]||null;
+      bolsaFonte=(await getJSON("v_bolsa_fonte?select=fonte,base_dados,autor,contribuidor")).dados[0]||null;
     }
     const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
     let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
-    F={ idAtual:id, info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados.filter(c=>!/Bolsa do RJ/i.test(c.produto||"")), bens:ben.dados, cotacoes:cot.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null };
-    renderHead(); renderRede(); renderFichaTudo();
+    F={ idAtual:id, info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados.filter(c=>!/Bolsa do RJ/i.test(c.produto||"")), bens:ben.dados, cotacoes:cot.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:((det.institution_type||"")==="Bolsa de valores"?"negociacao":"count"), redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
+    renderHead(); renderRede(); renderFichaTudo(); carregarRedeAgg();
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
-function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} [chart,chartBens,chartCot,chartBolsaA,chartBolsaS].forEach(c=>{try{if(c)c.destroy();}catch(e){}}); chart=chartBens=chartCot=chartBolsaA=chartBolsaS=null; }
+function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} [chart,chartBens,chartCot,chartCotAtiv,chartBolsaA,chartBolsaS].forEach(c=>{try{if(c)c.destroy();}catch(e){}}); chart=chartBens=chartCot=chartCotAtiv=chartBolsaA=chartBolsaS=null; for(const c of senCharts){try{c.destroy();}catch(e){}} senCharts=[]; for(const c of conCharts){try{c.destroy();}catch(e){}} conCharts=[]; }
 
 function renderHead(){
   const i=F.info,mv=F.mv; const tipo=mv.tipo||"Desconhecido";
   const per=mv.ano_min==null?"":(mv.ano_min===mv.ano_max?mv.ano_min:mv.ano_min+"–"+mv.ano_max);
   document.getElementById("mhead").innerHTML="<div style='color:#fff'><div style='font-size:17px;font-weight:600'>"+esc(i.nome)+(tituloParen(i.nome,i.honorific).replace("#7a8aa0","#dbe6ff"))+"</div>"+
     "<div style='font-size:12.5px;opacity:.9;margin-top:3px'><span class=\"badge b-"+esc(tipo)+"\">"+esc(tipo)+"</span> "+
-    (per?(" · "+esc(per)):"")+" · "+esc(mv.origem||"")+" · "+(F.relsTotal||0)+" relações · "+(mv.n_registros||0)+" estatísticas</div>"+(mv.nome_incompleto?"<div style='font-size:11.5px;color:#ffd9a8;margin-top:3px'>⚠ Nome incompleto (sem sobrenome) — não agregável; cada ocorrência é uma pessoa distinta.</div>":"")+(mv.fonte?("<div style='font-size:11.5px;opacity:.85;margin-top:3px'>Fonte: "+esc(mv.fonte)+"</div>"):"")+controleMoeda()+"</div>";
+    (per?(" · "+esc(per)):"")+" · "+esc(mv.origem||"")+" · "+(F.relsTotal||0)+" relações · "+(mv.n_registros||0)+" estatísticas</div>"+(mv.nome_incompleto?"<div style='font-size:11.5px;color:#ffd9a8;margin-top:3px'>⚠ Nome incompleto (sem sobrenome) — não agregável; cada ocorrência é uma pessoa distinta.</div>":"")+controleMoeda()+"</div>";
 }
 
+// valor de uma relação convertido para réis (para ponderar arestas)
+function relValReis(r){
+  if(r.valor==null) return 0;
+  const v=Number(r.valor); if(!isFinite(v)) return 0;
+  if(!r.moeda || /r[eé]is/i.test(r.moeda)) return v;
+  return 0; // moedas não-réis ficam fora do peso por valor (raras nas relações)
+}
+// agrega relações por vizinho: {realId, nome, tipo, count, valor, rels:{tipo:n}}
+function redeAgregada(){
+  const agg={};
+  for(const r of relFiltradas()){ if(r.rel_actor_id==null) continue; const nid="n"+r.rel_actor_id;
+    const o=agg[nid]=agg[nid]||{nid,realId:r.rel_actor_id,nome:r.rel_nome,tipo:r.rel_tipo,count:0,valor:0,rels:{}};
+    o.count++; o.rels[r.relation_name]=(o.rels[r.relation_name]||0)+1; o.valor+=relValReis(r);
+  }
+  return Object.values(agg);
+}
 function renderRede(){
   const cont=document.getElementById("rede");
   if(typeof vis==="undefined"){ cont.innerHTML="<p style='padding:14px;color:#7a8aa0'>Biblioteca de rede não carregou (sem internet?).</p>"; return; }
   const i=F.info, tipoC=F.mv.tipo||"Desconhecido", centerId="c"+i.actor_id;
-  const nodes=[{id:centerId,label:i.nome,color:{background:COR[tipoC]||"#888",border:"#1f3a5f"},size:24,font:{size:14,bold:true},borderWidth:3}];
-  const edges=[],vistos={};
-  for(const r of relFiltradas()){ if(r.rel_actor_id==null) continue; const nid="n"+r.rel_actor_id;
-    if(!vistos[nid]){ if(Object.keys(vistos).length>=topo) continue; vistos[nid]={rels:{}};
-      nodes.push({id:nid,label:(r.rel_nome||"").slice(0,26),realId:r.rel_actor_id,color:{background:COR[r.rel_tipo]||"#888",border:"#fff"},size:13,font:{size:12}}); }
-    if(vistos[nid]) vistos[nid].rels[r.relation_name]=true; }
-  for(const nid in vistos) edges.push({from:centerId,to:nid,label:Object.keys(vistos[nid].rels).map(relpt).join(", "),
-    font:{size:10,color:"#5f5e5a",strokeWidth:3,strokeColor:"#fff"},color:{color:"#c2cad6"},length:160});
-  document.getElementById("redeinfo").textContent="Mostrando "+Object.keys(vistos).length+" de "+relFiltradas().length+" vínculos"+((F.fTipo||F.fAno)?" (filtrado)":"");
-  document.getElementById("btnExpRede").style.display=(Object.keys(vistos).length<relFiltradas().length)?"":"none";
+  // Fonte dos vizinhos: ranking exato do servidor (sem filtro) ou agregação local (com filtro).
+  const filtrado=!!(F.fTipo||F.fAno);
+  const usaServer=!filtrado && F.redeAggOk && Array.isArray(F.redeAgg);
+  let vistos, totalViz;
+  if(usaServer){
+    vistos=F.redeAgg.map(a=>({nid:"n"+a.rel_actor_id,realId:a.rel_actor_id,nome:a.rel_nome,tipo:a.rel_tipo,count:a.n_rel,valor:Number(a.valor_reis)||0,neg:Number(a.obs_negociacao)||0,rels:a.tipos||{}}));
+    totalViz=F.redeAggTotal||vistos.length;
+  }else{
+    const todos=redeAgregada();
+    todos.sort((a,b)=> (F.redePeso==="valor"?b.valor-a.valor:b.count-a.count) || b.count-a.count);
+    vistos=todos.slice(0,topo); totalViz=todos.length;
+  }
+  // peso: nº de relações, valor (réis) ou intensidade de negociação (cotações). Cai para 'count' se indisponível.
+  const temValor=vistos.some(o=>o.valor>0);
+  const temNeg=vistos.some(o=>(o.neg||0)>0);
+  if(F.redePeso==="valor" && !temValor) F.redePeso="count";
+  if(F.redePeso==="negociacao" && !temNeg) F.redePeso="count";
+  const peso=o=> F.redePeso==="valor"? o.valor : (F.redePeso==="negociacao"? (o.neg||0) : o.count);
+  const ws=vistos.map(peso), wmax=Math.max(1,...ws), wmin=Math.min(...ws,0);
+  const larg=w=> wmax>wmin ? 1+(w-wmin)/(wmax-wmin)*9 : 2;          // espessura 1–10
+  const tamN=w=> wmax>wmin ? 9+(w-wmin)/(wmax-wmin)*15 : 12;        // nó 9–24
+  const poucos=vistos.length<=14;
+  const nodes=[{id:centerId,label:i.nome,color:{background:COR[tipoC]||"#888",border:"#1f3a5f"},size:26,font:{size:14,bold:true},borderWidth:3,widthConstraint:{maximum:170}}];
+  const edges=[];
+  for(const o of vistos){
+    const tiposTxt=Object.keys(o.rels).map(t=>relpt(t)+(o.rels[t]>1?(" ×"+o.rels[t]):"")).join(", ");
+    const valTxt=o.valor>0?(" · "+milreis(o.valor,"réis")):"";
+    const negTxt=(o.neg||0)>0?(" · "+o.neg+" cotações"):"";
+    const tip=esc(o.nome||"")+" — "+esc(tiposTxt)+valTxt+negTxt;
+    nodes.push({id:o.nid,label:(o.nome||""),realId:o.realId,
+      color:{background:COR[o.tipo]||"#888",border:"#fff"},size:tamN(peso(o)),font:{size:12},title:tip,widthConstraint:{maximum:150}});
+    const lab=poucos?(F.redePeso==="negociacao"&&o.neg>0?(o.neg+" cot."):(F.redePeso==="valor"&&o.valor>0?milreis(o.valor,"réis"):(o.count>1?tiposTxt+" ("+o.count+")":tiposTxt))):"";
+    edges.push({from:centerId,to:o.nid,label:lab,width:larg(peso(o)),title:tip,
+      font:{size:10,color:"#5f5e5a",strokeWidth:3,strokeColor:"#fff"},
+      color:{color:"#9fb0c8",highlight:"#2f5496",hover:"#2f5496"},length:170,smooth:false});
+  }
+  document.getElementById("redeinfo").textContent="Mostrando "+vistos.length+" de "+totalViz+" vizinhos"+(filtrado?" (filtrado)":"");
+  document.getElementById("btnExpRede").style.display=(vistos.length<totalViz)?"":"none";
+  // controle de peso aparece quando há valor monetário ou intensidade de negociação
+  const pc=document.getElementById("redePesoCtrl"); if(pc){ pc.style.display=(temValor||temNeg)?"inline-flex":"none";
+    const bc=document.getElementById("peso_count"), bv=document.getElementById("peso_valor"), bn=document.getElementById("peso_neg");
+    if(bc)bc.className=F.redePeso==="count"?"on":"";
+    if(bv){ bv.style.display=temValor?"":"none"; bv.className=F.redePeso==="valor"?"on":""; }
+    if(bn){ bn.style.display=temNeg?"":"none"; bn.className=F.redePeso==="negociacao"?"on":""; } }
   if(net){net.destroy();net=null;}
   net=new vis.Network(cont,{nodes,edges},{ nodes:{shape:"dot"}, edges:{smooth:false},
-    physics:{stabilization:{iterations:120},barnesHut:{springLength:150,gravitationalConstant:-4000}}, interaction:{hover:true} });
+    physics:{stabilization:{iterations:150},barnesHut:{springLength:160,gravitationalConstant:-5000}}, interaction:{hover:true,tooltipDelay:120} });
   net.on("click",p=>{ if(p.nodes.length){ const n=nodes.find(x=>x.id===p.nodes[0]); if(n&&n.realId) abrirFicha(n.realId); } });
+  net.once("stabilizationIterationsDone",()=>{ try{net.fit({animation:{duration:300}});}catch(e){} });
 }
-function expandirRede(){ topo+=120; renderRede(); }
+function expandirRede(){ topo+=40; atualizarRede(); }
+function setRedePeso(m){ F.redePeso=m; atualizarRede(); }
+// usa o ranking do servidor quando não há filtro (peso exato sobre toda a rede)
+function precisaAgg(){ return !(F.fTipo||F.fAno); }
+async function atualizarRede(){
+  if(precisaAgg() && (!F.redeAggOk || F._aggKey!==(F.redePeso+"|"+topo))) await carregarRedeAgg();
+  else renderRede();
+}
+async function carregarRedeAgg(){
+  if(!F.info) return;
+  const id=F.info.actor_id, by=F.redePeso==="valor"?"valor_reis":(F.redePeso==="negociacao"?"obs_negociacao":"n_rel");
+  try{
+    const r=await getJSON("v_rede_agregada?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,n_rel,valor_reis,obs_negociacao,tipos&order="+by+".desc.nullslast,obs_negociacao.desc,n_rel.desc&limit="+topo, true);
+    F.redeAgg=r.dados; F.redeAggTotal=r.total; F.redeAggOk=true; F._aggKey=F.redePeso+"|"+topo;
+  }catch(e){ F.redeAggOk=false; }
+  renderRede();
+}
 
-function resetarFiltros(){ F.fTipo=""; F.fAno=""; F.expand={}; if(F.cargaProds)F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderFichaTudo(); renderRede(); }
+function resetarFiltros(){ F.fTipo=""; F.fAno=""; F.expand={}; if(F.cargaProds)F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderFichaTudo(); atualizarRede(); }
+function blocoDescricao(){
+  const i=F.info; if(!i || !i.descricao || !String(i.descricao).trim()) return "";
+  return "<div style='background:#f3f7fc;border:1px solid #d9e6f5;border-left:3px solid #2f5496;border-radius:0 9px 9px 0;padding:10px 13px;margin:0 0 12px;font-size:12.5px;line-height:1.55;color:#33415a;text-align:justify'>"+esc(i.descricao)+"</div>";
+}
 function renderFichaTudo(){
   const f=document.getElementById("ficha"); let h="";
   h+=blocoFoto();
   h+=blocoIdentidade();
+  h+=blocoDescricao();
   h+="<div id='eventosWrap'></div>";
   h+="<div class='sech'>Relações</div>"+filtrosFichaHTML();
   h+="<div id='relWrap'></div>";
@@ -338,8 +426,134 @@ function renderFichaTudo(){
   h+="<div id='bensWrap'></div>";
   h+="<div id='cotacoesWrap'></div>";
   h+="<div id='bolsaWrap'></div>";
+  h+="<div id='senadoWrap'></div>";
+  h+="<div id='conselhoWrap'></div>";
+  h+="<div id='notasRefWrap'></div>";
   f.innerHTML=h;
-  renderEventos(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); renderBolsa();
+  renderEventos(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderNotasRef();
+}
+
+/* ----- SENADO DO IMPÉRIO — gráficos (só no dossiê do Senado) ----- */
+function renderSenado(){
+  const w=document.getElementById("senadoWrap"); if(!w) return;
+  for(const c of senCharts){try{c.destroy();}catch(e){}} senCharts=[];
+  const i=F.info;
+  if(!i || !/^Senado do Império/.test(i.nome||"") || typeof Chart==="undefined"){ w.innerHTML=""; return; }
+  w.innerHTML="<div class='sech'>Senado do Império — panorama</div><p style='font-size:11.5px;color:#7a8aa0'>Carregando gráficos…</p>";
+  getJSON("v_senadores?select=nome,titulo,ini,fim,anos,provincia,partido&limit=300").then(r=>{
+    const d=r.dados||[];
+    const corPart=p=> p==='Partido Conservador'?'#1d9e75':(p==='Partido Liberal'?'#7f77dd':'#888780');
+    let html="<div class='sech'>Senado do Império — panorama <span class='cnt'>"+d.length+" senadores</span></div>";
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:6px 0 2px'>Top 15 — maior tempo no Senado (anos entre nomeação e fim do mandato)</div>";
+    html+="<p style='font-size:11px;color:#7a8aa0;margin:0 0 4px;line-height:1.45'>⚠ O cargo de senador no Império era <b>vitalício</b>: o tempo reflete sobretudo quem foi nomeado cedo e teve vida longa, não disputas eleitorais. Medido como (fim do mandato − ano de nomeação); mandatos encerrados em 1889 terminam com a dissolução do Senado.</p>";
+    html+="<div style='display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#7a8aa0;margin:2px 0 4px'>"
+      +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#1d9e75'></span> Conservador</span>"
+      +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#7f77dd'></span> Liberal</span>"
+      +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#888780'></span> Sem partido</span></div>";
+    html+="<div style='position:relative;height:360px'><canvas id='senTempo'></canvas></div>";
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:16px 0 2px'>Senadores por província</div>";
+    html+="<div style='position:relative;height:430px'><canvas id='senProv'></canvas></div>";
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:16px 0 2px'>Nomeações por década (início do mandato)</div>";
+    html+="<div style='position:relative;height:210px'><canvas id='senDec'></canvas></div>";
+    w.innerHTML=html;
+    const top=d.filter(x=>x.anos!=null).sort((a,b)=>b.anos-a.anos).slice(0,15);
+    const lbl=x=>(x.titulo||x.nome||"").slice(0,34);
+    senCharts.push(new Chart(document.getElementById('senTempo'),{type:'bar',
+      data:{labels:top.map(lbl),datasets:[{data:top.map(x=>x.anos),backgroundColor:top.map(x=>corPart(x.partido)),borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{title:c=>top[c[0].dataIndex].nome,label:c=>top[c.dataIndex].anos+' anos ('+top[c.dataIndex].ini+'–'+top[c.dataIndex].fim+') · '+(top[c.dataIndex].partido?top[c.dataIndex].partido.replace('Partido ',''):'sem partido')}}},
+        scales:{x:{beginAtZero:true,title:{display:true,text:'anos entre nomeação e fim do mandato (cargo vitalício)',color:'#7a8aa0',font:{size:10}},ticks:{stepSize:10,font:{size:10}}},y:{ticks:{font:{size:10}}}}}}));
+    const pv={}; for(const x of d){ if(!x.provincia)continue; const k=x.provincia.replace('Província (Estado) ',''); pv[k]=(pv[k]||0)+1; }
+    const pk=Object.keys(pv).sort((a,b)=>pv[b]-pv[a]);
+    senCharts.push(new Chart(document.getElementById('senProv'),{type:'bar',
+      data:{labels:pk,datasets:[{data:pk.map(k=>pv[k]),backgroundColor:'#2f5496',borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.parsed.x+' senadores'}}},
+        scales:{x:{beginAtZero:true,ticks:{precision:0}},y:{ticks:{font:{size:10}}}}}}));
+    const dec={}; for(const x of d){ if(!x.ini)continue; const k=Math.floor(x.ini/10)*10; dec[k]=(dec[k]||0)+1; }
+    const dk=Object.keys(dec).map(Number).sort((a,b)=>a-b);
+    senCharts.push(new Chart(document.getElementById('senDec'),{type:'bar',
+      data:{labels:dk.map(k=>k+'s'),datasets:[{data:dk.map(k=>dec[k]),backgroundColor:'#1d6e56',borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.parsed.y+' nomeações'}}},
+        scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{precision:0}}}}}));
+  }).catch(e=>{ w.innerHTML="<div class='sech'>Senado do Império</div><p style='color:#a32d2d;font-size:12px'>Erro ao carregar gráficos: "+esc(e.message)+"</p>"; });
+}
+
+/* ----- CONSELHO DE MINISTROS — gráficos (só no dossiê do Conselho) ----- */
+function renderConselho(){
+  const w=document.getElementById("conselhoWrap"); if(!w) return;
+  for(const c of conCharts){try{c.destroy();}catch(e){}} conCharts=[];
+  const i=F.info;
+  if(!i || !/^Conselho de Ministros/.test(i.nome||"") || typeof Chart==="undefined"){ w.innerHTML=""; return; }
+  const corPart=p=> p==='Conservador'?'#1d9e75':(p==='Liberal'?'#7f77dd':(p==='Liga Progressista'?'#ba7517':'#888780'));
+  w.innerHTML="<div class='sech'>Conselho de Ministros — panorama</div><p style='font-size:11.5px;color:#7a8aa0'>Carregando gráficos…</p>";
+  getJSON("v_gabinetes?select=presidente,titulo,gabinete,dur_anos,ini,fimy,partido&limit=200").then(r=>{
+    const d=(r.dados||[]).map(x=>({...x,dur:Number(x.dur_anos)||0}));
+    let html="<div class='sech'>Conselho de Ministros — panorama <span class='cnt'>"+d.length+" gabinetes</span></div>";
+    html+="<div style='display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#7a8aa0;margin:2px 0 6px'>"
+      +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#1d9e75'></span> Conservador</span>"
+      +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#7f77dd'></span> Liberal</span>"
+      +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#ba7517'></span> Liga Progressista</span></div>";
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:6px 0 2px'>Tempo total de governo por partido (anos)</div>";
+    html+="<div style='position:relative;height:200px'><canvas id='conPartido'></canvas></div>";
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:16px 0 2px'>Gabinetes mais longos (anos)</div>";
+    html+="<div style='position:relative;height:360px'><canvas id='conGab'></canvas></div>";
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:16px 0 2px'>Presidentes por tempo total à frente do Conselho (anos)</div>";
+    html+="<div style='position:relative;height:340px'><canvas id='conPres'></canvas></div>";
+    w.innerHTML=html;
+    // 1) por partido (tempo total)
+    const pp={}; for(const x of d){ const k=x.partido||'(sem)'; pp[k]=(pp[k]||0)+x.dur; }
+    const pk=Object.keys(pp).sort((a,b)=>pp[b]-pp[a]);
+    conCharts.push(new Chart(document.getElementById('conPartido'),{type:'bar',
+      data:{labels:pk,datasets:[{data:pk.map(k=>+pp[k].toFixed(1)),backgroundColor:pk.map(corPart),borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+' anos'}}},
+        scales:{x:{ticks:{font:{size:11}}},y:{beginAtZero:true,title:{display:true,text:'anos',color:'#7a8aa0',font:{size:10}}}}}}));
+    // 2) gabinetes mais longos
+    const top=d.slice().sort((a,b)=>b.dur-a.dur).slice(0,12);
+    conCharts.push(new Chart(document.getElementById('conGab'),{type:'bar',
+      data:{labels:top.map(x=>x.gabinete),datasets:[{data:top.map(x=>+x.dur.toFixed(2)),backgroundColor:top.map(x=>corPart(x.partido)),borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{title:c=>top[c[0].dataIndex].gabinete,label:c=>top[c.dataIndex].dur.toFixed(2)+' anos · '+(top[c.dataIndex].titulo||top[c.dataIndex].presidente)+' ('+top[c.dataIndex].ini+'–'+top[c.dataIndex].fimy+')'}}},
+        scales:{x:{beginAtZero:true,ticks:{font:{size:10}}},y:{ticks:{font:{size:10}}}}}}));
+    // 3) presidentes por tempo total
+    const pres={}; for(const x of d){ const k=x.titulo||x.presidente; if(!pres[k])pres[k]={anos:0,n:0}; pres[k].anos+=x.dur; pres[k].n++; }
+    const prk=Object.keys(pres).sort((a,b)=>pres[b].anos-pres[a].anos).slice(0,12);
+    conCharts.push(new Chart(document.getElementById('conPres'),{type:'bar',
+      data:{labels:prk.map(k=>k.slice(0,30)),datasets:[{data:prk.map(k=>+pres[k].anos.toFixed(2)),backgroundColor:'#2f5496',borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>pres[prk[c.dataIndex]].anos.toFixed(2)+' anos · '+pres[prk[c.dataIndex]].n+' gabinete(s)'}}},
+        scales:{x:{beginAtZero:true,ticks:{font:{size:10}}},y:{ticks:{font:{size:10}}}}}}));
+  }).catch(e=>{ w.innerHTML="<div class='sech'>Conselho de Ministros</div><p style='color:#a32d2d;font-size:12px'>Erro ao carregar gráficos: "+esc(e.message)+"</p>"; });
+}
+
+/* ----- NOTAS + REFERÊNCIAS (fim do dossiê) ----- */
+function renderNotasRef(){
+  const w=document.getElementById("notasRefWrap"); if(!w) return;
+  const i=F.info||{}; let h="";
+  if(i.notas && String(i.notas).trim()){
+    h+="<div class='sech'>Notas</div><div class='ident' style='grid-template-columns:1fr'><div>"+esc(i.notas)+"</div></div>";
+  }
+  const refs=new Map();
+  const addRef=(ref,url,contrib)=>{ if(ref==null) return; const k=String(ref).trim(); if(!k) return;
+    if(!refs.has(k)) refs.set(k,{ref:k,url:url||"",contrib:contrib||""});
+    else { const o=refs.get(k); if(contrib&&!o.contrib)o.contrib=contrib; if(url&&!o.url)o.url=url; } };
+  (F.rels||[]).forEach(r=>addRef(r.fonte_ref,r.fonte_url,r.fonte_contribuidor));
+  (F.cotacoes||[]).forEach(c=>addRef(c.fonte,null,c.contribuidor));
+  (F.cargas||[]).forEach(c=>addRef(c.fonte,null,c.contribuidor));
+  (F.bens||[]).forEach(b=>addRef(b.fonte,null,b.contribuidor));
+  if(F.bolsaFonte) addRef(F.bolsaFonte.fonte,null,F.bolsaFonte.contribuidor);
+  (F.eventos||[]).forEach(ev=>(ev.referencias||[]).forEach(rf=>addRef(rf.short_ref,rf.url,null)));
+  if(refs.size){
+    h+="<div class='sech'>Referências <span class='cnt'>"+refs.size+"</span></div>";
+    h+="<div style='font-size:12px;color:#41526b;line-height:1.5'>"; let n=0;
+    refs.forEach(o=>{ n++; h+="<div style='padding:5px 0;"+(n>1?"border-top:1px solid #f0f3f7":"")+"'>"+esc(o.ref)
+      +(o.contrib?(" <span style='color:#7a8aa0'>· Contribuidor: "+esc(o.contrib)+"</span>"):"")
+      +(o.url?(" <a href='"+esc(o.url)+"' target='_blank' rel='noopener'>🔗 acervo</a>"):"")+"</div>"; });
+    h+="</div>";
+  }
+  w.innerHTML=h;
 }
 
 /* ----- COTAÇÕES NA BOLSA (ficha da empresa) ----- */
@@ -355,17 +569,32 @@ function cotacoesPorAtivo(){
   }
   return ats;
 }
+function setCotAtivo(k){ F.cotAtivoSel=k; renderCotacoes(); }
 function renderCotacoes(){
   const w=document.getElementById("cotacoesWrap"); if(!w) return;
   const cot=F.cotacoes||[];
-  if(!cot.length){ w.innerHTML=""; if(chartCot){chartCot.destroy();chartCot=null;} return; }
+  if(!cot.length){ w.innerHTML=""; [chartCot,chartCotAtiv].forEach(c=>{if(c)c.destroy();}); chartCot=chartCotAtiv=null; return; }
   const anos=[...new Set(cot.map(c=>c.ano).filter(Boolean))].sort();
   const faixa=anos.length?(anos[0]+(anos.length>1?"–"+anos[anos.length-1]:"")):"";
   const ats=cotacoesPorAtivo();
   const ks=Object.keys(ats).sort((a,b)=>ats[b].linhas.length-ats[a].linhas.length);
+  if(!ks.includes(F.cotAtivoSel)) F.cotAtivoSel=ks[0];
+  const sel=F.cotAtivoSel;
   let h="<div class='sech'>Cotações na Bolsa do RJ <span class='cnt'>"+cot.length+" registros"+(faixa?(" · "+faixa):"")+" · "+ks.length+" ativo(s)</span></div>";
-  h+="<p style='font-size:11.5px;color:#7a8aa0;margin:2px 0 6px'>Cotações mín./máx. anuais (Retrospecto Commercial do Jornal do Commercio). Veja a faixa por ano no gráfico abaixo.</p>";
+  // ---- Gráfico 1+2: nº de ativos (sobrevivência) + volume por ano ----
+  h+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:8px 0 2px'>Atividade na bolsa por ano</div>";
+  h+="<p style='font-size:11.5px;color:#7a8aa0;margin:0 0 4px'>Barras = nº de ativos distintos cotados no ano (continuidade da empresa na bolsa); linha = volume total negociado no ano.</p>";
+  h+="<canvas id='grafCotAtiv' height='150'></canvas>";
+  // ---- Gráfico 3: faixa min/máx por tipo de ativo (selecionável) ----
+  h+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:14px 0 4px'>Faixa de cotação por tipo de ativo</div>";
+  h+="<p style='font-size:11.5px;color:#7a8aa0;margin:0 0 6px'>Cotações mín./máx. anuais (Retrospecto Commercial do Jornal do Commercio). Selecione o tipo de ativo:</p>";
+  h+="<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px'>";
+  for(const k of ks){ const at=k===sel;
+    h+="<span onclick=\"setCotAtivo('"+esc(k).replace(/"/g,"&quot;")+"')\" style='cursor:pointer;font-size:11px;padding:3px 8px;border-radius:11px;border:1px solid "+(at?"#1d6e56":"#cfd8e3")+";background:"+(at?"#1d6e56":"#fff")+";color:"+(at?"#fff":"#42526b")+";font-weight:"+(at?"600":"400")+"'>"+esc(k)+" <span style='opacity:.75;font-size:10px'>("+ats[k].linhas.length+")</span></span>";
+  }
+  h+="</div>";
   h+="<canvas id='grafCot' height='150'></canvas>";
+  h+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:16px 0 2px'>Detalhamento por ativo</div>";
   for(const k of ks){ const o=ats[k]; const ek="cot:"+k.replace(/'/g,""); const aberto=F.expand[ek]; const arr=o.linhas.slice().sort((a,b)=>a.ano-b.ano);
     const banda = o.is_pct ? "% do par" : ((o.min!=null?milreis(o.min,"réis"):"?")+" – "+(o.max!=null?milreis(o.max,"réis"):"?"));
     let det="";
@@ -388,21 +617,42 @@ function renderCotacoes(){
     const toggle="F.expand['"+esc(ek)+"']="+(aberto?"0":"1")+";renderCotacoes()";
     h+="<div class='grp'><h4 style='cursor:pointer' onclick=\""+toggle+"\"><span class='badge' style='background:#1d6e56'>"+esc(k)+"</span> <span class='cnt'>"+o.linhas.length+" anos</span> · "+esc(banda)+(o.categoria?(" · "+esc(o.categoria)):"")+" <span class='ano'>["+(aberto?"−":"+")+"]</span></h4>"+det+"</div>";
   }
-  const frow=cot.find(c=>c.fonte)||cot.find(c=>c.base_dados);
-  if(frow){ let fh="";
-    if(frow.fonte) fh+="<div>Fonte primária: "+esc(frow.fonte)+"</div>";
-    if(frow.base_dados) fh+="<div>Base de dados: "+esc(frow.base_dados)+"</div>";
-    h+="<div style='font-size:11.5px;color:#7a8aa0;margin-top:8px;line-height:1.5'>"+fh+"</div>"; }
   w.innerHTML=h;
-  // gráfico: faixa min-max por ano (área) agregando todos os ativos do emissor
+  if(typeof Chart==="undefined") return;
+
+  // ---- Gráfico 1+2: nº de ativos distintos + volume por ano ----
+  const cvA=document.getElementById("grafCotAtiv");
+  if(cvA){
+    if(chartCotAtiv){chartCotAtiv.destroy();chartCotAtiv=null;}
+    const ag={};
+    for(const c of cot){ if(c.ano==null) continue; const o=ag[c.ano]=ag[c.ano]||{set:new Set(),vol:0}; o.set.add(c.ativo||c.nome_ativo||"(ativo)"); if(c.volume!=null)o.vol+=Number(c.volume); }
+    const ya=Object.keys(ag).map(Number).sort((a,b)=>a-b);
+    const dAtiv=ya.map(y=>ag[y].set.size);
+    const dVol=ya.map(y=>ag[y].vol||null);
+    chartCotAtiv=new Chart(cvA,{data:{labels:ya,datasets:[
+        {type:"bar",label:"Ativos negociados",data:dAtiv,backgroundColor:"rgba(47,84,150,.55)",yAxisID:"y",order:2},
+        {type:"line",label:"Volume negociado",data:dVol,borderColor:"#e05c2a",backgroundColor:"#e05c2a",tension:.2,spanGaps:true,yAxisID:"y1",order:1,pointRadius:2}
+      ]},
+      options:{responsive:true,maintainAspectRatio:true,
+        plugins:{legend:{labels:{font:{size:11}}},
+          tooltip:{callbacks:{label:c=>c.dataset.yAxisID==="y1"?("Volume: "+Number(c.parsed.y).toLocaleString("pt-BR")):("Ativos: "+c.parsed.y)}}},
+        scales:{
+          x:{ticks:{font:{size:9},maxRotation:60,minRotation:45}},
+          y:{position:"left",beginAtZero:true,title:{display:true,text:"nº de ativos",font:{size:10}},ticks:{precision:0,stepSize:1}},
+          y1:{position:"right",beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:"volume",font:{size:10}},ticks:{callback:v=>Number(v).toLocaleString("pt-BR")}}
+        }}});
+  }
+
+  // ---- Gráfico 3: faixa min/máx do tipo de ativo selecionado ----
   const cv=document.getElementById("grafCot");
-  if(cv && typeof Chart!=="undefined"){
+  if(cv && sel && ats[sel]){
     if(chartCot){chartCot.destroy();chartCot=null;}
+    const o=ats[sel], isPct=o.is_pct;
     const byY={};
-    for(const c of cot){ if(c.ano==null) continue; const o=byY[c.ano]=byY[c.ano]||{mn:null,mx:null}; if(c.min_reis!=null)o.mn=(o.mn==null?Number(c.min_reis):Math.min(o.mn,Number(c.min_reis))); if(c.max_reis!=null)o.mx=(o.mx==null?Number(c.max_reis):Math.max(o.mx,Number(c.max_reis))); }
+    for(const c of o.linhas){ if(c.ano==null) continue; const r=byY[c.ano]=byY[c.ano]||{mn:null,mx:null}; if(c.min_reis!=null)r.mn=(r.mn==null?Number(c.min_reis):Math.min(r.mn,Number(c.min_reis))); if(c.max_reis!=null)r.mx=(r.mx==null?Number(c.max_reis):Math.max(r.mx,Number(c.max_reis))); }
     const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
-    const conv=(v,y)=> F.moeda==="reis"? v/1000 : convAno(v,y).val;
-    const simb=F.moeda==="reis"?"mil-réis":(F.moeda==="libra"?"£":"US$");
+    const conv=(v,y)=> isPct? v : (F.moeda==="reis"? v/1000 : convAno(v,y).val);
+    const simb=isPct?"% do par":(F.moeda==="reis"?"mil-réis":(F.moeda==="libra"?"£":"US$"));
     const dmin=yy.map(y=>byY[y].mn!=null?conv(byY[y].mn,y):null);
     const dmax=yy.map(y=>byY[y].mx!=null?conv(byY[y].mx,y):null);
     chartCot=new Chart(cv,{type:"line",
@@ -411,9 +661,9 @@ function renderCotacoes(){
         {label:"Mínima ("+simb+")",data:dmin,borderColor:"#2f5496",backgroundColor:"rgba(47,84,150,.10)",tension:.2,fill:false,spanGaps:true}
       ]},
       options:{responsive:true,maintainAspectRatio:true,
-        plugins:{legend:{labels:{font:{size:11}}},title:{display:true,text:"Faixa de cotação por ano",font:{size:12},color:"#1f3a5f"},
+        plugins:{legend:{labels:{font:{size:11}}},title:{display:true,text:"Faixa de cotação — "+sel,font:{size:12},color:"#1f3a5f"},
           tooltip:{callbacks:{label:c=>c.dataset.label+": "+Number(c.parsed.y).toLocaleString("pt-BR")+" "+simb}}},
-        scales:{y:{ticks:{callback:v=>Number(v).toLocaleString("pt-BR")}}}}});
+        scales:{x:{ticks:{font:{size:9},maxRotation:60,minRotation:45}},y:{ticks:{callback:v=>Number(v).toLocaleString("pt-BR")}}}}});
   }
 }
 
@@ -426,11 +676,6 @@ function renderBolsa(){
   h+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:4px 0'>Ativos e emissores negociados por ano</div>";
   h+="<canvas id='grafBolsaA' height='150'></canvas>";
   h+="<div style='position:relative;height:240px;margin-top:14px'><div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:4px 0'>Ativos por setor (reclassificado)</div><canvas id='grafBolsaS'></canvas></div>";
-  const bf=F.bolsaFonte;
-  if(bf){ let fh="";
-    if(bf.fonte) fh+="<div>Fonte primária: "+esc(bf.fonte)+"</div>";
-    if(bf.base_dados) fh+="<div>Base de dados: "+esc(bf.base_dados)+"</div>";
-    h+="<div style='font-size:11.5px;color:#7a8aa0;margin-top:12px;line-height:1.5'>"+fh+"</div>"; }
   w.innerHTML=h;
   if(typeof Chart==="undefined") return;
   if(chartBolsaA){chartBolsaA.destroy();chartBolsaA=null;}
@@ -503,7 +748,6 @@ function renderBens(){
     if(o.itens.length>LIM) its+='<div class="mais" onclick="F.expand[\''+esc(ek)+'\']=1;renderBens()">+ '+(o.itens.length-LIM)+' mais…</div>';
     h+="<div class='grp'><h4><span class='badge' style='background:#1f3a5f'>"+esc(k)+"</span> <span class='cnt'>"+o.itens.length+"</span> · "+fmtSomaBens(o)+"</h4>"+its+"</div>";
   }
-  const fonte=bens.find(b=>b.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
   if(F.moeda!=="reis") h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Conversão pela tabela de Moura Filho (2010); ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
   w.innerHTML=h;
   const cv=document.getElementById("grafBens");
@@ -581,21 +825,28 @@ function blocoIdentidade(){
   const ehPessoa=(i.actor_type==='person');
   add(ehPessoa?"Nascimento":"Fundação", nasc);
   add(ehPessoa?"Falecimento":"Encerramento", morte);
-  if(!ehPessoa && nasc && !morte) add("Situação","Em atividade");
-  add("Local", i.location); add("Notas", i.notas);
+  if(!ehPessoa && i.em_atividade===true) add("Situação","Em atividade");
+  add("Local", i.location);
   if(!L.length) return "";
   return "<div class='sech'>Identidade</div><div class='ident'>"+L.join("")+"</div>";
 }
 function filtrosFichaHTML(){
-  const tipos=[...new Set(F.rels.map(r=>r.relation_name))];
-  let opt='<option value="">Todos os tipos</option>'+tipos.map(t=>'<option value="'+esc(t)+'"'+(F.fTipo===t?' selected':'')+'>'+esc(relpt(t))+'</option>').join("");
-  return "<div class='ffiltros'><select onchange='F.fTipo=this.value;renderRelacoes();renderRede()'>"+opt+"</select>"+
-    "<input type='number' placeholder='filtrar por ano' value='"+esc(F.fAno)+"' oninput='F.fAno=this.value;renderRelacoes();renderRede()' style='width:130px'>"+
-    (F.rels.length<F.relsTotal?("<button class='btn-sm' onclick='carregarTodasRel()'>Carregar todas ("+F.relsTotal+")</button>"):"")+"</div>";
+  const porTipo={}; for(const r of F.rels){ const k=relGrupo(r); porTipo[k]=(porTipo[k]||0)+1; }
+  F._relTipos=ordenaGruposRel(Object.keys(porTipo), k=>porTipo[k]);
+  let chips="<div class='relchips'><span class='relchip"+(!F.fTipo?" on":"")+"' onclick='setFTipoIdx(-1)'>Todos <b>"+F.rels.length+"</b></span>";
+  F._relTipos.forEach((t,idx)=>{ chips+="<span class='relchip"+(F.fTipo===t?" on":"")+"' onclick='setFTipoIdx("+idx+")'>"+esc(t==='Família'?'Família':relpt(t))+" <b>"+porTipo[t]+"</b></span>"; });
+  chips+="</div>";
+  const ano="<input type='number' placeholder='filtrar por ano' value='"+esc(F.fAno)+"' oninput='F.fAno=this.value;renderRelacoes();atualizarRede()' style='width:120px'>";
+  const carregar=(F.rels.length<F.relsTotal)?("<button class='btn-sm' id='btnCarregarTodas' onclick='carregarTodasRel()'>Carregar todas ("+F.relsTotal+")</button>"):"";
+  return "<div class='ffiltros'>"+chips+ano+carregar+"</div>";
 }
+function setFTipoIdx(idx){ F.fTipo = idx<0 ? "" : ((F._relTipos||[])[idx]||""); renderRelacoes(); atualizarRede(); }
+// agrupa todas as relações de parentesco numa única aba "Família"
+function relGrupo(r){ return (r.relation_category==='Parentesco') ? 'Família' : (r.relation_name||'relação'); }
+function ordenaGruposRel(keys, cnt){ return keys.sort((a,b)=>{ if(a==='Família')return -1; if(b==='Família')return 1; return cnt(b)-cnt(a); }); }
 function relFiltradas(){
   return F.rels.filter(r=>{
-    if(F.fTipo && r.relation_name!==F.fTipo) return false;
+    if(F.fTipo && relGrupo(r)!==F.fTipo) return false;
     if(F.fAno){ const a=Number(F.fAno); const ini=r.ano, fim=r.ano_fim||r.ano; if(!(ini && a>=ini && a<=fim)) return false; }
     return true;
   });
@@ -607,6 +858,7 @@ function fonteBox(ev,sid){
   const f=(F.fontesMap||{})[sid];
   if(!f){ pop.style.display="none"; return; }
   let html="<div class='ttl'>Fonte</div><div>"+esc(f.ref||"(referência não informada)")+"</div>";
+  if(f.contribuidor) html+="<div style='margin-top:5px'><b>Contribuidor:</b> "+esc(f.contribuidor)+"</div>";
   if(f.url) html+="<div style='margin-top:6px'><a href='"+esc(f.url)+"' target='_blank' rel='noopener'>🔗 ver no acervo</a></div>";
   pop.innerHTML=html; pop.style.display="block";
   const x=Math.min(ev.clientX,(window.innerWidth||800)-360), y=Math.min(ev.clientY+12,(window.innerHeight||600)-170);
@@ -615,12 +867,15 @@ function fonteBox(ev,sid){
 document.addEventListener("click",function(e){ const p=document.getElementById("fontePop"); if(p&&p.style.display==="block"&&!p.contains(e.target)&&!(e.target.classList&&e.target.classList.contains("src"))) p.style.display="none"; });
 function renderRelacoes(){
   const wrap=document.getElementById("relWrap"); if(!wrap) return;
-  F.fontesMap={}; (F.rels||[]).forEach(r=>{ if(r.source_id && !F.fontesMap[r.source_id]) F.fontesMap[r.source_id]={ref:r.fonte_ref,url:r.fonte_url}; });
+  F.fontesMap={}; (F.rels||[]).forEach(r=>{ if(r.source_id && !F.fontesMap[r.source_id]) F.fontesMap[r.source_id]={ref:r.fonte_ref,url:r.fonte_url,contribuidor:r.fonte_contribuidor}; });
   const dados=relFiltradas(); const porTipo={};
-  for(const r of dados){ const k=r.relation_name||"relação"; (porTipo[k]=porTipo[k]||[]).push(r); }
-  const chaves=Object.keys(porTipo).sort((a,b)=>porTipo[b].length-porTipo[a].length);
+  for(const r of dados){ const k=relGrupo(r); (porTipo[k]=porTipo[k]||[]).push(r); }
+  const chaves=ordenaGruposRel(Object.keys(porTipo), k=>porTipo[k].length);
   let h="";
-  for(const k of chaves){ const arr=porTipo[k]; const aberto=F.expand[k]; const LIM=aberto?arr.length:25;
+  for(const k of chaves){ const arr=porTipo[k]; const ehFam=(k==='Família'); const aberto=F.expand[k]; const LIM=aberto?arr.length:25;
+    let soma=0, temV=false;
+    for(const r of arr){ if(r.valor!=null && (!r.moeda||/r[eé]is/i.test(r.moeda))){ soma+=Number(r.valor)||0; temV=true; } }
+    const somaH = temV ? " <span class='soma'>Σ "+esc(milreis(soma,"réis"))+"</span>" : "";
     let its=arr.slice(0,LIM).map(r=>{
       const per=r.ano?((r.ano_fim&&r.ano_fim!=r.ano)?(r.ano+"–"+r.ano_fim):String(r.ano)):(r.ano_fim?("até "+r.ano_fim):"");
       const val=(r.valor==null)?"":((r.moeda&&/r[eé]is/i.test(r.moeda))?fmtDinheiro(Number(r.valor),r.ano):milreis(r.valor,r.moeda));
@@ -628,20 +883,41 @@ function renderRelacoes(){
       const pH=r.role_name?(' <span class="ano">('+esc(String(r.role_name).replace(/\|/g," · "))+')</span>'):'';
       const sH=r.source_id?(' <span class="src" title="'+esc(r.fonte_ref||"Fonte").replace(/"/g,"&quot;")+'" onclick="fonteBox(event,'+r.source_id+')">ⓘ</span>'):'';
       const nH=(r.notes && !ehCredito(r.notes))?('<span class="nota">'+esc(r.notes)+'</span>'):'';
-      return '<div class="item"><a onclick="abrirFicha('+r.rel_actor_id+')">'+esc(r.rel_nome||"(sem nome)")+'</a>'+aH+vH+pH+sH+nH+'</div>';
+      const relH=ehFam?('<span class="badge" style="background:#7f5bd0;margin-right:5px">'+esc(relpt(r.relation_name))+'</span>'):'';
+      return '<div class="item">'+relH+'<a onclick="abrirFicha('+r.rel_actor_id+')">'+esc(r.rel_nome||"(sem nome)")+'</a>'+aH+vH+pH+sH+nH+'</div>';
     }).join("");
     if(arr.length>LIM) its+='<div class="mais" onclick="F.expand[\''+esc(k).replace(/'/g,"")+'\']=1;renderRelacoes()">+ '+(arr.length-LIM)+' mais…</div>';
-    h+="<div class='grp'><h4><span class='badge' style='background:"+(COR[arr[0].rel_tipo]||"#888")+"'>"+esc(relpt(k))+"</span> <span class='cnt'>"+arr.length+"</span></h4>"+its+"</div>";
+    const podeToggle=arr.length>25;
+    const tog=podeToggle?("F.expand['"+esc(k).replace(/'/g,"")+"']="+(aberto?"0":"1")+";renderRelacoes()"):"";
+    const ind=podeToggle?(" <span class='ano'>["+(aberto?"−":"+")+"]</span>"):"";
+    const hdBg=ehFam?"#7f5bd0":(COR[arr[0].rel_tipo]||"#888"); const hdLbl=ehFam?"Família":relpt(k);
+    h+="<div class='grp'><h4"+(podeToggle?(" style='cursor:pointer' onclick=\""+tog+"\""):"")+"><span class='badge' style='background:"+hdBg+"'>"+esc(hdLbl)+"</span> <span class='cnt'>"+arr.length+"</span>"+somaH+ind+"</h4>"+its+"</div>";
   }
   if(!chaves.length) h="<p style='color:#7a8aa0;font-size:12.5px'>Sem relações para o filtro atual.</p>";
   if(F.rels.length<F.relsTotal) h+="<p class='mais' style='cursor:default;color:#7a8aa0'>Carregadas "+F.rels.length+" de "+F.relsTotal+" relações.</p>";
   wrap.innerHTML=h;
 }
 async function carregarTodasRel(){
-  const id=F.info.actor_id;
-  const rel=await getJSON("v_relacoes?actor_id=eq."+id+"&select=rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes,source_id,fonte_ref,fonte_url&order=relation_name.asc&limit="+F.relsTotal,true);
-  F.rels=rel.dados; F.relsTotal=rel.total; renderHead(); renderRede();
-  const f=document.getElementById("ficha"); document.querySelector(".ffiltros").outerHTML=filtrosFichaHTML(); renderRelacoes();
+  const id=F.info.actor_id, PAG=1000, SEL="rel_actor_id,rel_nome,rel_tipo,relation_name,relation_category,role_name,ano,ano_fim,valor,moeda,notes,source_id,fonte_ref,fonte_url";
+  const btn=document.getElementById("btnCarregarTodas"); if(btn){ btn.disabled=true; btn.textContent="Carregando…"; }
+  try{
+    let all=[], from=0, total=F.relsTotal||0;
+    // pagina via limit/offset, avançando pelo nº de linhas realmente retornadas
+    // (contorna qualquer limite de linhas por requisição imposto pelo servidor)
+    for(let guard=0; guard<500; guard++){
+      const r=await getJSON("v_relacoes?actor_id=eq."+id+"&select="+SEL+"&order=relation_name.asc&limit="+PAG+"&offset="+from, from===0);
+      if(from===0 && r.total) total=r.total;
+      if(!r.dados.length) break;
+      all=all.concat(r.dados);
+      if(btn) btn.textContent="Carregando… "+all.length+"/"+total;
+      from+=r.dados.length;
+      if(all.length>=total) break;
+    }
+    F.rels=all; F.relsTotal=Math.max(total,all.length);
+    renderHead(); renderRede();
+    const el=document.querySelector(".ffiltros"); if(el) el.outerHTML=filtrosFichaHTML();
+    renderRelacoes();
+  }catch(e){ if(btn){ btn.disabled=false; btn.textContent="Erro — tentar de novo"; } }
 }
 
 /* ----- ESTATÍSTICAS + GRÁFICO ----- */
@@ -653,7 +929,7 @@ function barraFiltroCargas(){
   const A=F._agg||{porProd:{},ks:[],grupos:[],usarGrupo:false};
   let h="<div style='background:#f7f9fc;border:1px solid #d9e0ea;border-radius:9px;padding:8px 10px;margin:8px 0;font-size:12px'>";
   if(A.usarGrupo){
-    const _prio=["Censo 1872","Raças 1872","Faixa etária 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Censo 1890","Açúcar","Madeiras","Totais"];const _ocultos=["Pop. histórica"];const _og=[..._prio.filter(g=>A.grupos.includes(g)&&!_ocultos.includes(g)),...A.grupos.filter(g=>!_prio.includes(g)&&g!=="Outros"&&!_ocultos.includes(g)),...(A.grupos.includes("Outros")?["Outros"]:[])];
+    const _prio=["Censo 1872","Raças 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Censo 1890","Açúcar","Madeiras","Totais"];const _ocultos=["Pop. histórica"];const _og=[..._prio.filter(g=>A.grupos.includes(g)&&!_ocultos.includes(g)),...A.grupos.filter(g=>!_prio.includes(g)&&g!=="Outros"&&!_ocultos.includes(g)),...(A.grupos.includes("Outros")?["Outros"]:[])];
     const grupoAtivo=_og.find(g=>{
       const _bs=new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===g).map(k=>baseDe(k)));
       return _bs.size>0&&F.cargaProds.size===_bs.size&&[..._bs].every(b=>F.cargaProds.has(b));
@@ -667,7 +943,7 @@ function barraFiltroCargas(){
       h+="<button onclick='selecionarGrupo(\""+esc1(_g)+"\")' style='"+tabSt(_g===grupoAtivo)+"'>"+esc(_g)+"</button>";
     }
     h+="</div>";
-    const _customGrps=["Censo 1872","Raças 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Faixa etária 1872","Óbitos","Imigração","Censo 1890"];if(grupoAtivo&&!_customGrps.includes(grupoAtivo)){
+    const _customGrps=["Censo 1872","Raças 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Óbitos","Imigração","Censo 1890"];if(grupoAtivo&&!_customGrps.includes(grupoAtivo)){
       const _prods=[...new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===grupoAtivo).map(k=>baseDe(k)))];
       if(_prods.length>1){
         h+="<div style='margin-bottom:6px'>";
@@ -915,6 +1191,54 @@ function renderPiramide(){
   ]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+": "+fmt(c.parsed.x)}}},scales:{x:{stacked:true,ticks:{font:{size:10},callback:v=>Math.abs(v).toLocaleString('pt-BR')}},y:{stacked:true,ticks:{font:{size:10}}}}}}));
 }
 
+// Grupos exibidos como barras horizontais top-N + "Outros" (categorias derivadas dos dados). Só nível província.
+const _grpBarras={
+  'Origem brasileiros 1872':{topN:15,nota:'Naturalidade dos brasileiros (província de nascimento). Categorias menores agrupadas em "Outros". Grafias conforme o Recenseamento de 1872. ⚠ Os quadros de origem (brasileiros + estrangeiros) não fecham com o total de almas — apuração à parte na fonte; dado em conferência.'},
+  'Origem estrangeiros 1872':{topN:12,nota:'Nacionalidade dos estrangeiros residentes. Categorias menores agrupadas em "Outros". Termos e grafias conforme o Recenseamento de 1872. ⚠ Os quadros de origem (brasileiros + estrangeiros) não fecham com o total de almas — apuração à parte na fonte; dado em conferência.'},
+  'Profissões 1872':{topN:16,nota:'Ocupações/profissões da população. Categorias menores agrupadas em "Outros". Termos e classificações conforme o Recenseamento de 1872. Inclui "Sem profissão" (que abrange menores, donas de casa e demais sem ocupação declarada na época).'}
+};
+function renderBarrasOutros(cfg){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf'),td=document.getElementById('cargaTabela');
+  if(!cv||!td)return; cv.style.display='none';
+  const base=F._activeGrupo, pref=base+' — ';
+  const cm={};
+  for(const c of F.cargas){
+    const p=c.produto||''; if(p.indexOf(pref)!==0)continue;
+    let rest=p.slice(pref.length), sx=null;
+    if(rest.endsWith(' Homens')){sx='H';rest=rest.slice(0,-7);}
+    else if(rest.endsWith(' Mulheres')){sx='M';rest=rest.slice(0,-9);}
+    else continue;
+    const o=cm[rest]||(cm[rest]={H:0,M:0}); o[sx]+=Number(c.valor)||0;
+  }
+  const cats=Object.keys(cm);
+  if(!cats.length){td.innerHTML="<p style='color:#7a8aa0;font-size:12px'>Sem dados de "+esc(base)+" para este ator.</p>";return;}
+  const sex=F._compSex||null;
+  const meas=k=>sex==='Homens'?cm[k].H:sex==='Mulheres'?cm[k].M:cm[k].H+cm[k].M;
+  const totH=cats.reduce((a,k)=>a+cm[k].H,0), totM=cats.reduce((a,k)=>a+cm[k].M,0);
+  const sorted=cats.filter(k=>meas(k)>0).sort((a,b)=>meas(b)-meas(a));
+  const N=cfg.topN||15; let labels=[],vals=[],outrosLista=[];
+  if(sorted.length>N){
+    const top=sorted.slice(0,N), rest=sorted.slice(N);
+    labels=top.slice(); vals=top.map(meas);
+    outrosLista=rest; labels.push('Outros ('+rest.length+')'); vals.push(rest.reduce((a,k)=>a+meas(k),0));
+  } else { labels=sorted; vals=sorted.map(meas); }
+  const fmt=n=>n.toLocaleString('pt-BR');
+  const nome=base.replace(/ 1872$/,''), tot=sex==='Homens'?totH:sex==='Mulheres'?totM:totH+totM;
+  const chip=(s,lbl,t)=>{const act=sex===s;return "<button onclick=\"F._compSex='"+s+"';renderCargas()\" style=\"padding:6px 18px;margin:0 8px 0 0;border-radius:20px;font-size:12px;cursor:pointer;border:2px solid "+(act?"#2f5496":"#d9e0ea")+";background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"400")+"\">"+lbl+" <span style=\"font-weight:400;opacity:0.8\">("+fmt(t)+")</span></button>";};
+  let wrap="<div style='margin:8px 0'><div style='margin-bottom:12px;display:flex;align-items:center;flex-wrap:wrap;gap:6px'>";
+  wrap+=chip('Homens','&#9794; Homens',totH)+chip('Mulheres','&#9792; Mulheres',totM);
+  if(sex)wrap+="<button onclick=\"F._compSex=null;renderCargas()\" style=\"padding:4px 12px;border-radius:16px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:#fff;color:#7a8aa0\">&#8592; Visão geral</button>";
+  wrap+="</div>";
+  const titulo="<div style='font-size:12px;font-weight:600;color:#1f3a5f;margin:0 0 6px;text-align:center'>"+nome+(sex?" &mdash; "+sex:"")+" &mdash; 1872 ("+fmt(tot)+" hab.)</div>";
+  const box="<div style='max-width:620px;margin:0 auto'><canvas id='dn_comp' style='max-height:"+Math.max(220,labels.length*26)+"px'></canvas></div>";
+  const rod=outrosLista.length?" &middot; \"Outros\" = "+outrosLista.slice(0,12).join(', ')+(outrosLista.length>12?'…':''):"";
+  const rodape="<div style='font-size:10px;color:#7a8aa0;text-align:center;margin-top:6px'>"+(cfg.nota||"")+rod+"</div>";
+  td.innerHTML=wrap+titulo+box+rodape+"</div>";
+  chartsD.push(new Chart(document.getElementById('dn_comp'),{type:'bar',data:{labels,datasets:[{label:sex||'Total',data:vals,backgroundColor:labels.map(l=>l.indexOf('Outros (')===0?'#95a5a6':'#2f5496')}]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.x)+' hab.'}}},scales:{x:{ticks:{font:{size:10},callback:v=>v.toLocaleString('pt-BR')}},y:{ticks:{font:{size:10}}}}}}));
+}
+
 function renderObitos(){
   for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
   if(chart){chart.destroy();chart=null;}
@@ -1040,7 +1364,7 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   const temRelVal=F.rels.some(r=>r.valor!=null);
   if(!F.cargas.length && !temRelVal){ cw.innerHTML=""; return; }
   const porProd={};
-  for(const c of cargasFiltradas()){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:""}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
+  for(const c of cargasFiltradas()){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:"",ultimoAno:null,ultimoVal:null}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(c.ano!=null&&(o.ultimoAno==null||c.ano>=o.ultimoAno)){o.ultimoAno=c.ano;o.ultimoVal=Number(c.valor);} if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; let usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
   if(!usarGrupo&&F.mv&&F.mv.tipo==="Embarcação"){for(const k in porProd)porProd[k].grupo=_autoGrpEmb(baseDe(k));grupos.length=0;[...new Set(Object.keys(porProd).map(k=>porProd[k].grupo))].forEach(g=>grupos.push(g));const _emOrd=["Açúcar","Madeiras","Outros","Totais"];grupos.sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));usarGrupo=!(grupos.length===1&&grupos[0]==="Outros");}
@@ -1052,12 +1376,12 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   if(ehInventario) h+="<p style='font-size:11.5px;color:#7a8aa0;margin:2px 0 0'>Totais do inventário (retrato de "+(F.bens[0].ano||"")+", sem série temporal). Veja a distribuição no gráfico de “Bens do inventário” abaixo.</p>";
   else h+="<canvas id='graf' height='150'></canvas>";
   h+="<div id='cargaTabela'></div>";
-  const fonte=F.cargas.find(c=>c.fonte); if(fonte) h+="<p style='font-size:11.5px;color:#7a8aa0;margin-top:8px'>Fonte: "+esc(fonte.fonte)+"</p>";
   if(F.moeda!=="reis") h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Conversão pela tabela de Moura Filho (2010); só valores monetários (Soma/valor) convertem; ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
   cw.innerHTML=h;
   if(F._activeGrupo==="Censo 1872"){renderCenso1872();return;}
   if(F._activeGrupo==="Raças 1872"){renderRacas();return;}
   if(F._activeGrupo==='Faixa etária 1872'){renderPiramide();return;}
+  if(_grpBarras[F._activeGrupo]){renderBarrasOutros(_grpBarras[F._activeGrupo]);return;}
   if(_grpComposicao[F._activeGrupo]){renderComposicao(_grpComposicao[F._activeGrupo]);return;}
   if(F._activeGrupo==="Óbitos"){renderObitos();return;}
   if(F._activeGrupo==="Imigração"){renderImigracao();return;}
@@ -1102,11 +1426,16 @@ function renderTabelaSerie(){
     h+="</tbody></table>";
   } else {
     const A=F._agg||{porProd:{},ks:[],grupos:[],usarGrupo:false}; const porProd=A.porProd,ks=A.ks,grupos=A.grupos,usarGrupo=A.usarGrupo;
-    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:10px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Produto / métrica</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Anos</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Soma</th></tr></thead><tbody>";
-    const linhaProd=(k)=>{ const o=porProd[k]; const ys=[...o.anos].sort(); const faixa=ys.length?(ys[0]+(ys.length>1?"–"+ys[ys.length-1]:"")):""; const mk=o.flag?(" <span title='"+(o.flag==='estimado'?'Inclui valores estimados (repetição não-documental)':'Inclui valores convertidos — não documental')+"' style='color:#b06a00'>⚠</span>"):""; return "<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+esc(k)+mk+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(faixa)+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+fmtSomaCargo(o)+"</td></tr>"; };
+    const ehMoedaReis=(o)=>/r[eé]is/i.test(o.moeda||"");
+    const serieMonet = ks.length>0 && ks.every(k=>ehMoedaReis(porProd[k]) && porProd[k].anos.size>1);
+    const colTit = serieMonet ? "Último valor (ano)" : "Soma";
+    const aggCell=(o)=>{ if(ehMoedaReis(o) && o.anos.size>1 && o.ultimoVal!=null) return fmtDinheiro(o.ultimoVal,o.ultimoAno)+" <span class='ano'>("+o.ultimoAno+")</span>"; return fmtSomaCargo(o); };
+    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:10px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Produto / métrica</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Anos</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>"+colTit+"</th></tr></thead><tbody>";
+    const linhaProd=(k)=>{ const o=porProd[k]; const ys=[...o.anos].sort(); const faixa=ys.length?(ys[0]+(ys.length>1?"–"+ys[ys.length-1]:"")):""; const mk=o.flag?(" <span title='"+(o.flag==='estimado'?'Inclui valores estimados (repetição não-documental)':'Inclui valores convertidos — não documental')+"' style='color:#b06a00'>⚠</span>"):""; return "<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+esc(k)+mk+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(faixa)+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+aggCell(o)+"</td></tr>"; };
     if(usarGrupo){ for(const g of grupos){ const its=ks.filter(k=>porProd[k].grupo===g); h+="<tr><td colspan='3' style='padding:7px 4px 2px;font-weight:600;color:#1f3a5f;border-top:2px solid #e3e8ef'>"+esc(g)+"</td></tr>"; for(const k of its) h+=linhaProd(k); } }
     else { for(const k of ks.slice(0,80)) h+=linhaProd(k); }
     h+="</tbody></table>";
+    if(serieMonet) h+="<p style='font-size:11px;color:#7a8aa0;margin-top:6px'>Séries anuais (saldos/estoques): mostramos o <b>valor no último ano</b> de cada métrica — somar saldos de anos diferentes não teria sentido. Clique numa métrica para ver a série completa por ano.</p>";
   }
   ct.innerHTML=h;
 }
