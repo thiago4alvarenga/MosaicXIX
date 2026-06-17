@@ -1416,7 +1416,7 @@ function renderTabelaSerie(){
     const byY={}, flagY={};
     for(const c of cargasFiltradas()){ if(c.ano==null) continue; if(isGrp?(grpDe(c.notes)!==key):(c.produto!==key)) continue; if(c.valor!=null) byY[c.ano]=(byY[c.ano]||0)+Number(c.valor); const f=flagDe(c.notes); if(f) flagY[c.ano]=f; }
     const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
-    const mon=isGrp?cargasFiltradas().some(c=>grpDe(c.notes)===key&&isMonet(c.produto,c.moeda)):isMonet(key,null);
+    const mon=isGrp?cargasFiltradas().some(c=>grpDe(c.notes)===key&&isMonet(c.produto,c.moeda)):!!(F._agg?.porProd[key]?.monet);
     const titulo=isGrp?(key+" — total por ano"):key;
     h+="<div style='margin-top:8px;font-weight:600;color:#1f3a5f;font-size:12.8px'>"+esc(titulo)+"</div>";
     h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
