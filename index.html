@@ -6,6 +6,8 @@
 <title>Banco de dados histórico — busca, rede e dossiê</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   :root{ --azul:#1f3a5f; --azul2:#2f5496; --cinza:#f4f6f9; --borda:#d9e0ea; --txt:#1c2733; }
   *{ box-sizing:border-box; }
@@ -82,6 +84,25 @@
   .legenda .badge{ margin-right:6px; }
   canvas{ max-width:100%; }
   h2.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+  /* ---- Tabs ---- */
+  .tabs{ background:var(--azul); display:flex; gap:2px; padding:0 22px; }
+  .tab{ padding:9px 18px; font-size:13.5px; font-weight:600; color:rgba(255,255,255,.65); cursor:pointer; border-bottom:3px solid transparent; transition:color .15s,border-color .15s; }
+  .tab:hover{ color:#fff; }
+  .tab.on{ color:#fff; border-bottom-color:#fff; }
+  /* ---- Mapa ---- */
+  #mapa-section{ display:none; }
+  #mapa-section.on{ display:block; }
+  #mapa-wrap{ position:relative; }
+  #mapa{ height:calc(100vh - 120px); min-height:500px; background:#e8eef4; }
+  .mapa-ctrl{ position:absolute; top:12px; right:12px; z-index:900; background:#fff; border:1px solid var(--borda); border-radius:10px; padding:10px 14px; box-shadow:0 4px 16px rgba(0,0,0,.12); min-width:180px; }
+  .mapa-ctrl h3{ margin:0 0 8px; font-size:12.5px; color:#41526b; text-transform:uppercase; letter-spacing:.05em; }
+  .mapa-ctrl .layer-btn{ display:block; width:100%; text-align:left; border-radius:7px; padding:7px 12px; font-size:12.5px; font-weight:600; background:#e7ecf3; color:#41526b; margin-bottom:5px; cursor:pointer; border:1px solid var(--borda); }
+  .mapa-ctrl .layer-btn.on{ background:var(--azul2); color:#fff; border-color:var(--azul2); }
+  .mapa-ctrl .layer-btn.on.mun{ background:#1d6e56; border-color:#1d6e56; }
+  .mapa-ctrl .loading{ font-size:11.5px; color:#7a8aa0; margin-top:4px; }
+  .mapa-ctrl .legend{ margin-top:8px; border-top:1px solid var(--borda); padding-top:7px; }
+  .mapa-ctrl .leg-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:#41526b; margin-bottom:3px; }
+  .mapa-ctrl .leg-swatch{ width:14px; height:14px; border-radius:3px; flex-shrink:0; }
   @media print{
     body *{ visibility:hidden; } #overlay,#overlay *{ visibility:visible; }
     #overlay{ position:absolute; inset:0; background:#fff; padding:0; display:block; }
@@ -95,9 +116,13 @@
   <h1>Banco de dados histórico — busca, rede e dossiê</h1>
   <p>Pessoas, embarcações, companhias e instituições · clique num resultado para abrir o dossiê completo</p>
 </header>
+<div class="tabs">
+  <div class="tab on" id="tab-busca" onclick="switchTab('busca')">🔍 Busca</div>
+  <div class="tab" id="tab-mapa" onclick="switchTab('mapa')">🗺 Mapa 1872</div>
+</div>
 <div class="aviso">⚠️ Protótipo de testes — leitura pública temporária e somente leitura.</div>
 
-<div class="wrap">
+<div class="wrap" id="busca-section">
   <div class="filtros">
     <div class="campo full"><label>Buscar por nome</label>
       <input id="texto" type="text" placeholder="ex.: Rosário, Joaquim Pedro Belo, Caixa, Companhia Geral..." /></div>
@@ -123,6 +148,28 @@
     <table><thead><tr>
       <th onclick="setSort('nome')" id="th_nome" style="cursor:pointer">Nome</th><th>Tipo</th><th>Período</th><th class="num" onclick="setSort('pontuacao')" id="th_pontuacao" style="cursor:pointer">Relevância</th><th class="num" onclick="setSort('n_registros')" id="th_n_registros" style="cursor:pointer">Estat.</th><th class="num" onclick="setSort('n_relacoes')" id="th_n_relacoes" style="cursor:pointer">Rel.</th>
     </tr></thead><tbody id="tbody"></tbody></table>
+  </div>
+</div>
+
+<div id="mapa-section">
+  <div id="mapa-wrap">
+    <div id="mapa"></div>
+    <div class="mapa-ctrl">
+      <h3>Camadas</h3>
+      <button id="btn-prov" class="layer-btn" onclick="toggleLayer('prov')">Províncias (1872)</button>
+      <button id="btn-mun" class="layer-btn" onclick="toggleLayer('mun')">Municípios (1872)</button>
+      <button id="btn-chor" class="layer-btn" onclick="toggleLayer('chor')">Pop. total 1872</button>
+      <div class="loading" id="mapa-status"></div>
+      <div id="chor-legend" style="display:none" class="legend">
+        <div style="font-size:11px;color:#41526b;font-weight:600;margin-bottom:4px">Habitantes (1872)</div>
+        <div style="height:10px;border-radius:4px;background:linear-gradient(to right,#ffffcc,#fd8d3c,#800026);margin-bottom:3px"></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#7a8aa0"><span>0</span><span id="chor-max">—</span></div>
+      </div>
+      <div class="legend">
+        <div class="leg-item"><span class="leg-swatch" style="background:#2f5496;opacity:.7"></span>Províncias</div>
+        <div class="leg-item"><span class="leg-swatch" style="background:#1d9e75;opacity:.7"></span>Municípios</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1575,6 +1622,161 @@ carregarCategorias();
 document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
 buscar();carregarSubtipos();setTimeout(()=>_updSortArrows(),100);
+
+/* ===== MAPA LEAFLET ===== */
+let _mapObj=null, _mapInited=false;
+let _provLyr=null, _munLyr=null;
+let _chorLyr=null, _chorLoaded=false, _chorVisible=false;
+let _provLoaded=false, _munLoaded=false;
+let _provVisible=false, _munVisible=false;
+
+function switchTab(tab){
+  const isMapa=tab==="mapa";
+  document.getElementById("busca-section").style.display=isMapa?"none":"";
+  document.getElementById("mapa-section").classList.toggle("on",isMapa);
+  document.getElementById("tab-busca").classList.toggle("on",!isMapa);
+  document.getElementById("tab-mapa").classList.toggle("on",isMapa);
+  if(isMapa){
+    initMapa();
+    setTimeout(()=>{ if(_mapObj) _mapObj.invalidateSize(); },120);
+  }
+}
+
+function initMapa(){
+  if(_mapInited) return;
+  _mapInited=true;
+  _mapObj=L.map("mapa",{center:[-14,-50],zoom:4});
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18
+  }).addTo(_mapObj);
+  // Carrega províncias automaticamente
+  carregarCamada("prov");
+}
+
+async function toggleLayer(tipo){
+  if(tipo==="chor"){
+    if(!_chorLoaded){ await carregarChoropleth(); return; }
+    if(_chorVisible){ _mapObj.removeLayer(_chorLyr); _chorVisible=false; document.getElementById("btn-chor").classList.remove("on"); document.getElementById("chor-legend").style.display="none"; }
+    else { _chorLyr.addTo(_mapObj); _chorVisible=true; document.getElementById("btn-chor").classList.add("on"); document.getElementById("chor-legend").style.display=""; }
+    return;
+  }
+  const isVisible = tipo==="prov" ? _provVisible : _munVisible;
+  const lyr = tipo==="prov" ? _provLyr : _munLyr;
+  const loaded = tipo==="prov" ? _provLoaded : _munLoaded;
+
+  if(!loaded){
+    await carregarCamada(tipo);
+    return;
+  }
+  if(isVisible){
+    _mapObj.removeLayer(lyr);
+    if(tipo==="prov") _provVisible=false; else _munVisible=false;
+    document.getElementById("btn-"+tipo).classList.remove("on");
+  } else {
+    lyr.addTo(_mapObj);
+    if(tipo==="prov") _provVisible=true; else _munVisible=true;
+    document.getElementById("btn-"+tipo).classList.add("on");
+  }
+}
+
+async function carregarChoropleth(){
+  const btn=document.getElementById("btn-chor");
+  const status=document.getElementById("mapa-status");
+  btn.textContent="Carregando…"; btn.disabled=true; status.textContent="Aguarde…";
+  try{
+    const r=await fetch(URL+"/rest/v1/rpc/get_choropleth_pop1872",{
+      method:"POST", headers:Object.assign({"Content-Type":"application/json"},HDRS), body:"{}"
+    });
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const geojson=await r.json();
+    const vals=(geojson.features||[]).map(f=>f.properties.pop_total||0).filter(v=>v>0);
+    const maxPop=vals.length ? Math.max(...vals) : 1;
+    document.getElementById("chor-max").textContent=maxPop.toLocaleString("pt-BR");
+
+    // escala de cor YlOrRd simplificada
+    function chorColor(v){
+      if(!v) return "#f0f0f0";
+      const t=Math.sqrt(v/maxPop); // raiz suaviza a escala
+      const stops=[
+        [255,255,204],[254,217,118],[254,178,76],[253,141,60],
+        [252,78,42],[227,26,28],[177,0,38],[128,0,38]
+      ];
+      const i=Math.min(Math.floor(t*(stops.length-1)),stops.length-2);
+      const frac=t*(stops.length-1)-i;
+      const c=stops[i].map((s,k)=>Math.round(s+(stops[i+1][k]-s)*frac));
+      return `rgb(${c[0]},${c[1]},${c[2]})`;
+    }
+
+    _chorLyr=L.geoJSON(geojson,{
+      style:feat=>{
+        const pop=feat.properties.pop_total||0;
+        return {color:"#555",weight:.4,fillColor:chorColor(pop),fillOpacity:.75};
+      },
+      onEachFeature:(feat,flyr)=>{
+        const p=feat.properties;
+        const popStr=p.pop_total ? Number(p.pop_total).toLocaleString("pt-BR") : "s/d";
+        flyr.bindPopup("<b>"+esc(p.name||"")+"</b><br>Pop. 1872: <b>"+popStr+"</b>");
+        flyr.on("mouseover",function(){ this.setStyle({fillOpacity:1,weight:1.2}); });
+        flyr.on("mouseout",function(){ _chorLyr.resetStyle(this); });
+      }
+    });
+    _chorLoaded=true; _chorVisible=true;
+    _chorLyr.addTo(_mapObj);
+    btn.textContent="Pop. total 1872";
+    btn.classList.add("on");
+    document.getElementById("chor-legend").style.display="";
+    status.textContent="";
+  }catch(e){
+    btn.textContent="Pop. total 1872";
+    status.textContent="Erro: "+e.message;
+  }
+  btn.disabled=false;
+}
+
+async function carregarCamada(tipo){
+  const isProv=tipo==="prov";
+  const layer=isProv?"provincia_1872":"municipio_1872";
+  const btn=document.getElementById("btn-"+tipo);
+  const status=document.getElementById("mapa-status");
+  const lblOrig=btn.textContent;
+  btn.textContent=(isProv?"Carregando províncias…":"Carregando municípios…");
+  btn.disabled=true;
+  status.textContent="Aguarde…";
+  try{
+    const r=await fetch(URL+"/rest/v1/rpc/get_layer_geojson",{
+      method:"POST",
+      headers:Object.assign({"Content-Type":"application/json"},HDRS),
+      body:JSON.stringify({p_layer:layer})
+    });
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const geojson=await r.json();
+    const n=(geojson.features||[]).length;
+    const style=isProv
+      ?{color:"#1f3a5f",weight:2,fillColor:"#2f5496",fillOpacity:.25}
+      :{color:"#0a5e44",weight:.8,fillColor:"#1d9e75",fillOpacity:.2};
+    const lyr=L.geoJSON(geojson,{
+      style:()=>style,
+      onEachFeature:(feat,flyr)=>{
+        const p=feat.properties||{};
+        flyr.bindPopup("<b>"+esc(p.name||"")+"</b><br><span style='font-size:11px;color:#7a8aa0'>Código IBGE: "+esc(p.codigo||"")+(p.actor_id?"<br>actor_id: "+p.actor_id:"")+"</span>");
+        flyr.on("mouseover",function(){ this.setStyle({fillOpacity:.5}); });
+        flyr.on("mouseout",function(){ lyr.resetStyle(this); });
+      }
+    });
+    if(isProv){ _provLyr=lyr; _provLoaded=true; _provVisible=true; }
+    else { _munLyr=lyr; _munLoaded=true; _munVisible=true; }
+    lyr.addTo(_mapObj);
+    btn.textContent=(isProv?"Províncias ("+n+")":"Municípios ("+n+")");
+    btn.classList.add("on");
+    if(!isProv) btn.classList.add("mun");
+    status.textContent="";
+    if(isProv && n>0) _mapObj.fitBounds(lyr.getBounds(),{padding:[20,20]});
+  }catch(e){
+    btn.textContent=lblOrig;
+    status.textContent="Erro: "+e.message;
+  }
+  btn.disabled=false;
+}
 </script>
 </body>
 </html>
