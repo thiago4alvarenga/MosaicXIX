@@ -266,7 +266,7 @@ let senCharts=[];
 let conCharts=[];
 let sortCol="pontuacao",sortDir="desc";
 function _updSortArrows(){["nome","pontuacao","n_registros","n_relacoes"].forEach(c=>{const el=document.getElementById("th_"+c);if(!el)return;el.style.fontWeight=sortCol===c?"700":"400";el.style.color=sortCol===c?"#1f3a5f":"inherit";const base=el.textContent.replace(/ [▼▲]$/,"");el.textContent=base+(sortCol===c?(sortDir==="desc"?" ▼":" ▲"):"");});}function setSort(col){if(sortCol===col)sortDir=sortDir==="desc"?"asc":"desc";else{sortCol=col;sortDir=col==="nome"?"asc":"desc";} _updSortArrows();buscar();}
-let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:"count", redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
+let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", fLeg:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:"count", redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
 let ultimaBusca=[];
 
 async function getJSON(path,count){
@@ -456,7 +456,7 @@ async function carregarRedeAgg(){
   renderRede();
 }
 
-function resetarFiltros(){ F.fTipo=""; F.fAno=""; F.expand={}; if(F.cargaProds)F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderFichaTudo(); atualizarRede(); }
+function resetarFiltros(){ F.fTipo=""; F.fAno=""; F.fLeg=""; F.expand={}; if(F.cargaProds)F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderFichaTudo(); atualizarRede(); }
 function blocoDescricao(){
   const i=F.info; if(!i || !i.descricao || !String(i.descricao).trim()) return "";
   return "<div style='background:#f3f7fc;border:1px solid #d9e6f5;border-left:3px solid #2f5496;border-radius:0 9px 9px 0;padding:10px 13px;margin:0 0 12px;font-size:12.5px;line-height:1.55;color:#33415a;text-align:justify'>"+esc(i.descricao)+"</div>";
@@ -886,9 +886,36 @@ function filtrosFichaHTML(){
   chips+="</div>";
   const ano="<input type='number' placeholder='filtrar por ano' value='"+esc(F.fAno)+"' oninput='F.fAno=this.value;renderRelacoes();atualizarRede()' style='width:120px'>";
   const carregar=(F.rels.length<F.relsTotal)?("<button class='btn-sm' id='btnCarregarTodas' onclick='carregarTodasRel()'>Carregar todas ("+F.relsTotal+")</button>"):"";
-  return "<div class='ffiltros'>"+chips+ano+carregar+"</div>";
+  // Abas de legislatura — aparecem quando há ≥2 legislaturas nas relações filtradas
+  const legs=legislaturasDisponiveis();
+  let legTabs="";
+  if(legs.length>1){
+    legTabs="<div class='relchips' style='width:100%;margin-top:2px'>"
+      +"<span style='font-size:11px;color:#7a8aa0;margin-right:2px;align-self:center'>Legislatura:</span>"
+      +"<span class='relchip"+(F.fLeg===''?" on":"")+"' onclick='setFLeg(\"\")'>Todas <b>"+legs.length+"</b></span>";
+    for(const l of legs){
+      const n=parseInt(l);
+      const abbr=n+"ª leg.";
+      const safe=l.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+      legTabs+="<span class='relchip"+(F.fLeg===l?" on":"")+"' onclick='setFLeg(\""+safe+"\")'>"+esc(abbr)+"</span>";
+    }
+    legTabs+="</div>";
+  }
+  return "<div class='ffiltros'>"+chips+ano+carregar+legTabs+"</div>";
 }
-function setFTipoIdx(idx){ F.fTipo = idx<0 ? "" : ((F._relTipos||[])[idx]||""); renderRelacoes(); atualizarRede(); }
+function setFTipoIdx(idx){ F.fTipo = idx<0 ? "" : ((F._relTipos||[])[idx]||""); F.fLeg=""; renderRelacoes(); atualizarRede(); }
+function setFLeg(leg){ F.fLeg=leg; renderRelacoes(); atualizarRede(); }
+function extrairLegislatura(nota){
+  const m=(nota||"").match(/^(\d+ª\s*legislatura)/i);
+  return m ? m[1].replace(/\s+/g," ") : null;
+}
+function legislaturasDisponiveis(){
+  // Extrai legislaturas das relações já filtradas por tipo (ignora fLeg e fAno)
+  const base=F.rels.filter(r=>(!F.fTipo || relGrupo(r)===F.fTipo));
+  const legs=new Set();
+  for(const r of base){ const l=extrairLegislatura(r.notes); if(l) legs.add(l); }
+  return [...legs].sort((a,b)=>parseInt(a)-parseInt(b));
+}
 // agrupa todas as relações de parentesco numa única aba "Família"
 function relGrupo(r){ return (r.relation_category==='Parentesco') ? 'Família' : (r.relation_name||'relação'); }
 function ordenaGruposRel(keys, cnt){ return keys.sort((a,b)=>{ if(a==='Família')return -1; if(b==='Família')return 1; return cnt(b)-cnt(a); }); }
@@ -896,6 +923,7 @@ function relFiltradas(){
   return F.rels.filter(r=>{
     if(F.fTipo && relGrupo(r)!==F.fTipo) return false;
     if(F.fAno){ const a=Number(F.fAno); const ini=r.ano, fim=r.ano_fim||r.ano; if(!(ini && a>=ini && a<=fim)) return false; }
+    if(F.fLeg){ const l=extrairLegislatura(r.notes); if(l!==F.fLeg) return false; }
     return true;
   });
 }
