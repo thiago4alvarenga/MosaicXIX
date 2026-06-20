@@ -264,6 +264,7 @@ let net=null, chart=null, chartBens=null, chartCot=null, chartCotAtiv=null, char
 let chartsD=[];
 let senCharts=[];
 let conCharts=[];
+let camCharts=[];
 let sortCol="pontuacao",sortDir="desc";
 function _updSortArrows(){["nome","pontuacao","n_registros","n_relacoes"].forEach(c=>{const el=document.getElementById("th_"+c);if(!el)return;el.style.fontWeight=sortCol===c?"700":"400";el.style.color=sortCol===c?"#1f3a5f":"inherit";const base=el.textContent.replace(/ [▼▲]$/,"");el.textContent=base+(sortCol===c?(sortDir==="desc"?" ▼":" ▲"):"");});}function setSort(col){if(sortCol===col)sortDir=sortDir==="desc"?"asc":"desc";else{sortCol=col;sortDir=col==="nome"?"asc":"desc";} _updSortArrows();buscar();}
 let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", fLeg:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:"count", redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
@@ -358,7 +359,7 @@ async function abrirFicha(id){
     renderHead(); renderRede(); renderFichaTudo(); carregarRedeAgg();
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
-function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} [chart,chartBens,chartCot,chartCotAtiv,chartBolsaA,chartBolsaS].forEach(c=>{try{if(c)c.destroy();}catch(e){}}); chart=chartBens=chartCot=chartCotAtiv=chartBolsaA=chartBolsaS=null; for(const c of senCharts){try{c.destroy();}catch(e){}} senCharts=[]; for(const c of conCharts){try{c.destroy();}catch(e){}} conCharts=[]; }
+function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} [chart,chartBens,chartCot,chartCotAtiv,chartBolsaA,chartBolsaS].forEach(c=>{try{if(c)c.destroy();}catch(e){}}); chart=chartBens=chartCot=chartCotAtiv=chartBolsaA=chartBolsaS=null; for(const c of senCharts){try{c.destroy();}catch(e){}} senCharts=[]; for(const c of conCharts){try{c.destroy();}catch(e){}} conCharts=[]; for(const c of camCharts){try{c.destroy();}catch(e){}} camCharts=[]; }
 
 function renderHead(){
   const i=F.info,mv=F.mv; const tipo=mv.tipo||"Desconhecido";
@@ -476,9 +477,10 @@ function renderFichaTudo(){
   h+="<div id='bolsaWrap'></div>";
   h+="<div id='senadoWrap'></div>";
   h+="<div id='conselhoWrap'></div>";
+  h+="<div id='camaraWrap'></div>";
   h+="<div id='notasRefWrap'></div>";
   f.innerHTML=h;
-  renderEventos(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderNotasRef();
+  renderEventos(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderCamara(); renderNotasRef();
 }
 
 /* ----- SENADO DO IMPÉRIO — gráficos (só no dossiê do Senado) ----- */
@@ -574,6 +576,100 @@ function renderConselho(){
         tooltip:{callbacks:{label:c=>pres[prk[c.dataIndex]].anos.toFixed(2)+' anos · '+pres[prk[c.dataIndex]].n+' gabinete(s)'}}},
         scales:{x:{beginAtZero:true,ticks:{font:{size:10}}},y:{ticks:{font:{size:10}}}}}}));
   }).catch(e=>{ w.innerHTML="<div class='sech'>Conselho de Ministros</div><p style='color:#a32d2d;font-size:12px'>Erro ao carregar gráficos: "+esc(e.message)+"</p>"; });
+}
+
+/* ----- CÂMARA DOS DEPUTADOS — gráficos (só no dossiê da Câmara) ----- */
+function renderCamara(){
+  const w=document.getElementById("camaraWrap"); if(!w) return;
+  for(const c of camCharts){try{c.destroy();}catch(e){}} camCharts=[];
+  const i=F.info;
+  if(!i || !/^Câmara dos Deputados/.test(i.nome||"") || typeof Chart==="undefined"){ w.innerHTML=""; return; }
+  w.innerHTML="<div class='sech'>Câmara dos Deputados — panorama</div><p style='font-size:11.5px;color:#7a8aa0'>Carregando gráficos…</p>";
+  getJSON("v_deputados_camara?select=actor_id,nome,ini,fim,notes,leg_num,provincia&limit=1000").then(r=>{
+    const d=r.dados||[];
+    // mapa ordinal → rótulo
+    const LEG={1:"1ª (1826–29)",2:"2ª (1830–33)",3:"3ª (1834–37)",4:"4ª (1838–41)",
+               5:"5ª (1843–44)",6:"6ª (1845–47)",7:"7ª (1848–49)",9:"9ª (1853–56)",10:"10ª (1857–60)"};
+    // --- 1) Mandatos por legislatura ---
+    const byLeg={}; for(const x of d){ if(!x.leg_num)continue; byLeg[x.leg_num]=(byLeg[x.leg_num]||0)+1; }
+    const lks=Object.keys(byLeg).map(Number).sort((a,b)=>a-b);
+    // --- 2) Deputados (atores únicos) por legislatura ---
+    const uniqLeg={}; for(const x of d){ if(!x.leg_num)continue; if(!uniqLeg[x.leg_num])uniqLeg[x.leg_num]=new Set(); uniqLeg[x.leg_num].add(x.actor_id); }
+    // --- 3) Por província ---
+    const byProv={}; for(const x of d){ if(!x.provincia)continue; byProv[x.provincia]=(byProv[x.provincia]||0)+1; }
+    const pk=Object.keys(byProv).sort((a,b)=>byProv[b]-byProv[a]);
+    // --- 4) Ocupações (keyword matching nas notes) ---
+    const ocup={}; const ocupDe=n=>{
+      if(!n) return "Sem informação";
+      const t=n.toLowerCase();
+      if(/desembargador|magistrado|juiz/.test(t)) return "Magistrado";
+      if(/padre|monsenhor|bispo|cônego|cân[oô]nigo/.test(t)) return "Clero";
+      if(/m[eé]dico|doutor(?!\s*em)/.test(t)) return "Médico";
+      if(/militar|coronel|brigadeiro|tenente|major|cap[ií]t[aã]o|almirante|general/.test(t)) return "Militar";
+      if(/professor|acadêmico/.test(t)) return "Professor";
+      if(/jornalista/.test(t)) return "Jornalista";
+      if(/comerciante/.test(t)) return "Comerciante";
+      if(/advogado|jurista|bacharel/.test(t)) return "Bacharel/Jurista";
+      return "Sem informação";
+    };
+    for(const x of d){ const o=ocupDe(x.notes); ocup[o]=(ocup[o]||0)+1; }
+    const ok=Object.keys(ocup).filter(k=>k!=="Sem informação").sort((a,b)=>ocup[b]-ocup[a]);
+    // --- 5) Top 15 — mais mandatos ---
+    const byAtor={}; for(const x of d){ if(!byAtor[x.actor_id])byAtor[x.actor_id]={nome:x.nome,n:0}; byAtor[x.actor_id].n++; }
+    const topDep=Object.values(byAtor).sort((a,b)=>b.n-a.n).slice(0,15);
+
+    let html="<div class='sech'>Câmara dos Deputados — panorama <span class='cnt'>"+d.length+" mandatos · "+Object.keys(byAtor).length+" deputados</span></div>";
+    html+="<p style='font-size:11px;color:#7a8aa0;margin:0 0 8px;line-height:1.45'>Dados referentes às legislaturas 1ª a 10ª (1826–1860), cobrindo "+lks.length+" legislaturas com registro nos Annaes do Parlamento Brasileiro.</p>";
+
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:6px 0 2px'>Mandatos por legislatura</div>";
+    html+="<div style='position:relative;height:220px'><canvas id='camLeg'></canvas></div>";
+
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:16px 0 2px'>Mandatos por província</div>";
+    html+="<div style='position:relative;height:460px'><canvas id='camProv'></canvas></div>";
+
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:16px 0 2px'>Ocupações dos deputados (por mandato)</div>";
+    html+="<p style='font-size:11px;color:#7a8aa0;margin:0 0 4px;line-height:1.45'>Extraído do campo de notas; um mesmo mandato pode ter mais de uma ocupação registrada.</p>";
+    html+="<div style='position:relative;height:240px'><canvas id='camOcup'></canvas></div>";
+
+    html+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:16px 0 2px'>Top 15 — deputados com mais mandatos</div>";
+    html+="<div style='position:relative;height:360px'><canvas id='camTop'></canvas></div>";
+
+    w.innerHTML=html;
+
+    // Chart 1 — mandatos por leg
+    camCharts.push(new Chart(document.getElementById('camLeg'),{type:'bar',
+      data:{labels:lks.map(k=>LEG[k]||k+"ª"),datasets:[
+        {label:'Mandatos',data:lks.map(k=>byLeg[k]),backgroundColor:'#2f5496',borderRadius:3},
+        {label:'Deputados únicos',data:lks.map(k=>(uniqLeg[k]||new Set()).size),backgroundColor:'#1d9e75',borderRadius:3}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,position:'top',labels:{font:{size:10}}},
+          tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y}}},
+        scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{precision:0}}}}}));
+
+    // Chart 2 — por província
+    camCharts.push(new Chart(document.getElementById('camProv'),{type:'bar',
+      data:{labels:pk,datasets:[{data:pk.map(k=>byProv[k]),backgroundColor:'#2f5496',borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+' mandatos'}}},
+        scales:{x:{beginAtZero:true,ticks:{precision:0}},y:{ticks:{font:{size:10}}}}}}));
+
+    // Chart 3 — ocupações
+    const ocCores={'Magistrado':'#2f5496','Bacharel/Jurista':'#1d6e56','Clero':'#7f5bd0','Médico':'#ba7517','Militar':'#c0392b','Professor':'#1d9e75','Jornalista':'#e67e22','Comerciante':'#888780','Sem informação':'#cfd8e3'};
+    camCharts.push(new Chart(document.getElementById('camOcup'),{type:'bar',
+      data:{labels:ok,datasets:[{data:ok.map(k=>ocup[k]),backgroundColor:ok.map(k=>ocCores[k]||'#888'),borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+' mandatos'}}},
+        scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{precision:0}}}}}));
+
+    // Chart 4 — top deputados
+    camCharts.push(new Chart(document.getElementById('camTop'),{type:'bar',
+      data:{labels:topDep.map(x=>(x.nome||"").slice(0,36)),datasets:[{data:topDep.map(x=>x.n),backgroundColor:'#1d9e75',borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{title:c=>topDep[c[0].dataIndex].nome,label:c=>c.parsed.x+' mandato(s)'}}},
+        scales:{x:{beginAtZero:true,ticks:{precision:0,stepSize:1}},y:{ticks:{font:{size:10}}}}}}));
+
+  }).catch(e=>{ w.innerHTML="<div class='sech'>Câmara dos Deputados</div><p style='color:#a32d2d;font-size:12px'>Erro ao carregar gráficos: "+esc(e.message)+"</p>"; });
 }
 
 /* ----- NOTAS + REFERÊNCIAS (fim do dossiê) ----- */
