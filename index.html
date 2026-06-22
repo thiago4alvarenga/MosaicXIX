@@ -3,106 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banco de dados histórico — busca, rede e dossiê</title>
+<title>Ogum — Banco de Dados Prosopográfico</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  :root{ --azul:#1f3a5f; --azul2:#2f5496; --cinza:#f4f6f9; --borda:#d9e0ea; --txt:#1c2733; }
+  /* ── Ogum — Banco de Dados Prosopográfico ── */
+  :root{
+    --ferro:#1e3b2a;       /* verde-ferro escuro — Ogum candomblé */
+    --verde:#2e7a50;       /* verde médio — botões, destaques */
+    --cobre:#9a5c15;       /* cobre/bronze — accent quente */
+    --fundo:#f4f2eb;       /* pergaminho — fundo geral */
+    --card:#ffffff;        /* branco cartão */
+    --borda:#c4cfc0;       /* borda sage-verde */
+    --txt:#1a2018;         /* carvão com toque verde */
+    --txt2:#4a5a46;        /* texto secundário */
+    --hover:#e8f2e8;       /* hover linha tabela */
+    --alt:#f2f7f2;         /* linha alternada tabela */
+  }
   *{ box-sizing:border-box; }
-  body{ margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--txt); background:var(--cinza); }
-  header{ background:var(--azul); color:#fff; padding:16px 22px; }
-  header h1{ margin:0; font-size:18px; } header p{ margin:4px 0 0; font-size:12.5px; opacity:.85; }
-  .aviso{ background:#fff7e6; border-bottom:1px solid #f0d9a8; color:#7a5b12; font-size:12.5px; padding:7px 22px; }
-  .wrap{ max-width:1150px; margin:0 auto; padding:16px 22px 60px; }
-  .filtros{ background:#fff; border:1px solid var(--borda); border-radius:10px; padding:14px; display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; align-items:end; }
+  body{ margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--txt); background:var(--fundo); }
+
+  /* ─── Header ─── */
+  header{ background:var(--ferro); color:#fff; padding:0; }
+  .header-inner{ display:flex; align-items:center; gap:18px; padding:14px 24px; }
+  .ogum-mark{
+    font-size:28px; font-weight:800; letter-spacing:0.18em; color:#fff;
+    text-transform:uppercase; line-height:1;
+    border-right:2px solid rgba(255,255,255,.25); padding-right:18px;
+    font-family:Georgia,'Times New Roman',serif;
+  }
+  .ogum-mark span{ display:block; font-size:9px; font-weight:400; letter-spacing:.35em; opacity:.7; margin-top:3px; font-family:-apple-system,Segoe UI,sans-serif; text-transform:uppercase; }
+  .header-text h1{ margin:0; font-size:15px; font-weight:600; color:#fff; letter-spacing:.01em; }
+  .header-text p{ margin:3px 0 0; font-size:11.5px; opacity:.75; }
+  .header-chips{ margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+  .hchip{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); border-radius:20px; padding:3px 11px; font-size:11px; color:rgba(255,255,255,.9); white-space:nowrap; }
+  .hchip b{ font-weight:700; }
+
+  /* ─── Aviso ─── */
+  .aviso{ background:#fef8ec; border-bottom:1px solid #e8d9a0; color:#6b4e0a; font-size:12px; padding:6px 24px; }
+
+  /* ─── Tabs ─── */
+  .tabs{ background:color-mix(in srgb, var(--ferro) 85%, black); display:flex; gap:2px; padding:0 24px; }
+  .tab{ padding:8px 18px; font-size:13px; font-weight:600; color:rgba(255,255,255,.6); cursor:pointer; border-bottom:3px solid transparent; transition:color .15s,border-color .15s; }
+  .tab:hover{ color:#fff; }
+  .tab.on{ color:#fff; border-bottom-color:#6fcf97; }
+
+  /* ─── Layout ─── */
+  .wrap{ max-width:1180px; margin:0 auto; padding:16px 24px 60px; }
+
+  /* ─── Painel de filtros ─── */
+  .filtros{
+    background:var(--card); border:1px solid var(--borda); border-radius:12px;
+    padding:16px; display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr));
+    gap:10px; align-items:end;
+    box-shadow:0 1px 4px rgba(0,0,0,.06);
+  }
+  .filtros-titulo{ grid-column:1/-1; font-size:11px; font-weight:700; color:var(--txt2); text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; padding-bottom:8px; border-bottom:1px solid var(--borda); }
   .campo{ display:flex; flex-direction:column; gap:4px; }
-  .campo label{ font-size:12px; font-weight:600; color:#41526b; }
-  .campo input,.campo select{ padding:8px 9px; border:1px solid var(--borda); border-radius:7px; font-size:13.5px; background:#fff; }
+  .campo label{ font-size:11.5px; font-weight:600; color:var(--txt2); }
+  .campo input,.campo select{
+    padding:8px 10px; border:1px solid var(--borda); border-radius:8px;
+    font-size:13px; background:#fff; color:var(--txt); transition:border-color .15s;
+    appearance:auto;
+  }
+  .campo input:focus,.campo select:focus{ outline:none; border-color:var(--verde); box-shadow:0 0 0 3px rgba(46,122,80,.12); }
   .campo.full{ grid-column:1/-1; }
   .acoes{ display:flex; gap:8px; }
-  button{ border:0; border-radius:7px; padding:9px 16px; font-size:13.5px; font-weight:600; cursor:pointer; }
-  .btn-buscar{ background:var(--azul2); color:#fff; } .btn-limpar{ background:#e7ecf3; color:#41526b; }
-  .btn-sm{ padding:6px 11px; font-size:12px; background:#e7ecf3; color:#41526b; }
+  button{ border:0; border-radius:8px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; transition:background .15s; }
+  .btn-buscar{ background:var(--verde); color:#fff; }
+  .btn-buscar:hover{ background:#26663e; }
+  .btn-limpar{ background:#e8ece8; color:var(--txt2); }
+  .btn-limpar:hover{ background:#d8e0d8; }
+  .btn-sm{ padding:5px 11px; font-size:11.5px; background:#e8ece8; color:var(--txt2); border-radius:7px; }
+  .btn-sm:hover{ background:#d8e0d8; }
+
+  /* ─── Barra de resultados ─── */
   .barra{ display:flex; justify-content:space-between; align-items:center; margin:12px 2px 8px; gap:10px; flex-wrap:wrap; }
-  .status{ font-size:13px; color:#41526b; }
-  .tabela-box{ background:#fff; border:1px solid var(--borda); border-radius:10px; overflow:auto; max-height:58vh; }
+  .status{ font-size:12.5px; color:var(--txt2); }
+  .pill{ display:inline-block; background:rgba(46,122,80,.12); border-radius:20px; padding:1px 10px; font-size:11.5px; color:var(--verde); font-weight:600; }
+
+  /* ─── Tabela ─── */
+  .tabela-box{ background:var(--card); border:1px solid var(--borda); border-radius:12px; overflow:auto; max-height:58vh; box-shadow:0 1px 4px rgba(0,0,0,.05); }
   table{ border-collapse:collapse; width:100%; font-size:12.8px; }
-  thead th{ position:sticky; top:0; background:var(--azul2); color:#fff; text-align:left; padding:8px 10px; white-space:nowrap; }
-  tbody td{ padding:7px 10px; border-top:1px solid #eef2f7; }
-  tbody tr{ cursor:pointer; } tbody tr:nth-child(even){ background:#fafbfd; } tbody tr:hover{ background:#eef5ff; }
+  thead th{ position:sticky; top:0; background:var(--ferro); color:#fff; text-align:left; padding:10px 11px; white-space:nowrap; font-size:13px; font-weight:700; letter-spacing:.03em; text-shadow:0 1px 2px rgba(0,0,0,.4); }
+  tbody td{ padding:7px 11px; border-top:1px solid #edf1ed; }
+  tbody tr{ cursor:pointer; }
+  tbody tr:nth-child(even){ background:var(--alt); }
+  tbody tr:hover{ background:var(--hover); }
   .num{ text-align:right; font-variant-numeric:tabular-nums; }
-  .vazio{ padding:24px; text-align:center; color:#7a8aa0; }
-  .badge{ display:inline-block; border-radius:20px; padding:1px 9px; font-size:11.5px; font-weight:600; color:#fff; white-space:nowrap; }
-  .b-Pessoa{ background:#3a7bd5; } .b-Embarcação{ background:#1d9e75; } .b-Companhia{ background:#7f77dd; }
-  .b-Instituição{ background:#ba7517; } .b-Desconhecido{ background:#8a97a8; }
-  .pill{ display:inline-block; background:#eef2f7; border-radius:20px; padding:1px 8px; font-size:11.5px; color:#41526b; }
-  .selo{ display:inline-block; background:#fff3e0; color:#9a5b00; border:1px solid #f0c68a; border-radius:10px; padding:0 6px; font-size:10px; font-weight:600; margin-left:6px; vertical-align:middle; cursor:help; }
-  .overlay{ position:fixed; inset:0; background:rgba(20,30,45,.5); display:none; align-items:center; justify-content:center; padding:14px; z-index:50; }
+  .vazio{ padding:28px; text-align:center; color:#8a9a88; }
+
+  /* ─── Badges de tipo ─── */
+  .badge{ display:inline-block; border-radius:20px; padding:2px 9px; font-size:11px; font-weight:600; color:#fff; white-space:nowrap; }
+  .b-Pessoa{ background:#2d6fa3; }
+  .b-Embarcação{ background:#1d7a56; }
+  .b-Companhia{ background:#6e5db8; }
+  .b-Instituição{ background:#8a5511; }
+  .b-Desconhecido{ background:#6a7a6e; }
+
+  /* ─── Misc ─── */
+  .selo{ display:inline-block; background:#fff8e8; color:#8a5200; border:1px solid #e8c878; border-radius:10px; padding:0 6px; font-size:10px; font-weight:600; margin-left:6px; vertical-align:middle; cursor:help; }
+
+  /* ─── Modal dossiê ─── */
+  .overlay{ position:fixed; inset:0; background:rgba(10,20,12,.55); display:none; align-items:center; justify-content:center; padding:14px; z-index:50; }
   .overlay.on{ display:flex; }
-  .modal{ background:#fff; border-radius:12px; width:min(1120px,97vw); max-height:94vh; overflow:hidden; display:flex; flex-direction:column; }
-  .modal header{ background:var(--azul); display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .modal{ background:#fff; border-radius:14px; width:min(1300px,98vw); max-height:95vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+  .modal header{ background:var(--ferro); display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:12px 16px; }
   .mtools{ display:flex; gap:6px; align-items:center; }
   .modal header .x{ background:transparent; color:#fff; font-size:20px; padding:0 6px; }
-  .modal header .btn-sm{ background:rgba(255,255,255,.28); color:#fff; border:1px solid rgba(255,255,255,.45); }
+  .modal header .btn-sm{ background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.35); }
   .modal-body{ display:grid; grid-template-columns:1.05fr 1fr; gap:0; overflow:hidden; min-height:0; }
   .col-rede{ border-right:1px solid var(--borda); }
-  .rede-tools{ padding:6px 10px; border-bottom:1px solid var(--borda); display:flex; gap:8px; align-items:center; font-size:11.5px; color:#5f5e5a; }
-  #rede{ height:58vh; background:#fbfcfe; }
+  .rede-tools{ padding:6px 10px; border-bottom:1px solid var(--borda); display:flex; gap:8px; align-items:center; font-size:11.5px; color:#5a6a56; }
+  #rede{ height:58vh; background:#f8faf8; }
   .ficha{ height:64vh; overflow:auto; padding:14px 16px; }
-  .ident{ background:#f7f9fc; border:1px solid var(--borda); border-radius:9px; padding:10px 12px; margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; }
-  .ident div{ font-size:12.4px; } .ident b{ color:#41526b; font-weight:600; }
-  .sech{ margin:6px 0 8px; color:#1f3a5f; font-size:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .ident{ background:#f4f7f4; border:1px solid var(--borda); border-radius:10px; padding:10px 12px; margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; }
+  .ident div{ font-size:12.4px; } .ident b{ color:var(--txt2); font-weight:600; }
+  .sech{ margin:6px 0 8px; color:var(--ferro); font-size:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .ffiltros{ display:flex; gap:8px; margin:0 0 10px; flex-wrap:wrap; align-items:center; }
   .ffiltros select,.ffiltros input{ padding:5px 7px; border:1px solid var(--borda); border-radius:6px; font-size:12px; }
   .relchips{ display:flex; gap:5px; flex-wrap:wrap; margin:0 0 10px; }
-  .relchip{ cursor:pointer; font-size:11.5px; padding:3px 9px; border-radius:12px; border:1px solid #cfd8e3; background:#fff; color:#42526b; user-select:none; white-space:nowrap; }
-  .relchip:hover{ border-color:#1d6e56; }
-  .relchip.on{ background:#1d6e56; border-color:#1d6e56; color:#fff; font-weight:600; }
+  .relchip{ cursor:pointer; font-size:11.5px; padding:3px 9px; border-radius:12px; border:1px solid var(--borda); background:#fff; color:var(--txt2); user-select:none; white-space:nowrap; }
+  .relchip:hover{ border-color:var(--verde); }
+  .relchip.on{ background:var(--verde); border-color:var(--verde); color:#fff; font-weight:600; }
   .relchip b{ font-weight:600; opacity:.85; margin-left:2px; }
   .relchip.on b{ opacity:1; }
-  .grp .soma{ font-size:11px; color:#0f6e56; font-weight:600; }
-  .pesobtns{ display:inline-flex; gap:0; border:1px solid #cfd8e3; border-radius:6px; overflow:hidden; }
-  .pesobtns button{ border:none; background:#fff; color:#42526b; font-size:11px; padding:3px 8px; cursor:pointer; }
-  .pesobtns button.on{ background:#2f5496; color:#fff; font-weight:600; }
+  .grp .soma{ font-size:11px; color:var(--verde); font-weight:600; }
+  .pesobtns{ display:inline-flex; gap:0; border:1px solid var(--borda); border-radius:6px; overflow:hidden; }
+  .pesobtns button{ border:none; background:#fff; color:var(--txt2); font-size:11px; padding:3px 8px; cursor:pointer; }
+  .pesobtns button.on{ background:var(--ferro); color:#fff; font-weight:600; }
   .grp{ margin-bottom:12px; }
   .grp h4{ margin:0 0 5px; font-size:12.8px; display:flex; align-items:center; gap:8px; }
-  .grp .cnt{ font-size:11.5px; color:#7a8aa0; font-weight:400; }
-  .item{ font-size:12.6px; padding:3px 0; border-top:1px solid #f0f3f7; }
-  .item a{ color:var(--azul2); cursor:pointer; text-decoration:none; }
-  .item .ano{ color:#7a8aa0; font-size:11.5px; } .item .val{ color:#0f6e56; font-weight:600; }
-  .item .nota{ display:block; color:#7a8aa0; font-size:11px; }
-  .src{ color:#aab4c4; cursor:pointer; font-size:12px; margin-left:3px; vertical-align:baseline; user-select:none; }
-  .src:hover{ color:#2f5496; }
-  #fontePop{ position:fixed; z-index:120; max-width:340px; background:#fff; border:1px solid #c9d3e0; border-radius:9px; box-shadow:0 6px 24px rgba(0,0,0,.18); padding:10px 12px; font-size:11.8px; color:#41526b; line-height:1.5; display:none; }
-  #fontePop .ttl{ font-weight:600; color:#1f3a5f; margin-bottom:3px; }
-  #fontePop a{ color:#2f5496; text-decoration:none; }
-  .mais{ font-size:12px; color:var(--azul2); padding-top:4px; cursor:pointer; }
-  .legenda{ font-size:11.5px; color:#5f5e5a; padding:8px 16px; border-top:1px solid var(--borda); background:#fafbfd; }
+  .grp .cnt{ font-size:11.5px; color:#8a9a88; font-weight:400; }
+  .item{ font-size:12.6px; padding:3px 0; border-top:1px solid #eff3ef; }
+  .item a{ color:var(--verde); cursor:pointer; text-decoration:none; }
+  .item .ano{ color:#8a9a88; font-size:11.5px; } .item .val{ color:var(--verde); font-weight:600; }
+  .item .nota{ display:block; color:#8a9a88; font-size:11px; }
+  .src{ color:#aac4aa; cursor:pointer; font-size:12px; margin-left:3px; vertical-align:baseline; user-select:none; }
+  .src:hover{ color:var(--verde); }
+  #fontePop{ position:fixed; z-index:120; max-width:340px; background:#fff; border:1px solid var(--borda); border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.15); padding:10px 12px; font-size:11.8px; color:var(--txt2); line-height:1.5; display:none; }
+  #fontePop .ttl{ font-weight:600; color:var(--ferro); margin-bottom:3px; }
+  #fontePop a{ color:var(--verde); text-decoration:none; }
+  .mais{ font-size:12px; color:var(--verde); padding-top:4px; cursor:pointer; }
+  .legenda{ font-size:11.5px; color:#5a6a56; padding:8px 16px; border-top:1px solid var(--borda); background:#f8faf8; }
   .legenda .badge{ margin-right:6px; }
   canvas{ max-width:100%; }
   h2.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
-  /* ---- Tabs ---- */
-  .tabs{ background:var(--azul); display:flex; gap:2px; padding:0 22px; }
-  .tab{ padding:9px 18px; font-size:13.5px; font-weight:600; color:rgba(255,255,255,.65); cursor:pointer; border-bottom:3px solid transparent; transition:color .15s,border-color .15s; }
-  .tab:hover{ color:#fff; }
-  .tab.on{ color:#fff; border-bottom-color:#fff; }
-  /* ---- Mapa ---- */
-  #mapa-section{ display:none; }
-  #mapa-section.on{ display:block; }
-  #mapa-wrap{ position:relative; }
-  #mapa{ height:calc(100vh - 120px); min-height:500px; background:#e8eef4; }
-  .mapa-ctrl{ position:absolute; top:12px; right:12px; z-index:900; background:#fff; border:1px solid var(--borda); border-radius:10px; padding:10px 14px; box-shadow:0 4px 16px rgba(0,0,0,.12); min-width:180px; }
-  .mapa-ctrl h3{ margin:0 0 8px; font-size:12.5px; color:#41526b; text-transform:uppercase; letter-spacing:.05em; }
-  .mapa-ctrl .layer-btn{ display:block; width:100%; text-align:left; border-radius:7px; padding:7px 12px; font-size:12.5px; font-weight:600; background:#e7ecf3; color:#41526b; margin-bottom:5px; cursor:pointer; border:1px solid var(--borda); }
-  .mapa-ctrl .layer-btn.on{ background:var(--azul2); color:#fff; border-color:var(--azul2); }
+  #ficha-mapa-wrap{ border-top:1px solid var(--borda); margin-top:12px; }
+  #ficha-mapa-wrap summary{ font-size:12px; font-weight:600; color:var(--ferro); cursor:pointer; padding:8px 0 6px; user-select:none; }
+  #ficha-mapa{ height:220px; background:#e4ebe4; border-radius:8px; margin-top:6px; }
+  #ficha-mapa-nota{ font-size:10.5px; color:#8a9a88; margin-top:4px; line-height:1.4; }
+
+  /* ─── Mapa ─── */
+  #mapa-section{ display:none; overflow:hidden; }
+  #mapa-section.on{ display:flex; flex-direction:column; height:calc(100vh - 102px); }
+  #mapa-wrap{ position:relative; flex:1; min-height:0; }
+  #mapa{ height:100%; min-height:400px; background:#e4ebe4; }
+  .mapa-ctrl{ position:absolute; top:12px; right:12px; z-index:900; background:#fff; border:1px solid var(--borda); border-radius:12px; padding:10px 14px; box-shadow:0 4px 16px rgba(0,0,0,.12); min-width:190px; max-height:calc(100vh - 150px); overflow-y:auto; }
+  .mapa-ctrl h3{ margin:0 0 8px; font-size:11.5px; color:var(--txt2); text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
+  .mapa-ctrl .layer-btn{ display:block; width:100%; text-align:left; border-radius:8px; padding:7px 12px; font-size:12.5px; font-weight:600; background:#e8ece8; color:var(--txt2); margin-bottom:5px; cursor:pointer; border:1px solid var(--borda); }
+  .mapa-ctrl .layer-btn.on{ background:var(--verde); color:#fff; border-color:var(--verde); }
   .mapa-ctrl .layer-btn.on.mun{ background:#1d6e56; border-color:#1d6e56; }
-  .mapa-ctrl .loading{ font-size:11.5px; color:#7a8aa0; margin-top:4px; }
+  .mapa-ctrl .loading{ font-size:11.5px; color:#8a9a88; margin-top:4px; }
   .mapa-ctrl .legend{ margin-top:8px; border-top:1px solid var(--borda); padding-top:7px; }
-  .mapa-ctrl .leg-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:#41526b; margin-bottom:3px; }
+  .mapa-ctrl .leg-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--txt2); margin-bottom:3px; }
   .mapa-ctrl .leg-swatch{ width:14px; height:14px; border-radius:3px; flex-shrink:0; }
+
   @media print{
     body *{ visibility:hidden; } #overlay,#overlay *{ visibility:visible; }
     #overlay{ position:absolute; inset:0; background:#fff; padding:0; display:block; }
@@ -113,14 +181,25 @@
 </head>
 <body>
 <header>
-  <h1>Banco de dados histórico — busca, rede e dossiê</h1>
-  <p>Pessoas, embarcações, companhias e instituições · clique num resultado para abrir o dossiê completo</p>
+  <div class="header-inner">
+    <div class="ogum-mark">OGUM<span>Histórias &amp; Redes</span></div>
+    <div class="header-text">
+      <h1>Pessoas, trajetórias e redes do Brasil oitocentista</h1>
+      <p>Busca, rede de relações e dossiê completo · clique num resultado para explorar</p>
+    </div>
+    <div class="header-chips">
+      <span class="hchip"><b>22.163</b> pessoas</span>
+      <span class="hchip"><b>3.117</b> instituições</span>
+      <span class="hchip"><b>577</b> embarcações</span>
+      <span class="hchip"><b>78</b> companhias</span>
+    </div>
+  </div>
 </header>
 <div class="tabs">
   <div class="tab on" id="tab-busca" onclick="switchTab('busca')">🔍 Busca</div>
   <div class="tab" id="tab-mapa" onclick="switchTab('mapa')">🗺 Mapa 1872</div>
 </div>
-<div class="aviso">⚠️ Protótipo de testes — leitura pública temporária e somente leitura.</div>
+<div class="aviso">⚠️ Protótipo de pesquisa — acesso público temporário, somente leitura.</div>
 
 <div class="wrap" id="busca-section">
   <div class="filtros">
@@ -128,13 +207,32 @@
       <input id="texto" type="text" placeholder="ex.: Rosário, Joaquim Pedro Belo, Caixa, Companhia Geral..." /></div>
     <div class="campo"><label>Tipo</label>
       <select id="tipo" onchange="onTipoChange()"><option value="">Todos os tipos</option><option>Pessoa</option><option>Embarcação</option><option>Companhia</option><option>Instituição</option></select></div>
-    <div class="campo" id="campo-subtipo" style="display:none"><label>Subtipo</label>
+    <div class="campo" id="campo-subtipo" style="display:none"><label>Subtipo (instituição)</label>
       <select id="subtipo"><option value="">Todos</option></select></div>
     <div class="campo"><label>Ano (aparece em)</label><input id="ano" type="number" min="1700" max="1950" placeholder="ex.: 1790" /></div>
     <div class="campo" id="campo-catsoc" style="display:none"><label>Categoria social</label>
       <select id="catsoc"><option value="">Todas</option></select></div>
     <div class="campo" id="campo-genero" style="display:none"><label>Gênero</label>
       <select id="genero"><option value="">Todos</option><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="__null__">Não identificado</option></select></div>
+    <div class="campo" id="campo-nobreza" style="display:none"><label>Nobreza</label>
+      <select id="nobreza">
+        <option value="">Todos</option>
+        <option value="__any__">Com título nobiliárquico</option>
+        <option value="Imperador">Imperador</option>
+        <option value="Duque">Duque</option>
+        <option value="Marquês">Marquês</option>
+        <option value="Conde">Conde</option>
+        <option value="Visconde">Visconde</option>
+        <option value="Barão">Barão</option>
+      </select></div>
+    <div class="campo" id="campo-status" style="display:none"><label>Status jurídico</label>
+      <select id="status_juridico">
+        <option value="">Todos</option>
+        <option value="Free Person">Pessoa livre</option>
+        <option value="Enslaved">Escravizado/a</option>
+        <option value="Freed">Liberto/a</option>
+        <option value="Minor">Menor</option>
+      </select></div>
     <div class="campo"><label>Limite</label><select id="limite"><option>100</option><option selected>300</option><option>1000</option></select></div>
     <div class="campo"><label>&nbsp;</label><div class="acoes">
       <button class="btn-buscar" onclick="buscar()">Buscar</button>
@@ -162,13 +260,30 @@
       <button id="btn-chorp" class="layer-btn" onclick="toggleLayer('chorp')">Pop. províncias 1872</button>
       <div class="loading" id="mapa-status"></div>
       <div id="chor-legend" style="display:none" class="legend">
-        <div style="font-size:11px;color:#41526b;font-weight:600;margin-bottom:4px">Habitantes (1872)</div>
+        <div style="font-size:11px;color:var(--txt2);font-weight:600;margin-bottom:4px">Habitantes (1872)</div>
         <div style="height:10px;border-radius:4px;background:linear-gradient(to right,#ffffcc,#fd8d3c,#800026);margin-bottom:3px"></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:#7a8aa0"><span>0</span><span id="chor-max">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt2)"><span>0</span><span id="chor-max">—</span></div>
       </div>
       <div class="legend">
-        <div class="leg-item"><span class="leg-swatch" style="background:#2f5496;opacity:.7"></span>Províncias</div>
-        <div class="leg-item"><span class="leg-swatch" style="background:#1d9e75;opacity:.7"></span>Municípios</div>
+        <div class="leg-item"><span class="leg-swatch" style="background:#1e3b2a;opacity:.8"></span>Províncias</div>
+        <div class="leg-item"><span class="leg-swatch" style="background:#2e7a50;opacity:.8"></span>Municípios</div>
+      </div>
+      <div style="border-top:1px solid var(--borda);margin-top:10px;padding-top:10px">
+        <h3>Atores no espaço</h3>
+        <button id="btn-origens" class="layer-btn" onclick="toggleLayer('origens')">Origens geográficas</button>
+        <button id="btn-frotas" class="layer-btn" onclick="toggleLayer('frotas')">Frotas atlânticas</button>
+        <div id="origens-ctrl" style="display:none;margin-top:8px;border-top:1px solid var(--borda);padding-top:6px">
+          <div class="leg-item"><span class="leg-swatch" style="background:#2e7a50;border-radius:50%"></span>Brasil</div>
+          <div class="leg-item"><span class="leg-swatch" style="background:#e07a15;border-radius:50%"></span>África</div>
+          <div class="leg-item"><span class="leg-swatch" style="background:#2d6fa3;border-radius:50%"></span>Europa</div>
+          <div class="leg-item"><span class="leg-swatch" style="background:#6e5db8;border-radius:50%"></span>Ásia / outros</div>
+          <div style="font-size:10px;color:var(--txt2);margin-top:4px">Tamanho ∝ nº de atores. Clique para detalhes.</div>
+        </div>
+        <div id="frotas-ctrl" style="display:none;margin-top:8px;border-top:1px solid var(--borda);padding-top:6px">
+          <div class="leg-item"><span style="display:inline-block;width:18px;height:2px;background:#9a5c15;opacity:.85;margin-right:6px;vertical-align:middle"></span>Rota estimada (ida)</div>
+          <div class="leg-item"><span style="display:inline-block;width:18px;height:2px;background:#9a5c15;opacity:.4;border-bottom:2px dashed #9a5c15;margin-right:6px;vertical-align:middle"></span>Rota estimada (volta)</div>
+          <div style="font-size:10px;color:var(--txt2);margin-top:4px">Correntes e ventos do Atlântico Sul (séc. XVIII). Clique na rota para detalhes.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -212,7 +327,7 @@ const URL="https://fnngbyxmqeudqsehtxkx.supabase.co";
 const ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubmdieXhtcWV1ZHFzZWh0eGt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMjMwMzYsImV4cCI6MjA5NTU5OTAzNn0.kSJGViqmJgp5sK_XFOw08GjZW6gHwjYE4zRDlu3QHxs";
 const HDRS={ apikey:ANON, Authorization:"Bearer "+ANON };
 const esc=s=>(s==null?"":String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const COR={ "Pessoa":"#3a7bd5","Embarcação":"#1d9e75","Companhia":"#7f77dd","Instituição":"#ba7517","Desconhecido":"#8a97a8" };
+const COR={ "Pessoa":"#2d6fa3","Embarcação":"#1d7a56","Companhia":"#6e5db8","Instituição":"#8a5511","Desconhecido":"#6a7a6e" };
 const RELPT={ CaptainOf:"capitão", OwnerOf:"proprietário", Deposit:"depósito/poupança", Debt:"dívida",
   OfficeHolding:"cargo", FatherOf:"pai de", SonOf:"filho de", MotherOf:"mãe de", DaughterOf:"filha de", EnslavedBy:"escravizado por",
   HasLegislature:"tem câmara/legislativo", HasSubdivision:"tem subdivisão", LegislatureOf:"legislativo de",
@@ -266,8 +381,8 @@ let senCharts=[];
 let conCharts=[];
 let camCharts=[];
 let sortCol="pontuacao",sortDir="desc";
-function _updSortArrows(){["nome","pontuacao","n_registros","n_relacoes"].forEach(c=>{const el=document.getElementById("th_"+c);if(!el)return;el.style.fontWeight=sortCol===c?"700":"400";el.style.color=sortCol===c?"#1f3a5f":"inherit";const base=el.textContent.replace(/ [▼▲]$/,"");el.textContent=base+(sortCol===c?(sortDir==="desc"?" ▼":" ▲"):"");});}function setSort(col){if(sortCol===col)sortDir=sortDir==="desc"?"asc":"desc";else{sortCol=col;sortDir=col==="nome"?"asc":"desc";} _updSortArrows();buscar();}
-let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", fLeg:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:"count", redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
+function _updSortArrows(){["nome","pontuacao","n_registros","n_relacoes"].forEach(c=>{const el=document.getElementById("th_"+c);if(!el)return;el.style.fontWeight=sortCol===c?"700":"400";el.style.color=sortCol===c?"#a8e6c2":"#fff";const base=el.textContent.replace(/ [▼▲]$/,"");el.textContent=base+(sortCol===c?(sortDir==="desc"?" ▼":" ▲"):"");});}function setSort(col){if(sortCol===col)sortDir=sortDir==="desc"?"asc":"desc";else{sortCol=col;sortDir=col==="nome"?"asc":"desc";} _updSortArrows();buscar();}
+let F={ info:null, mv:null, rels:[], relsTotal:0, cargas:[], bens:[], cotacoes:[], stats:[], bolsaAno:[], bolsaSetor:[], expand:{}, fAno:"", fTipo:"", fLeg:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:"count", redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
 let ultimaBusca=[];
 
 async function getJSON(path,count){
@@ -296,8 +411,13 @@ function tituloParen(nome,hon){
 function onTipoChange(){
   const tp=document.getElementById("tipo").value;
   const isPessoa=tp==="Pessoa", isInst=tp==="Instituição";
-  ["campo-catsoc","campo-genero"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isPessoa?"":"none";});
-  if(!isPessoa){document.getElementById("catsoc").value="";document.getElementById("genero").value="";}
+  ["campo-catsoc","campo-genero","campo-nobreza","campo-status"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isPessoa?"":"none";});
+  if(!isPessoa){
+    document.getElementById("catsoc").value="";
+    document.getElementById("genero").value="";
+    document.getElementById("nobreza").value="";
+    document.getElementById("status_juridico").value="";
+  }
   const campoSub=document.getElementById("campo-subtipo");
   if(campoSub)campoSub.style.display=isInst?"":"none";
   if(!isInst)document.getElementById("subtipo").value="";
@@ -320,6 +440,10 @@ function montarURL(){
   const g=document.getElementById("genero").value; if(g==="__null__")p.push("genero=is.null"); else if(g)p.push("genero=eq."+encodeURIComponent(g));
   const an=document.getElementById("ano").value; if(an)p.push("anos=cs."+encodeURIComponent("{"+an+"}"));
   const sub=document.getElementById("subtipo").value; if(sub)p.push("institution_type=eq."+encodeURIComponent(sub));
+  const nob=document.getElementById("nobreza")?document.getElementById("nobreza").value:"";
+  if(nob==="__any__")p.push("honorifico=not.is.null"); else if(nob)p.push("nobreza=eq."+encodeURIComponent(nob));
+  const stj=document.getElementById("status_juridico")?document.getElementById("status_juridico").value:"";
+  if(stj)p.push("legal_status=eq."+encodeURIComponent(stj));
   return "v_busca_atores?"+p.join("&");
 }
 async function buscar(){
@@ -333,7 +457,7 @@ async function buscar(){
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
   }catch(e){ status.textContent="Erro: "+e.message; }
 }
-function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("subtipo").value=""; ["campo-catsoc","campo-genero","campo-subtipo"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";}); document.getElementById("limite").value="300"; buscar(); }
+function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("subtipo").value=""; const nob=document.getElementById("nobreza"); if(nob)nob.value=""; const stj=document.getElementById("status_juridico"); if(stj)stj.value=""; ["campo-catsoc","campo-genero","campo-subtipo","campo-nobreza","campo-status"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";}); document.getElementById("limite").value="300"; buscar(); }
 
 /* ----- DOSSIÊ ----- */
 async function abrirFicha(id){
@@ -347,6 +471,7 @@ async function abrirFicha(id){
     const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte,contribuidor&order=ano.asc&limit=1500");
     const ben=await getJSON("v_inventario_bens?actor_id=eq."+id+"&select=item_id,categoria,subcategoria,descricao,quantidade,unidade,valor,moeda,ano,local,rel_actor_id,rel_nome,notes,fonte,contribuidor&order=valor.desc.nullslast&limit=2000");
     const cot=await getJSON("v_cotacoes?actor_id=eq."+id+"&select=ano,nome_ativo,ativo,tipo,categoria_epoca,fase_historica,min_reis,max_reis,avg_reis,volume,faixa_preco,is_percent,moeda,fonte,base_dados,contribuidor&order=ativo.asc,ano.asc&limit=3000");
+    const sta=await getJSON("core_actor_statistics?actor_id=eq."+id+"&select=stat_year,metric_type,value_numeric,currency,notes,source_id&order=metric_type.asc,stat_year.asc&limit=500");
     let bolsaAno=[], bolsaSetor=[], bolsaFonte=null;
     if((det.institution_type||"")==="Bolsa de valores"){
       bolsaAno=(await getJSON("v_bolsa_por_ano?select=ano,emissores,ativos,volume_total&order=ano.asc")).dados;
@@ -355,11 +480,15 @@ async function abrirFicha(id){
     }
     const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
     let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
-    F={ idAtual:id, info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados.filter(c=>!/Bolsa do RJ/i.test(c.produto||"")), bens:ben.dados, cotacoes:cot.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:((det.institution_type||"")==="Bolsa de valores"?"negociacao":"count"), redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
+    F={ idAtual:id, info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados.filter(c=>!/Bolsa do RJ/i.test(c.produto||"")), bens:ben.dados, cotacoes:cot.dados, stats:sta.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:((det.institution_type||"")==="Bolsa de valores"?"negociacao":"count"), redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
     renderHead(); renderRede(); renderFichaTudo(); carregarRedeAgg();
+    // Mini-mapa no dossiê (após render principal)
+    const _tipo=mv.tipo||""; const _po=(det.place_of_origin||"");
+    const _notes=det.notas||""; const _nome=det.nome||""; const _instType=det.institution_type||"";
+    setTimeout(()=>initFichaMapa(id,_tipo,_notes,_po,_instType,_nome), 300);
   }catch(e){ document.getElementById("ficha").innerHTML="<p style='color:#a32d2d'>Erro ao carregar: "+esc(e.message)+"</p>"; }
 }
-function fecharFicha(){ document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} [chart,chartBens,chartCot,chartCotAtiv,chartBolsaA,chartBolsaS].forEach(c=>{try{if(c)c.destroy();}catch(e){}}); chart=chartBens=chartCot=chartCotAtiv=chartBolsaA=chartBolsaS=null; for(const c of senCharts){try{c.destroy();}catch(e){}} senCharts=[]; for(const c of conCharts){try{c.destroy();}catch(e){}} conCharts=[]; for(const c of camCharts){try{c.destroy();}catch(e){}} camCharts=[]; }
+function fecharFicha(){ fecharFichaMapa(); document.getElementById("overlay").classList.remove("on"); if(net){net.destroy();net=null;} [chart,chartBens,chartCot,chartCotAtiv,chartBolsaA,chartBolsaS].forEach(c=>{try{if(c)c.destroy();}catch(e){}}); chart=chartBens=chartCot=chartCotAtiv=chartBolsaA=chartBolsaS=null; for(const c of senCharts){try{c.destroy();}catch(e){}} senCharts=[]; for(const c of conCharts){try{c.destroy();}catch(e){}} conCharts=[]; for(const c of camCharts){try{c.destroy();}catch(e){}} camCharts=[]; for(const c of estatCharts){try{c.destroy();}catch(e){}} estatCharts=[]; }
 
 function renderHead(){
   const i=F.info,mv=F.mv; const tipo=mv.tipo||"Desconhecido";
@@ -471,6 +600,7 @@ function renderFichaTudo(){
   h+="<div class='sech'>Relações</div>"+filtrosFichaHTML();
   h+="<div id='relWrap'></div>";
   h+="<div id='grafWrap'></div>";
+  h+="<div id='estatWrap'></div>";
   h+="<div id='cargasWrap'></div>";
   h+="<div id='bensWrap'></div>";
   h+="<div id='cotacoesWrap'></div>";
@@ -480,7 +610,102 @@ function renderFichaTudo(){
   h+="<div id='camaraWrap'></div>";
   h+="<div id='notasRefWrap'></div>";
   f.innerHTML=h;
-  renderEventos(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderCamara(); renderNotasRef();
+  renderEventos(); renderRelacoes(); renderCargas(); renderBens(); renderEstatisticas(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderCamara(); renderNotasRef();
+}
+
+/* ----- ESTATÍSTICAS DO ATOR (core_actor_statistics) ----- */
+let estatCharts=[];
+function renderEstatisticas(){
+  const w=document.getElementById("estatWrap"); if(!w) return;
+  for(const c of estatCharts){try{c.destroy();}catch(e){}} estatCharts=[];
+  const d=(F.stats||[]);
+  if(!d.length){ w.innerHTML=""; return; }
+  // Agrupa por metric_type
+  const grupos={}; for(const s of d){ (grupos[s.metric_type]=grupos[s.metric_type]||[]).push(s); }
+  const tipos=Object.keys(grupos);
+  const CORES=["#2f5496","#1d9e75","#e05c2a","#7f77dd","#ba7517","#c0392b"];
+  let h="<div class='sech'>Indicadores</div>";
+
+  // --- Gráfico combinado Balanços (Entradas + Saídas [+ Apólices]) ---
+  const temEntradas="Entradas" in grupos, temSaidas="Saídas" in grupos;
+  if(temEntradas && temSaidas){
+    const serieE=grupos["Entradas"].sort((a,b)=>a.stat_year-b.stat_year);
+    const serieS=grupos["Saídas"].sort((a,b)=>a.stat_year-b.stat_year);
+    const serieA=grupos["Apólices"]?grupos["Apólices"].sort((a,b)=>a.stat_year-b.stat_year):null;
+    const todosAnos=[...new Set([...serieE.map(s=>s.stat_year),...serieS.map(s=>s.stat_year)])].sort((a,b)=>a-b);
+    const mapE=Object.fromEntries(serieE.map(s=>[s.stat_year,Number(s.value_numeric)]));
+    const mapS=Object.fromEntries(serieS.map(s=>[s.stat_year,Number(s.value_numeric)]));
+    const mapA=serieA?Object.fromEntries(serieA.map(s=>[s.stat_year,Number(s.value_numeric)])):null;
+    const moedaE=serieE[0].currency||"";
+    h+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:8px 0 4px'>Balanços anuais"+(moedaE?" <span style='font-weight:400;color:#7a8aa0;font-size:11px'>("+esc(moedaE)+")</span>":"")+"</div>";
+    h+="<div style='display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#7a8aa0;margin:0 0 4px'>"
+      +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#378ADD'></span> Entradas</span>"
+      +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#D85A30'></span> Saídas</span>"
+      +(serieA?"<span style='display:flex;align-items:center;gap:3px'><span style='display:inline-block;width:18px;height:2px;background:#BA7517'></span> Apólices (eixo dir.)</span>":"")
+      +"</div>";
+    h+="<div style='position:relative;height:240px;margin-bottom:6px'><canvas id='estat_balancos'></canvas></div>";
+    // tabela combinada
+    h+="<div style='overflow-x:auto;margin-bottom:16px'><table style='font-size:11.5px;border-collapse:collapse;width:auto'><thead><tr>"
+      +"<th style='background:#2f5496;color:#fff;padding:4px 8px;text-align:left'>Ano</th>"
+      +"<th style='background:#378ADD;color:#fff;padding:4px 8px;text-align:right'>Entradas</th>"
+      +"<th style='background:#D85A30;color:#fff;padding:4px 8px;text-align:right'>Saídas</th>"
+      +(serieA?"<th style='background:#BA7517;color:#fff;padding:4px 8px;text-align:right'>Apólices</th>":"")
+      +"</tr></thead><tbody>"
+      +todosAnos.map((ano,j)=>"<tr style='"+(j%2?"background:#fafbfd":"")+"'>"
+        +"<td style='padding:3px 8px'>"+ano+"</td>"
+        +"<td style='padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums'>"+(mapE[ano]!=null?mapE[ano].toLocaleString("pt-BR"):"—")+"</td>"
+        +"<td style='padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums'>"+(mapS[ano]!=null?mapS[ano].toLocaleString("pt-BR"):"—")+"</td>"
+        +(serieA?"<td style='padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums'>"+(mapA[ano]!=null?mapA[ano].toLocaleString("pt-BR"):"—")+"</td>":"")
+        +"</tr>").join("")
+      +"</tbody></table></div>";
+    setTimeout(()=>{
+      const cv=document.getElementById("estat_balancos"); if(!cv) return;
+      const datasets=[
+        {label:"Entradas",data:todosAnos.map(a=>mapE[a]??null),backgroundColor:"#378ADD",borderWidth:0,yAxisID:"y"},
+        {label:"Saídas",data:todosAnos.map(a=>mapS[a]??null),backgroundColor:"#D85A30",borderWidth:0,yAxisID:"y"}
+      ];
+      const scales={x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10},callback:v=>v.toLocaleString("pt-BR")}}};
+      if(serieA){
+        datasets.push({label:"Apólices",data:todosAnos.map(a=>mapA[a]??null),type:"line",borderColor:"#BA7517",backgroundColor:"#BA751722",borderWidth:2,pointRadius:5,pointBackgroundColor:"#BA7517",fill:false,spanGaps:false,yAxisID:"y2",tension:0});
+        scales.y2={type:"linear",position:"right",beginAtZero:true,grid:{drawOnChartArea:false},ticks:{font:{size:10},color:"#BA7517",callback:v=>v.toLocaleString("pt-BR")}};
+      }
+      estatCharts.push(new Chart(cv,{type:"bar",data:{labels:todosAnos,datasets},options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const v=c.parsed.y;return v==null?null:c.dataset.label+": "+v.toLocaleString("pt-BR")+(moedaE?" "+moedaE:"")}}}},scales}}));
+    },0);
+  }
+
+  // --- Gráficos individuais (exclui os já mostrados no combinado) ---
+  const noCombi=new Set(temEntradas&&temSaidas?["Entradas","Saídas","Apólices"]:[]);
+  tipos.filter(t=>!noCombi.has(t)).forEach((tipo,i)=>{
+    const serie=grupos[tipo].sort((a,b)=>a.stat_year-b.stat_year);
+    const anos=serie.map(s=>s.stat_year);
+    const vals=serie.map(s=>Number(s.value_numeric));
+    const unid=serie[0].currency||"";
+    const canId="estat_"+i;
+    h+="<div style='font-weight:600;color:#1f3a5f;font-size:12.6px;margin:8px 0 4px'>"+esc(tipo)+(unid?" <span style='font-weight:400;color:#7a8aa0;font-size:11px'>("+esc(unid)+")</span>":"")+"</div>";
+    h+="<div style='position:relative;height:180px;margin-bottom:14px'><canvas id='"+canId+"'></canvas></div>";
+    // tabela compacta
+    h+="<div style='overflow-x:auto;margin-bottom:16px'><table style='font-size:11.5px;border-collapse:collapse;width:auto'><thead><tr>"
+      +"<th style='background:#2f5496;color:#fff;padding:4px 8px;text-align:left'>Ano</th>"
+      +"<th style='background:#2f5496;color:#fff;padding:4px 8px;text-align:right'>"+esc(tipo)+"</th>"
+      +"</tr></thead><tbody>"
+      +serie.map((s,j)=>"<tr style='"+(j%2?"background:#fafbfd":"")+"'>"
+        +"<td style='padding:3px 8px'>"+s.stat_year+"</td>"
+        +"<td style='padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums'>"+Number(s.value_numeric).toLocaleString("pt-BR")+(unid?" "+esc(unid):"")+"</td>"
+        +"</tr>").join("")
+      +"</tbody></table></div>";
+    // chart (criado depois de inserir HTML)
+    setTimeout(()=>{
+      const cv=document.getElementById(canId); if(!cv) return;
+      const cor=CORES[i%CORES.length];
+      estatCharts.push(new Chart(cv,{type:"line",
+        data:{labels:anos,datasets:[{label:tipo,data:vals,borderColor:cor,backgroundColor:cor+"28",tension:.2,fill:true,pointRadius:4}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+(unid?" "+unid:"")}}},
+          scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10}},title:{display:!!unid,text:unid,color:"#7a8aa0",font:{size:10}}}}}}));
+    },0);
+  });
+  w.innerHTML=h;
 }
 
 /* ----- SENADO DO IMPÉRIO — gráficos (só no dossiê do Senado) ----- */
@@ -1561,8 +1786,16 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   renderGrafico(); renderTabelaSerie();
 }
 function autoModo(){
-  // Quando produtos específicos estão selecionados, a tabela usa o bloco agregado por produto (modo="")
-  if(F.cargaProds&&F.cargaProds.size>0) return "";
+  if(F.cargaProds&&F.cargaProds.size>0){
+    // produto único não-monetário com série temporal → linha ano a ano (ex: taxa de juros %)
+    if(F.cargaProds.size===1){
+      const A=F._agg||{}; const porProd=A.porProd||{};
+      const sel=[...F.cargaProds][0];
+      const key=(A.ks||[]).find(k=>baseDe(k)===sel||k===sel);
+      if(key && porProd[key] && !porProd[key].monet && porProd[key].anos.size>=2) return "line:"+key;
+    }
+    return "";
+  }
   const temRelVal=F.rels.some(r=>r.valor!=null);
   if(temRelVal) return "reltot";
   if(F.mv&&F.mv.tipo==="Embarcação") return "bar";
@@ -1589,6 +1822,17 @@ function renderTabelaSerie(){
     for(const c of cargasFiltradas()){ if(c.ano==null) continue; if(isGrp?(grpDe(c.notes)!==key):(c.produto!==key)) continue; if(c.valor!=null) byY[c.ano]=(byY[c.ano]||0)+Number(c.valor); const f=flagDe(c.notes); if(f) flagY[c.ano]=f; }
     const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
     const mon=isGrp?cargasFiltradas().some(c=>grpDe(c.notes)===key&&isMonet(c.produto,c.moeda)):!!(F._agg?.porProd[key]?.monet);
+    const titulo=isGrp?(key+" — total por ano"):key;
+    h+="<div style='margin-top:8px;font-weight:600;color:#1f3a5f;font-size:12.8px'>"+esc(titulo)+"</div>";
+    h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#ffff;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
+    for(const y of yy){ h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+y+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(fmtDinheiro(byY[y],y))+"</td></tr>"; }
+    h+="</tbody></table>";
+  } else if(modo.startsWith("line:")||modo.startsWith("grp:")){
+    const isGrp=modo.startsWith("grp:"); const key=modo.slice(isGrp?4:5);
+    const byY={}, flagY={};
+    for(const c of cargasFiltradas()){ if(c.ano==null) continue; if(isGrp?(grpDe(c.notes)!==key):(c.produto!==key)) continue; if(c.valor!=null) byY[c.ano]=(byY[c.ano]||0)+Number(c.valor); const f=flagDe(c.notes); if(f) flagY[c.ano]=f; }
+    const yy=Object.keys(byY).map(Number).sort((a,b)=>a-b);
+    const mon=isGrp?cargasFiltradas().some(c=>grpDe(c.notes)===key&&isMonet(c.produto,c.moeda)):isMonet(key,null);
     const titulo=isGrp?(key+" — total por ano"):key;
     h+="<div style='margin-top:8px;font-weight:600;color:#1f3a5f;font-size:12.8px'>"+esc(titulo)+"</div>";
     h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:4px'><thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Ano</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Valor</th></tr></thead><tbody>";
@@ -1748,6 +1992,10 @@ document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("key
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
 buscar();carregarSubtipos();setTimeout(()=>_updSortArrows(),100);
 
+</script>
+
+<script>
+
 /* ===== MAPA LEAFLET ===== */
 let _mapObj=null, _mapInited=false;
 let _provLyr=null, _munLyr=null;
@@ -1755,6 +2003,11 @@ let _chorLyr=null, _chorLoaded=false, _chorVisible=false;
 let _chorpLyr=null, _chorpLoaded=false, _chorpVisible=false;
 let _provLoaded=false, _munLoaded=false;
 let _provVisible=false, _munVisible=false;
+let _origensLyr=null, _origensLoaded=false, _origensVisible=false;
+let _presencaLyr=null, _presencaData=null, _presencaLoaded=false, _presencaVisible=false;
+let _arcosLyr=null;
+let _frotasLyr=null, _frotasLoaded=false, _frotasVisible=false;
+let _fichaMapa=null, _fichaMapaActorId=null;
 
 function switchTab(tab){
   const isMapa=tab==="mapa";
@@ -1775,7 +2028,6 @@ function initMapa(){
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18
   }).addTo(_mapObj);
-  // Carrega províncias automaticamente
   carregarCamada("prov");
 }
 
@@ -1792,14 +2044,38 @@ async function toggleLayer(tipo){
     else { _chorpLyr.addTo(_mapObj); _chorpVisible=true; document.getElementById("btn-chorp").classList.add("on"); }
     return;
   }
+  if(tipo==="origens"){
+    if(!_origensLoaded){ await carregarOrigens(); return; }
+    if(_origensVisible){ _origensLyr.remove(); _origensVisible=false; document.getElementById("btn-origens").classList.remove("on"); document.getElementById("origens-ctrl").style.display="none"; }
+    else { _origensLyr.addTo(_mapObj); _origensVisible=true; document.getElementById("btn-origens").classList.add("on"); document.getElementById("origens-ctrl").style.display=""; }
+    return;
+  }
+  if(tipo==="frotas"){
+    if(!_frotasLoaded){ await carregarFrotas(); return; }
+    if(_frotasVisible){ _frotasLyr.remove(); _frotasVisible=false; document.getElementById("btn-frotas").classList.remove("on"); document.getElementById("frotas-ctrl").style.display="none"; }
+    else { _frotasLyr.addTo(_mapObj); _frotasVisible=true; document.getElementById("btn-frotas").classList.add("on"); document.getElementById("frotas-ctrl").style.display=""; }
+    return;
+  }
+  if(tipo==="presenca"){
+    if(!_presencaLoaded){ await carregarPresenca(); return; }
+    if(_presencaVisible){
+      if(_presencaLyr) _presencaLyr.remove();
+      if(_arcosLyr) _arcosLyr.remove();
+      _presencaVisible=false;
+      document.getElementById("btn-presenca").classList.remove("on");
+      document.getElementById("presenca-ctrl").style.display="none";
+    } else {
+      renderPresenca(0);
+      _presencaVisible=true;
+      document.getElementById("btn-presenca").classList.add("on");
+      document.getElementById("presenca-ctrl").style.display="";
+    }
+    return;
+  }
   const isVisible = tipo==="prov" ? _provVisible : _munVisible;
   const lyr = tipo==="prov" ? _provLyr : _munLyr;
   const loaded = tipo==="prov" ? _provLoaded : _munLoaded;
-
-  if(!loaded){
-    await carregarCamada(tipo);
-    return;
-  }
+  if(!loaded){ await carregarCamada(tipo); return; }
   if(isVisible){
     _mapObj.removeLayer(lyr);
     if(tipo==="prov") _provVisible=false; else _munVisible=false;
@@ -1822,11 +2098,7 @@ async function _rpc(fn, body){
 }
 
 function _chorColor(t){
-  // escala YlOrRd, t in [0,1]
-  const stops=[
-    [255,255,204],[254,217,118],[254,178,76],[253,141,60],
-    [252,78,42],[227,26,28],[177,0,38],[128,0,38]
-  ];
+  const stops=[[255,255,204],[254,217,118],[254,178,76],[253,141,60],[252,78,42],[227,26,28],[177,0,38],[128,0,38]];
   const i=Math.min(Math.floor(t*(stops.length-1)),stops.length-2);
   const f=t*(stops.length-1)-i;
   const c=stops[i].map((s,k)=>Math.round(s+(stops[i+1][k]-s)*f));
@@ -1838,53 +2110,36 @@ async function carregarChoropleth(){
   const status=document.getElementById("mapa-status");
   btn.textContent="Carregando stats…"; btn.disabled=true; status.textContent="Aguarde…";
   try{
-    // Passo 1: stats leves {actor_id: pop_total}
     const statsRaw=await _rpc("get_pop1872_stats");
-    // PostgREST pode retornar array ou direto
-    const lookup=Array.isArray(statsRaw) ? (statsRaw[0]||{}) : (statsRaw||{});
-
+    const lookup=Array.isArray(statsRaw)?(statsRaw[0]||{}):(statsRaw||{});
     const vals=Object.values(lookup).map(Number).filter(v=>v>0);
     if(!vals.length) throw new Error("Nenhum dado de população encontrado");
     const maxPop=Math.max.apply(null,vals);
     document.getElementById("chor-max").textContent=Math.round(maxPop).toLocaleString("pt-BR");
-
-    // Passo 2: geometrias dos municípios
     btn.textContent="Carregando geometrias…";
     const geojson=await _rpc("get_layer_geojson",JSON.stringify({p_layer:"municipio_1872"}));
-    const features=Array.isArray(geojson) ? geojson[0]&&geojson[0].features : geojson&&geojson.features;
+    const features=Array.isArray(geojson)?geojson[0]&&geojson[0].features:geojson&&geojson.features;
     if(!features||!features.length) throw new Error("GeoJSON sem features");
-
     _chorLyr=L.geoJSON({type:"FeatureCollection",features:features},{
       style:feat=>{
         const aid=feat.properties&&feat.properties.actor_id;
-        const pop=aid ? Number(lookup[String(aid)]||0) : 0;
-        const t=pop>0 ? Math.sqrt(pop/maxPop) : 0;
-        return {
-          color:"#444", weight:.4,
-          fillColor: pop>0 ? _chorColor(t) : "#d0d0d0",
-          fillOpacity: pop>0 ? .8 : .3
-        };
+        const pop=aid?Number(lookup[String(aid)]||0):0;
+        const t=pop>0?Math.sqrt(pop/maxPop):0;
+        return {color:"#444",weight:.4,fillColor:pop>0?_chorColor(t):"#d0d0d0",fillOpacity:pop>0?.8:.3};
       },
       onEachFeature:(feat,flyr)=>{
         const p=feat.properties||{};
-        const pop=p.actor_id ? Number(lookup[String(p.actor_id)]||0) : 0;
-        const popStr=pop>0 ? Math.round(pop).toLocaleString("pt-BR") : "s/d";
-        flyr.bindPopup("<b>"+esc(p.name||"")+"</b><br>Pop. 1872: <b>"+popStr+"</b>");
-        flyr.on("mouseover",function(){ this.setStyle({fillOpacity:1,weight:1}); });
-        flyr.on("mouseout",function(){ _chorLyr.resetStyle(this); });
+        const aid=p.actor_id;
+        const pop=aid?Number(lookup[String(aid)]||0):0;
+        flyr.bindPopup("<b>"+esc(p.nome||"(sem nome)")+"</b><br>"+(pop>0?"Pop. 1872: "+pop.toLocaleString("pt-BR")+" hab.":"(sem dado)"));
+        if(p.actor_id) flyr.on("click",()=>abrirFicha(p.actor_id));
       }
     });
-
-    _chorLoaded=true; _chorVisible=true;
-    _chorLyr.addTo(_mapObj);
-    btn.textContent="Pop. total 1872";
-    btn.classList.add("on");
+    _chorLyr.addTo(_mapObj); _chorLoaded=true; _chorVisible=true;
+    document.getElementById("btn-chor").classList.add("on");
     document.getElementById("chor-legend").style.display="";
     status.textContent="";
-  }catch(e){
-    btn.textContent="Pop. total 1872";
-    status.textContent="Erro: "+e.message;
-  }
+  }catch(e){ btn.textContent="Pop. municípios 1872"; status.textContent="Erro: "+e.message; }
   btn.disabled=false;
 }
 
@@ -1894,44 +2149,32 @@ async function carregarChoroplethProv(){
   btn.textContent="Carregando…"; btn.disabled=true; status.textContent="Aguarde…";
   try{
     const statsRaw=await _rpc("get_pop1872_prov_stats");
-    const lookup=Array.isArray(statsRaw) ? (statsRaw[0]||{}) : (statsRaw||{});
+    const lookup=Array.isArray(statsRaw)?(statsRaw[0]||{}):(statsRaw||{});
     const vals=Object.values(lookup).map(Number).filter(v=>v>0);
     if(!vals.length) throw new Error("Sem dados de província");
     const maxPop=Math.max.apply(null,vals);
-
     const geojson=await _rpc("get_layer_geojson",JSON.stringify({p_layer:"provincia_1872"}));
-    const features=Array.isArray(geojson) ? (geojson[0]&&geojson[0].features) : (geojson&&geojson.features);
-    if(!features||!features.length) throw new Error("GeoJSON sem features");
-
+    const features=Array.isArray(geojson)?(geojson[0]&&geojson[0].features):(geojson&&geojson.features);
+    if(!features||!features.length) throw new Error("GeoJSON prov sem features");
     _chorpLyr=L.geoJSON({type:"FeatureCollection",features:features},{
       style:feat=>{
         const aid=feat.properties&&feat.properties.actor_id;
-        const pop=aid ? Number(lookup[String(aid)]||0) : 0;
-        const t=pop>0 ? Math.sqrt(pop/maxPop) : 0;
-        return {
-          color:"#222", weight:1.5,
-          fillColor: pop>0 ? _chorColor(t) : "#d0d0d0",
-          fillOpacity: pop>0 ? .75 : .2
-        };
+        const pop=aid?Number(lookup[String(aid)]||0):0;
+        const t=pop>0?Math.sqrt(pop/maxPop):0;
+        return {color:"#333",weight:.8,fillColor:pop>0?_chorColor(t):"#d0d0d0",fillOpacity:pop>0?.75:.2};
       },
       onEachFeature:(feat,flyr)=>{
         const p=feat.properties||{};
-        const pop=p.actor_id ? Number(lookup[String(p.actor_id)]||0) : 0;
-        const popStr=pop>0 ? Math.round(pop).toLocaleString("pt-BR") : "s/d";
-        flyr.bindPopup("<b>"+esc(p.name||"")+"</b><br>Pop. 1872: <b>"+popStr+"</b>");
-        flyr.on("mouseover",function(){ this.setStyle({fillOpacity:1,weight:2}); });
-        flyr.on("mouseout",function(){ _chorpLyr.resetStyle(this); });
+        const aid=p.actor_id;
+        const pop=aid?Number(lookup[String(aid)]||0):0;
+        flyr.bindPopup("<b>"+esc(p.nome||"(sem nome)")+"</b><br>"+(pop>0?"Pop. 1872: "+pop.toLocaleString("pt-BR")+" hab.":"(sem dado)"));
+        if(p.actor_id) flyr.on("click",()=>abrirFicha(p.actor_id));
       }
     });
-    _chorpLoaded=true; _chorpVisible=true;
-    _chorpLyr.addTo(_mapObj);
-    btn.textContent="Pop. províncias 1872";
-    btn.classList.add("on");
+    _chorpLyr.addTo(_mapObj); _chorpLoaded=true; _chorpVisible=true;
+    document.getElementById("btn-chorp").classList.add("on");
     status.textContent="";
-  }catch(e){
-    btn.textContent="Pop. províncias 1872";
-    status.textContent="Erro: "+e.message;
-  }
+  }catch(e){ btn.textContent="Pop. províncias 1872"; status.textContent="Erro: "+e.message; }
   btn.disabled=false;
 }
 
@@ -1942,8 +2185,7 @@ async function carregarCamada(tipo){
   const status=document.getElementById("mapa-status");
   const lblOrig=btn.textContent;
   btn.textContent=(isProv?"Carregando províncias…":"Carregando municípios…");
-  btn.disabled=true;
-  status.textContent="Aguarde…";
+  btn.disabled=true; status.textContent="Aguarde…";
   try{
     const r=await fetch(URL+"/rest/v1/rpc/get_layer_geojson",{
       method:"POST",
@@ -1952,34 +2194,377 @@ async function carregarCamada(tipo){
     });
     if(!r.ok) throw new Error("HTTP "+r.status);
     const geojson=await r.json();
-    const n=(geojson.features||[]).length;
-    const style=isProv
-      ?{color:"#1f3a5f",weight:2,fillColor:"#2f5496",fillOpacity:.25}
-      :{color:"#0a5e44",weight:.8,fillColor:"#1d9e75",fillOpacity:.2};
-    const lyr=L.geoJSON(geojson,{
-      style:()=>style,
+    const features=Array.isArray(geojson)?(geojson[0]&&geojson[0].features):(geojson&&geojson.features);
+    if(!features||!features.length) throw new Error("Sem features");
+    const cor=isProv?"#1e3b2a":"#2e7a50";
+    const lyr=L.geoJSON({type:"FeatureCollection",features:features},{
+      style:{color:cor,weight:isProv?1.2:.5,fillOpacity:.08,fillColor:cor},
       onEachFeature:(feat,flyr)=>{
         const p=feat.properties||{};
-        flyr.bindPopup("<b>"+esc(p.name||"")+"</b><br><span style='font-size:11px;color:#7a8aa0'>Código IBGE: "+esc(p.codigo||"")+(p.actor_id?"<br>actor_id: "+p.actor_id:"")+"</span>");
-        flyr.on("mouseover",function(){ this.setStyle({fillOpacity:.5}); });
-        flyr.on("mouseout",function(){ lyr.resetStyle(this); });
+        flyr.bindPopup("<b>"+esc(p.nome||"(sem nome)")+"</b>");
+        if(p.actor_id) flyr.on("click",()=>abrirFicha(p.actor_id));
       }
     });
+    lyr.addTo(_mapObj);
     if(isProv){ _provLyr=lyr; _provLoaded=true; _provVisible=true; }
     else { _munLyr=lyr; _munLoaded=true; _munVisible=true; }
-    lyr.addTo(_mapObj);
-    btn.textContent=(isProv?"Províncias ("+n+")":"Municípios ("+n+")");
     btn.classList.add("on");
-    if(!isProv) btn.classList.add("mun");
     status.textContent="";
-    if(isProv && n>0) _mapObj.fitBounds(lyr.getBounds(),{padding:[20,20]});
-  }catch(e){
-    btn.textContent=lblOrig;
-    status.textContent="Erro: "+e.message;
-  }
+  }catch(e){ btn.textContent=lblOrig; status.textContent="Erro: "+e.message; }
   btn.disabled=false;
 }
+
+/* ===== MAPA DE ATORES: ORIGENS E PRESENÇA ===== */
+
+const _REGION_COR={Brasil:"#2e7a50",Africa:"#e07a15",Europa:"#2d6fa3",Asia:"#6e5db8",Americas:"#b84040"};
+
+// Great-circle arc between two lat/lon points
+function greatCircleArc(lat1,lon1,lat2,lon2,n=60){
+  const R=d=>d*Math.PI/180, D=r=>r*180/Math.PI;
+  const p1=R(lat1),l1=R(lon1),p2=R(lat2),l2=R(lon2);
+  const d=2*Math.asin(Math.sqrt(Math.sin((p2-p1)/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin((l2-l1)/2)**2));
+  if(d<0.001) return [[lat1,lon1],[lat2,lon2]];
+  const pts=[];
+  for(let i=0;i<=n;i++){
+    const f=i/n;
+    const A=Math.sin((1-f)*d)/Math.sin(d), B=Math.sin(f*d)/Math.sin(d);
+    const x=A*Math.cos(p1)*Math.cos(l1)+B*Math.cos(p2)*Math.cos(l2);
+    const y=A*Math.cos(p1)*Math.sin(l1)+B*Math.cos(p2)*Math.sin(l2);
+    const z=A*Math.sin(p1)+B*Math.sin(p2);
+    pts.push([D(Math.atan2(z,Math.sqrt(x*x+y*y))),D(Math.atan2(y,x))]);
+  }
+  return pts;
+}
+
+async function carregarOrigens(){
+  const btn=document.getElementById("btn-origens");
+  const status=document.getElementById("mapa-status");
+  btn.textContent="Carregando…"; btn.disabled=true; status.textContent="Aguarde…";
+  try{
+    const {dados}=await getJSON("v_origens_geograficas?select=actor_id,nome,tipo,origem_label,lat,lon,region,legal_status&limit=2000");
+    const byLoc={};
+    for(const d of dados){
+      const k=d.lat+","+d.lon;
+      if(!byLoc[k]) byLoc[k]={lat:+d.lat,lon:+d.lon,label:d.origem_label,region:d.region,count:0,tipos:{},actors:[]};
+      byLoc[k].count++;
+      byLoc[k].tipos[d.tipo]=(byLoc[k].tipos[d.tipo]||0)+1;
+      byLoc[k].actors.push(d);
+    }
+    const locs=Object.values(byLoc);
+    const maxN=Math.max(...locs.map(l=>l.count));
+    _origensLyr=L.layerGroup(locs.map(loc=>{
+      const r=5+Math.sqrt(loc.count/maxN)*20;
+      const col=_REGION_COR[loc.region]||"#888";
+      const m=L.circleMarker([loc.lat,loc.lon],{radius:r,color:"#fff",weight:1.5,fillColor:col,fillOpacity:.75});
+      const det=Object.entries(loc.tipos).map(([t,n])=>"<b>"+t+"</b>: "+n).join(" · ");
+      m.bindPopup("<b>"+esc(loc.label)+"</b> <span style='color:#888;font-size:11px'>("+loc.region+")</span><br><b>"+loc.count+"</b> atores<br><small>"+det+"</small>");
+      return m;
+    }));
+    _origensLyr.addTo(_mapObj);
+    _origensLoaded=true; _origensVisible=true;
+    btn.classList.add("on");
+    document.getElementById("origens-ctrl").style.display="";
+    status.textContent=dados.length+" origens carregadas";
+    // Zoom para ver o Atlântico
+    _mapObj.fitBounds([[-40,-90],[60,60]]);
+  }catch(e){ status.textContent="Erro: "+e.message; }
+  btn.textContent="Origens geográficas"; btn.disabled=false;
+}
+
+async function carregarPresenca(){
+  const btn=document.getElementById("btn-presenca");
+  const status=document.getElementById("mapa-status");
+  btn.textContent="Carregando…"; btn.disabled=true; status.textContent="Aguarde…";
+  try{
+    const base="select=subject_nome,object_nome,relation_name,start_year,local_label,lat,lon,region,subject_origem_label,subject_lat,subject_lon";
+    // Fetch 1: pontos de presença (todos os eventos geocodados, até 1000)
+    const {dados: pontos}=await getJSON("v_presenca_geografica?"+base+"&limit=1000");
+    // Fetch 2: apenas linhas com subject_lat (os ~157 arcos) — fica bem abaixo do limite
+    const {dados: arcoRows}=await getJSON("v_presenca_geografica?"+base+"&subject_lat=not.is.null");
+    // Unir: arcoRows podem já estar em pontos, mas precisamos de TODOS os pontos + TODOS os arcos
+    const arcIds=new Set(arcoRows.map(r=>r.subject_nome+"_"+r.start_year+"_"+r.lat));
+    const pontosExtra=pontos.filter(r=>!arcIds.has(r.subject_nome+"_"+r.start_year+"_"+r.lat));
+    _presencaData=[...pontosExtra,...arcoRows];
+    _presencaLoaded=true; _presencaVisible=true;
+    btn.classList.add("on");
+    document.getElementById("presenca-ctrl").style.display="";
+    renderPresenca(1890);
+    status.textContent=_presencaData.length+" eventos de presença";
+    _mapObj.fitBounds([[-40,-90],[60,60]]);
+  }catch(e){ status.textContent="Erro: "+e.message; }
+  btn.textContent="Presença & arcos"; btn.disabled=false;
+}
+
+function onAnoSlider(val){
+  const ano=parseInt(val);
+  const lbl=document.getElementById("presenca-ano-lbl");
+  lbl.textContent=ano>=1890?"todos os anos":"até "+ano;
+  if(_presencaVisible) renderPresenca(ano);
+}
+
+function renderPresenca(anoFiltro){
+  if(!_presencaData) return;
+  if(_presencaLyr){ _presencaLyr.remove(); _presencaLyr=null; }
+  if(_arcosLyr){ _arcosLyr.remove(); _arcosLyr=null; }
+
+  const filtered=anoFiltro>=1890 ? _presencaData :
+    _presencaData.filter(d=>!d.start_year||d.start_year<=anoFiltro);
+
+  const pontos=[];
+  const arcos=[];
+  const byLoc={};
+  const escravidaoTypes=["Escravizado por","Alforriado por","Pagou alforria de","Foi arrolado como garantia hipotecária por"];
+
+  for(const d of filtered){
+    // Ponto de presença (objeto/instituição)
+    if(d.lat&&d.lon){
+      const k=d.lat+","+d.lon;
+      if(!byLoc[k]) byLoc[k]={lat:+d.lat,lon:+d.lon,label:d.local_label,region:d.region,count:0};
+      byLoc[k].count++;
+    }
+    // Arco: origem do sujeito ↔ local do objeto (quando diferentes e ambos geocodados)
+    if(d.subject_lat&&d.subject_lon&&d.lat&&d.lon){
+      const sLat=+d.subject_lat,sLon=+d.subject_lon,eLat=+d.lat,eLon=+d.lon;
+      if(Math.abs(sLat-eLat)>0.5||Math.abs(sLon-eLon)>0.5){
+        const isEsc=escravidaoTypes.includes(d.relation_name);
+        arcos.push({pts:greatCircleArc(sLat,sLon,eLat,eLon),
+          color:isEsc?"#e07a15":"#2d6fa3",
+          weight:isEsc?2:1.5,
+          opacity:isEsc?0.65:0.45,
+          tip:"<b>"+esc(d.subject_nome)+"</b> ("+esc(d.subject_origem_label)+")"+"<br>↔ "+esc(d.object_nome)+" ("+esc(d.local_label)+")"+"<br><i>"+esc(d.relation_name)+"</i>"+(d.start_year?" · "+d.start_year:"")
+        });
+      }
+    }
+  }
+
+  // Renderizar pontos
+  const locs=Object.values(byLoc);
+  const maxN=locs.length?Math.max(...locs.map(l=>l.count)):1;
+  const pontosLayers=locs.map(loc=>{
+    const r=4+Math.sqrt(loc.count/maxN)*14;
+    const col=_REGION_COR[loc.region]||"#888";
+    const m=L.circleMarker([loc.lat,loc.lon],{radius:r,color:"#fff",weight:1,fillColor:col,fillOpacity:.65});
+    m.bindPopup("<b>"+esc(loc.label)+"</b><br>"+loc.count+" presenças");
+    return m;
+  });
+
+  // Renderizar arcos
+  const arcoLayers=arcos.map(a=>
+    L.polyline(a.pts,{color:a.color,weight:a.weight||1.5,opacity:a.opacity,smoothFactor:1})
+      .bindPopup(a.tip)
+  );
+
+  _presencaLyr=L.layerGroup(pontosLayers).addTo(_mapObj);
+  _arcosLyr=L.layerGroup(arcoLayers).addTo(_mapObj);
+}
+
+/* ===== ROTAS DAS FROTAS ATLÂNTICAS ===== */
+
+// Waypoints históricos das rotas atlânticas (séc. XVIII)
+// Baseados nos ventos alísios, corrente do Atlântico Sul e rotas documentadas
+const ROTAS = {
+  "Pernambuco-Portugal": {
+    ida: [
+      [-8.05, -34.88],
+      [-3.85, -32.42],
+      [5.0,  -26.0],
+      [16.0, -21.0],
+      [28.0, -17.0],
+      [36.0, -12.0],
+      [38.72, -9.14]
+    ],
+    volta: [
+      [38.72, -9.14],
+      [32.5, -16.9],
+      [27.5, -15.5],
+      [15.0, -24.0],
+      [3.0,  -28.0],
+      [-8.05, -34.88]
+    ],
+    label: "Frota Pernambuco–Lisboa (1755–1807)",
+    cor: "#9a5c15",
+    fonte: "Frota do Açúcar de Pernambuco — rota estimada com base nos ventos alísios e registros históricos da navegação atlântica portuguesa (séc. XVIII)"
+  }
+};
+
+async function carregarFrotas(){
+  const btn=document.getElementById("btn-frotas");
+  const status=document.getElementById("mapa-status");
+  btn.textContent="Carregando…"; btn.disabled=true; status.textContent="Aguarde…";
+  try{
+    // Contar embarcações com nota de frota
+    const {total}=await getJSON("core_actors?select=actor_id&notes=ilike.*frota*&limit=1",true);
+    const count=total||565;
+    // Usar rota Pernambuco-Portugal diretamente (todas as embarcações com frota)
+    const rota=ROTAS["Pernambuco-Portugal"];
+    const layers=[];
+    const idaLine=L.polyline(rota.ida,{color:rota.cor,weight:2.5,opacity:.85,smoothFactor:1})
+      .bindPopup("<b>"+esc(rota.label)+"</b><br><b>"+count+"</b> embarcações documentadas"
+        +"<br><small style='color:#888'>Ida: Recife → Lisboa</small>"
+        +"<br><small style='color:#666;font-style:italic'>"+esc(rota.fonte)+"</small>");
+    const voltaLine=L.polyline(rota.volta,{color:rota.cor,weight:1.5,opacity:.5,dashArray:"8 5",smoothFactor:1})
+      .bindPopup("<b>"+esc(rota.label)+"</b>"
+        +"<br><small style='color:#888'>Volta: Lisboa → Recife</small>");
+    const ptRecife=L.circleMarker([-8.05,-34.88],{radius:8,color:"#fff",weight:2,fillColor:rota.cor,fillOpacity:.95})
+      .bindPopup("<b>Recife (Pernambuco)</b><br>Porto de partida · "+count+" navios documentados");
+    const ptLisboa=L.circleMarker([38.72,-9.14],{radius:8,color:"#fff",weight:2,fillColor:rota.cor,fillOpacity:.95})
+      .bindPopup("<b>Lisboa (Portugal)</b><br>Porto de chegada · "+count+" navios documentados");
+    layers.push(idaLine,voltaLine,ptRecife,ptLisboa);
+    _frotasLyr=L.layerGroup(layers);
+    _frotasLyr.addTo(_mapObj);
+    _frotasLoaded=true; _frotasVisible=true;
+    document.getElementById("btn-frotas").classList.add("on");
+    document.getElementById("frotas-ctrl").style.display="";
+    _mapObj.fitBounds([[-12,-42],[42,-6]]);
+    status.textContent=count+" embarcações · frota Pernambuco–Lisboa";
+  }catch(e){ status.textContent="Erro: "+e.message; }
+  btn.textContent="Frotas atlânticas"; btn.disabled=false;
+}
+
+/* ===== MINI-MAPA NO DOSSIÊ ===== */
+
+function fecharFichaMapa(){
+  if(_fichaMapa){ try{ _fichaMapa.remove(); }catch(e){} _fichaMapa=null; _fichaMapaActorId=null; }
+}
+
+function _parseFrotaRota(notes){
+  if(!notes) return null;
+  if(/frota.*pernambuco/i.test(notes)||/pernambuco.*portugal/i.test(notes)) return ROTAS["Pernambuco-Portugal"];
+  return null;
+}
+
+const IBGE_ESTADOS={
+  "Acre":12,"Alagoas":27,"Amapá":16,"Amazonas":13,"Bahia":29,"Ceará":23,
+  "Distrito Federal":53,"Espírito Santo":32,"Goiás":52,"Maranhão":21,
+  "Mato Grosso":51,"Mato Grosso do Sul":50,"Minas Gerais":31,"Pará":15,
+  "Paraíba":25,"Paraná":41,"Pernambuco":26,"Piauí":22,"Rio de Janeiro":33,
+  "Rio Grande do Norte":24,"Rio Grande do Sul":43,"Rondônia":11,"Roraima":14,
+  "Santa Catarina":42,"São Paulo":35,"Sergipe":28,"Tocantins":17
+};
+
+function _extrairEstado(nome){
+  const m=(nome||"").match(/(?:prov[íi]ncia|estado)\s+(?:\([^)]+\)\s+)?(?:de|da|do|dos|das)\s+(.+)/i);
+  return m?m[1].trim().replace(/\s*\(.*?\)\s*/g,"").trim():null;
+}
+
+function _extrairMunicipio(nome){
+  const m=(nome||"").match(/^munic[íi]pio\s+(?:de|da|do|dos|das)\s+(.+)/i);
+  return m?m[1].trim():null;
+}
+
+async function _carregarShapeEstado(m, estadoNome, nota){
+  const ibgeId=IBGE_ESTADOS[estadoNome];
+  if(!ibgeId){ if(nota) nota.textContent="Estado não mapeado: "+estadoNome; m.setView([-14,-52],4); return; }
+  try{
+    const url="https://servicodados.ibge.gov.br/api/v2/malhas/"+ibgeId+"?resolucao=5&formato=application%2Fvnd.geo%2Bjson";
+    const gj=await fetch(url).then(r=>r.json());
+    const lyr=L.geoJSON(gj,{style:{color:"#1e3b2a",weight:2,fillColor:"#2d6a4f",fillOpacity:.22}}).addTo(m);
+    m.fitBounds(lyr.getBounds().pad(.1));
+    if(nota) nota.textContent="Divisão territorial de "+estadoNome+" — IBGE";
+  }catch(e){ m.setView([-14,-52],4); if(nota) nota.textContent="Erro ao carregar shapefile."; }
+}
+
+async function _carregarShapeMunicipio(m, municipioNome, nota){
+  try{
+    const arr=await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/municipios?nome="+encodeURIComponent(municipioNome)).then(r=>r.json());
+    if(!arr||!arr.length){ if(nota) nota.textContent="Município não encontrado: "+municipioNome; m.setView([-14,-52],5); return; }
+    const best=arr.find(x=>x.nome.toLowerCase()===municipioNome.toLowerCase())||arr[0];
+    const uf=best.microrregiao&&best.microrregiao.mesorregiao&&best.microrregiao.mesorregiao.UF?best.microrregiao.mesorregiao.UF.sigla:"";
+    const gj=await fetch("https://servicodados.ibge.gov.br/api/v2/malhas/"+best.id+"?resolucao=5&formato=application%2Fvnd.geo%2Bjson").then(r=>r.json());
+    const lyr=L.geoJSON(gj,{style:{color:"#1e3b2a",weight:2,fillColor:"#52b788",fillOpacity:.28}}).addTo(m);
+    m.fitBounds(lyr.getBounds().pad(.15));
+    if(nota) nota.textContent="Divisão territorial de "+best.nome+(uf?" ("+uf+")":"")+" — IBGE";
+  }catch(e){ m.setView([-14,-52],5); if(nota) nota.textContent="Erro ao carregar shapefile."; }
+}
+
+async function initFichaMapa(actorId, tipo, notes, placeOrigin, institutionType, nome){
+  fecharFichaMapa();
+  const fichaEl=document.getElementById("ficha");
+  if(!fichaEl) return;
+
+  const wrap=document.createElement("details");
+  wrap.id="ficha-mapa-wrap"; wrap.open=true;
+  wrap.innerHTML="<summary>🗺 Mapa geográfico</summary>"
+    +"<div id='ficha-mapa'></div>"
+    +"<div id='ficha-mapa-nota'></div>";
+  fichaEl.appendChild(wrap);
+
+  await new Promise(r=>setTimeout(r,80));
+  const mapaEl=document.getElementById("ficha-mapa");
+  if(!mapaEl) return;
+
+  const m=L.map("ficha-mapa",{zoomControl:true,scrollWheelZoom:false});
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap",maxZoom:18}).addTo(m);
+  _fichaMapa=m; _fichaMapaActorId=actorId;
+  const nota=document.getElementById("ficha-mapa-nota");
+  nome=nome||"";
+
+  // 1. Embarcação: rota atlântica
+  if(tipo==="Embarcação"){
+    const rota=_parseFrotaRota(notes);
+    if(rota){
+      L.polyline(rota.ida,{color:rota.cor,weight:2.5,opacity:.85,smoothFactor:1}).addTo(m).bindPopup("Rota estimada (ida: Recife → Lisboa)");
+      L.polyline(rota.volta,{color:rota.cor,weight:1.5,opacity:.45,dashArray:"6 4",smoothFactor:1}).addTo(m).bindPopup("Rota estimada (volta: Lisboa → Recife)");
+      L.circleMarker([-8.05,-34.88],{radius:7,color:"#fff",weight:1.5,fillColor:rota.cor,fillOpacity:.9}).addTo(m).bindPopup("Recife (Pernambuco)");
+      L.circleMarker([38.72,-9.14],{radius:7,color:"#fff",weight:1.5,fillColor:rota.cor,fillOpacity:.9}).addTo(m).bindPopup("Lisboa (Portugal)");
+      m.fitBounds([[-12,-40],[42,-5]]);
+      if(nota) nota.textContent=rota.fonte;
+    } else {
+      m.setView([0,-20],2);
+      if(nota) nota.textContent="Sem rota geográfica identificada para esta embarcação.";
+    }
+    setTimeout(()=>m.invalidateSize(),120);
+    return;
+  }
+
+  // 2. Estado/Província: shapefile IBGE
+  const estadoNome=_extrairEstado(nome);
+  if(estadoNome&&(institutionType==="Unidade Administrativa"||/prov[íi]ncia|estado\s/i.test(nome))){
+    await _carregarShapeEstado(m, estadoNome, nota);
+    setTimeout(()=>m.invalidateSize(),120);
+    return;
+  }
+
+  // 3. Município: shapefile IBGE
+  const municipioNome=_extrairMunicipio(nome);
+  if(municipioNome){
+    await _carregarShapeMunicipio(m, municipioNome, nota);
+    setTimeout(()=>m.invalidateSize(),120);
+    return;
+  }
+
+  // 4. Pessoa / Instituição / Companhia: origem + relações geocodadas
+  const bounds=[];
+  if(placeOrigin){
+    const {dados:geo}=await getJSON("geo_place_lookup?select=lat,lon,place_label,region&place_raw=eq."+encodeURIComponent(placeOrigin)+"&limit=1").catch(()=>({dados:[]}));
+    if(geo.length){
+      const g=geo[0]; const ll=[+g.lat,+g.lon];
+      L.circleMarker(ll,{radius:9,color:"#fff",weight:2,fillColor:"#1e3b2a",fillOpacity:.95}).bindPopup("<b>Origem:</b> "+esc(g.place_label)).addTo(m);
+      bounds.push(ll);
+    }
+  }
+  try{
+    const {dados:rels}=await getJSON("v_presenca_geografica?select=local_label,lat,lon,region,relation_name,object_nome,start_year&subject_actor_id=eq."+actorId+"&limit=100");
+    const byLoc={};
+    for(const r of rels){
+      if(!r.lat||!r.lon) continue;
+      const k=r.lat+","+r.lon;
+      if(!byLoc[k]) byLoc[k]={lat:+r.lat,lon:+r.lon,label:r.local_label,region:r.region,rels:[]};
+      byLoc[k].rels.push((r.relation_name||"")+" · "+esc(r.object_nome||"")+(r.start_year?" ("+r.start_year+")":""));
+    }
+    for(const loc of Object.values(byLoc)){
+      const col=_REGION_COR[loc.region]||"#888";
+      L.circleMarker([loc.lat,loc.lon],{radius:6,color:"#fff",weight:1.5,fillColor:col,fillOpacity:.8})
+       .bindPopup("<b>"+esc(loc.label)+"</b><br><small>"+loc.rels.slice(0,5).join("<br>")+"</small>").addTo(m);
+      bounds.push([loc.lat,loc.lon]);
+    }
+  }catch(e){}
+  if(bounds.length>1) m.fitBounds(L.latLngBounds(bounds).pad(.3));
+  else if(bounds.length===1) m.setView(bounds[0],5);
+  else m.setView([-14,-50],3);
+  setTimeout(()=>m.invalidateSize(),120);
+}
+
 </script>
 </body>
 </html>
-                                                                                                                    
