@@ -187,11 +187,11 @@
       <h1>Pessoas, trajetórias e redes do Brasil oitocentista</h1>
       <p>Busca, rede de relações e dossiê completo · clique num resultado para explorar</p>
     </div>
-    <div class="header-chips">
-      <span class="hchip"><b>22.163</b> pessoas</span>
-      <span class="hchip"><b>3.117</b> instituições</span>
-      <span class="hchip"><b>577</b> embarcações</span>
-      <span class="hchip"><b>78</b> companhias</span>
+    <div class="header-chips" id="header-chips">
+      <span class="hchip"><b id="hc-pessoa">—</b> pessoas</span>
+      <span class="hchip"><b id="hc-inst">—</b> instituições</span>
+      <span class="hchip"><b id="hc-emb">—</b> embarcações</span>
+      <span class="hchip"><b id="hc-comp">—</b> companhias</span>
     </div>
   </div>
 </header>
@@ -210,6 +210,8 @@
     <div class="campo" id="campo-subtipo" style="display:none"><label>Subtipo (instituição)</label>
       <select id="subtipo"><option value="">Todos</option></select></div>
     <div class="campo"><label>Ano (aparece em)</label><input id="ano" type="number" min="1700" max="1950" placeholder="ex.: 1790" /></div>
+    <div class="campo"><label>Tipo de relação</label>
+      <select id="relacao"><option value="">Qualquer relação</option></select></div>
     <div class="campo" id="campo-catsoc" style="display:none"><label>Categoria social</label>
       <select id="catsoc"><option value="">Todas</option></select></div>
     <div class="campo" id="campo-genero" style="display:none"><label>Gênero</label>
@@ -224,14 +226,6 @@
         <option value="Conde">Conde</option>
         <option value="Visconde">Visconde</option>
         <option value="Barão">Barão</option>
-      </select></div>
-    <div class="campo" id="campo-status" style="display:none"><label>Status jurídico</label>
-      <select id="status_juridico">
-        <option value="">Todos</option>
-        <option value="Free Person">Pessoa livre</option>
-        <option value="Enslaved">Escravizado/a</option>
-        <option value="Freed">Liberto/a</option>
-        <option value="Minor">Menor</option>
       </select></div>
     <div class="campo"><label>Limite</label><select id="limite"><option>100</option><option selected>300</option><option>1000</option></select></div>
     <div class="campo"><label>&nbsp;</label><div class="acoes">
@@ -411,12 +405,11 @@ function tituloParen(nome,hon){
 function onTipoChange(){
   const tp=document.getElementById("tipo").value;
   const isPessoa=tp==="Pessoa", isInst=tp==="Instituição";
-  ["campo-catsoc","campo-genero","campo-nobreza","campo-status"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isPessoa?"":"none";});
+  ["campo-catsoc","campo-genero","campo-nobreza"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isPessoa?"":"none";});
   if(!isPessoa){
     document.getElementById("catsoc").value="";
     document.getElementById("genero").value="";
     document.getElementById("nobreza").value="";
-    document.getElementById("status_juridico").value="";
   }
   const campoSub=document.getElementById("campo-subtipo");
   if(campoSub)campoSub.style.display=isInst?"":"none";
@@ -442,9 +435,10 @@ function montarURL(){
   const sub=document.getElementById("subtipo").value; if(sub)p.push("institution_type=eq."+encodeURIComponent(sub));
   const nob=document.getElementById("nobreza")?document.getElementById("nobreza").value:"";
   if(nob==="__any__")p.push("honorifico=not.is.null"); else if(nob)p.push("nobreza=eq."+encodeURIComponent(nob));
-  const stj=document.getElementById("status_juridico")?document.getElementById("status_juridico").value:"";
-  if(stj)p.push("legal_status=eq."+encodeURIComponent(stj));
-  return "v_busca_atores?"+p.join("&");
+  const rel=document.getElementById("relacao")?document.getElementById("relacao").value:"";
+  let base="v_busca_atores";
+  if(rel){ base="v_busca_atores_rel"; p.push("relation_names=cs."+encodeURIComponent('{"'+rel.replace(/"/g,'\\"')+'"}')); }
+  return base+"?"+p.join("&");
 }
 async function buscar(){
   const status=document.getElementById("status"),tbody=document.getElementById("tbody"); status.textContent="Buscando…";
@@ -457,7 +451,7 @@ async function buscar(){
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
   }catch(e){ status.textContent="Erro: "+e.message; }
 }
-function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("subtipo").value=""; const nob=document.getElementById("nobreza"); if(nob)nob.value=""; const stj=document.getElementById("status_juridico"); if(stj)stj.value=""; ["campo-catsoc","campo-genero","campo-subtipo","campo-nobreza","campo-status"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";}); document.getElementById("limite").value="300"; buscar(); }
+function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("subtipo").value=""; const rel=document.getElementById("relacao"); if(rel)rel.value=""; const nob=document.getElementById("nobreza"); if(nob)nob.value=""; ["campo-catsoc","campo-genero","campo-subtipo","campo-nobreza"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";}); document.getElementById("limite").value="300"; buscar(); }
 
 /* ----- DOSSIÊ ----- */
 async function abrirFicha(id){
@@ -1321,26 +1315,65 @@ async function carregarTodasRel(){
 function unidDe(p){ const m=(p||"").match(/\(([^)]*)\)\s*$/); if(!m) return ""; const u=m[1].trim(); return /^(soma|arrob|caix|fech|caras|car\b|barr|sac|quint|paus?|sola|und|uni|unid|varas|pipas|almud|toneis|rolos?|molhos|fardos|achas|taboa|atanad|libras|couros|meios?|arrate|alqueire|feixo)/i.test(u)?u:""; }
 function baseDe(p){ return unidDe(p)?(p||"").replace(/\s*\([^)]*\)\s*$/,"").trim():(p||""); }
 function cargasFiltradas(){ return F.cargas.filter(c=>{ if(F.cargaProds&&F.cargaProds.size&&!F.cargaProds.has(baseDe(c.produto))) return false; if(F.cargaUnid&&unidDe(c.produto)!==F.cargaUnid) return false; if(F.cargaAnoDe&&!(c.ano>=+F.cargaAnoDe)) return false; if(F.cargaAnoAte&&!(c.ano<=+F.cargaAnoAte)) return false; return true; }); }
+// Navegação de dados em 2 níveis: categoria (1º) → grupo (2º). _catGrupo mapeia grupo→categoria; grupos sem mapa viram a própria categoria.
+const _prioGrupos=["Censo 1872","Raças 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Censo 1890","População livre e escrava (1838)","População, casas e fogos por paróquia","Cortiços por paróquia","População, prédios e domicílios (1906 e 1920)","Indústria e manufatura","População e escravidão","Indústria têxtil — total (1915)","Indústria têxtil — algodão (1915)","Indústria têxtil — lã, juta e seda (1915)","Produção industrial (1925–29)","Engenhos por município (1852)","Propriedades rurais por distrito (1950)","Açúcar","Madeiras","Totais"];
+const _catGrupo={
+  'Censo 1872':'Censo 1872','Raças 1872':'Censo 1872','Faixa etária 1872':'Censo 1872','Estado civil 1872':'Censo 1872','Religião 1872':'Censo 1872','Instrução 1872':'Censo 1872','Instrução escolar 1872':'Censo 1872','Presença 1872':'Censo 1872','Defeitos físicos 1872':'Censo 1872','Origem brasileiros 1872':'Censo 1872','Origem estrangeiros 1872':'Censo 1872','Profissões 1872':'Censo 1872',
+  'População livre e escrava (1838)':'Lobo (1978)','População, casas e fogos por paróquia':'Lobo (1978)','Cortiços por paróquia':'Lobo (1978)','População, prédios e domicílios (1906 e 1920)':'Lobo (1978)',
+  'Indústria e manufatura':'Negócios da Escravidão','População e escravidão':'Negócios da Escravidão',
+  'Indústria têxtil — total (1915)':'Indústria têxtil (1915)','Indústria têxtil — algodão (1915)':'Indústria têxtil (1915)','Indústria têxtil — lã, juta e seda (1915)':'Indústria têxtil (1915)',
+  'Produção industrial (1925–29)':'Produção industrial',
+  'Engenhos por município (1852)':'Agricultura','Propriedades rurais por distrito (1950)':'Agricultura'
+};
+const _catOrder=['Censo 1872','Censo 1890','Lobo (1978)','Indústria têxtil (1915)','Produção industrial','Agricultura','Óbitos','Imigração','Negócios da Escravidão','Diversos','Outros'];
+// grupos ocultados da navegação (dados ficam no banco, só não aparecem na ficha)
+const _gruposOcultos=["Pop. histórica","Indústria e manufatura","População e escravidão"];
+function _catDe(g){return _catGrupo[g]||g;}
+function setCategoria(cat){
+  // grupos da categoria a partir de TODOS os grupos do ator (não do conjunto filtrado por cargaProds)
+  const allG=[...new Set((F.cargas||[]).map(c=>grpDe(c.notes)))].filter(g=>!_gruposOcultos.includes(g));
+  const gs=allG.filter(g=>_catDe(g)===cat);
+  F._catAtiva=cat;
+  if(!gs.length){renderCargas();return;}
+  const ord=[..._prioGrupos.filter(g=>gs.includes(g)),...gs.filter(g=>!_prioGrupos.includes(g))];
+  selecionarGrupo(ord[0]);
+}
 function barraFiltroCargas(){
   const esc1=v=>String(v).replace(/'/g,"\\'");
   const A=F._agg||{porProd:{},ks:[],grupos:[],usarGrupo:false};
   let h="<div style='background:#f7f9fc;border:1px solid #d9e0ea;border-radius:9px;padding:8px 10px;margin:8px 0;font-size:12px'>";
-  if(A.usarGrupo){
-    const _prio=["Censo 1872","Raças 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Censo 1890","Açúcar","Madeiras","Totais"];const _ocultos=["Pop. histórica"];const _og=[..._prio.filter(g=>A.grupos.includes(g)&&!_ocultos.includes(g)),...A.grupos.filter(g=>!_prio.includes(g)&&g!=="Outros"&&!_ocultos.includes(g)),...(A.grupos.includes("Outros")?["Outros"]:[])];
+  const _ocultos0=_gruposOcultos;
+  const _allG=[...new Set(F.cargas.map(c=>grpDe(c.notes)))].filter(g=>!_ocultos0.includes(g));
+  const _usarG=_allG.length>0&&!(_allG.length===1&&_allG[0]==="Outros");
+  if(_usarG){
+    const _prio=_prioGrupos;const _ocultos=_ocultos0;const _og=[..._prio.filter(g=>_allG.includes(g)),..._allG.filter(g=>!_prio.includes(g)&&g!=="Outros"),...(_allG.includes("Outros")?["Outros"]:[])];
     const grupoAtivo=_og.find(g=>{
       const _bs=new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===g).map(k=>baseDe(k)));
       return _bs.size>0&&F.cargaProds.size===_bs.size&&[..._bs].every(b=>F.cargaProds.has(b));
     })||null;
+    // --- nível 1: categorias ---
+    const _catsAll=[...new Set(_og.map(_catDe))];
+    const _cats=[..._catOrder.filter(c=>_catsAll.includes(c)),..._catsAll.filter(c=>!_catOrder.includes(c))];
+    let _catAtiva=(F._catAtiva&&_cats.includes(F._catAtiva))?F._catAtiva:(F._activeGrupo?_catDe(F._activeGrupo):_cats[0]);
+    if(!_cats.includes(_catAtiva))_catAtiva=_cats[0];
+    const _ogCat=_og.filter(g=>_catDe(g)===_catAtiva);
     const tabSt=(act)=>"padding:5px 14px;border:1px solid "+(act?"#2f5496 #2f5496 transparent":"#d9e0ea")+";border-bottom:"+(act?"none":"1px solid #d9e0ea")+";border-radius:6px 6px 0 0;cursor:pointer;font-size:12px;background:"+(act?"#fff":"#f0f3f8")+";color:"+(act?"#1f3a5f":"#41526b")+";margin-right:2px;position:relative;top:1px;font-weight:"+(act?"600":"400");
-    h+="<div style='display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid #d9e0ea;margin-bottom:8px'>";
-    if(F._activeGrupo)h+="<button onclick='todosProd()' style='padding:4px 10px;margin:0 6px 0 0;border-radius:6px 6px 0 0;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:#f0f3f8;color:#41526b;position:relative;top:1px'>&#8592; Voltar</button>";
-    for(const _g of _og){
-      const _bs=(A.ks||[]).filter(k=>A.porProd[k].grupo===_g);
-      if(!_bs.length)continue;
-      h+="<button onclick='selecionarGrupo(\""+esc1(_g)+"\")' style='"+tabSt(_g===grupoAtivo)+"'>"+esc(_g)+"</button>";
+    if(_cats.length>1){
+      h+="<div style='display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:9px'>";
+      h+="<span style='font-size:11px;color:#7a8aa0;font-weight:600;margin-right:4px'>Conjunto:</span>";
+      for(const _c of _cats){const act=_c===_catAtiva;h+="<button onclick='setCategoria(\""+esc1(_c)+"\")' style='padding:5px 15px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid "+(act?"#1f3a5f":"#cdd6e2")+";background:"+(act?"#1f3a5f":"#eef2f7")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"500")+"'>"+esc(_c)+"</button>";}
+      h+="</div>";
     }
-    h+="</div>";
-    const _customGrps=["Censo 1872","Raças 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Óbitos","Imigração","Censo 1890"];if(grupoAtivo&&!_customGrps.includes(grupoAtivo)){
+    // --- nível 2: grupos da categoria ativa (só quando houver mais de um) ---
+    if(_ogCat.length>1){
+      h+="<div style='display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid #d9e0ea;margin-bottom:8px'>";
+      if(_cats.length>1)h+="<span style='font-size:11px;color:#7a8aa0;font-weight:600;margin-right:6px'>Visões:</span>";
+      for(const _g of _ogCat){
+        h+="<button onclick='selecionarGrupo(\""+esc1(_g)+"\")' style='"+tabSt(_g===grupoAtivo)+"'>"+esc(_g)+"</button>";
+      }
+      h+="</div>";
+    }
+    const _customGrps=["Censo 1872","Raças 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Óbitos","Imigração","Censo 1890","População livre e escrava (1838)","População, casas e fogos por paróquia","Cortiços por paróquia","População, prédios e domicílios (1906 e 1920)"];if(grupoAtivo&&!_customGrps.includes(grupoAtivo)&&!_grpLobo[grupoAtivo]){
       const _prods=[...new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===grupoAtivo).map(k=>baseDe(k)))];
       if(_prods.length>1){
         h+="<div style='margin-bottom:6px'>";
@@ -1366,7 +1399,7 @@ function barraFiltroCargas(){
 }
 
 function toggleProd(b){ if(F.cargaProds.has(b))F.cargaProds.delete(b); else F.cargaProds.add(b); renderCargas(); }
-function selecionarGrupo(g){const A=F._agg||{};F.cargaProds=new Set((A.ks||[]).filter(k=>(A.porProd||{})[k]?.grupo===g).map(k=>baseDe(k)));F._activeGrupo=g;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null;renderCargas();}function todosProd(){F._activeGrupo=null;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null; F.cargaProds.clear(); renderCargas(); }
+function selecionarGrupo(g){const A=F._agg||{};F.cargaProds=new Set((A.ks||[]).filter(k=>(A.porProd||{})[k]?.grupo===g).map(k=>baseDe(k)));F._activeGrupo=g;F._catAtiva=_catDe(g);F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null;F._loboMed=null;F._loboAno=null;renderCargas();}function todosProd(){F._activeGrupo=null;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null;F._loboMed=null;F._loboAno=null; F.cargaProds.clear(); renderCargas(); }
 function setUnid(u){ F.cargaUnid=u; renderCargas(); }
 function limparCargas(){ F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderCargas(); }
 function grpDe(n){ const m=(n||"").match(/grupo=([^|]+)/); return m?m[1].trim():"Outros"; }
@@ -1636,6 +1669,80 @@ function renderBarrasOutros(cfg){
   chartsD.push(new Chart(document.getElementById('dn_comp'),{type:'bar',data:{labels,datasets:[{label:sex||'Total',data:vals,backgroundColor:labels.map(l=>l.indexOf('Outros (')===0?'#95a5a6':'#2f5496')}]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.x)+' hab.'}}},scales:{x:{ticks:{font:{size:10},callback:v=>v.toLocaleString('pt-BR')}},y:{ticks:{font:{size:10}}}}}}));
 }
 
+// === Tabelas Lobo (1978) por freguesia/distrito do Município do RJ ===
+// metric_type = "<Freguesia> · <Medida>"; grupo + fonte primária em notes (|fonte=, |tipo=)
+const _grpLobo={
+  'População livre e escrava (1838)':{medidas:[['Livres','#2f5496'],['Escravos','#c0392b']],empilhado:true},
+  'População, casas e fogos por paróquia':{medidas:[['População','#2f5496'],['Casas','#1d9e75'],['Fogos','#e05c2a']],nota:'Ano não especificado na fonte (livros paroquiais, c. 1870) — a confirmar.'},
+  'Cortiços por paróquia':{medidas:[['Cortiços','#8e44ad'],['Quartos','#2f5496'],['Habitantes','#e05c2a']],nota:'Ano não especificado na fonte (Relatório do Ministério do Império, 1ª sessão da 14ª legislatura, c. 1869) — a confirmar.'},
+  'População, prédios e domicílios (1906 e 1920)':{medidas:[['População','#2f5496'],['Prédios','#1d9e75'],['Domicílios','#e05c2a']]},
+  'Indústria têxtil — total (1915)':{dim:'Estado',medidas:[['Nº de fábricas','#2f5496'],['Capital (réis)','#1d9e75'],['Empréstimos (réis)','#e05c2a'],['Reservas (réis)','#8e44ad'],['Valor da produção (réis)','#c0392b'],['Operários','#16a085'],['Teares','#ba7517'],['Fusos','#7f77dd'],['Força (cavalos)','#41526b']],nota:'Quadro têxtil regional de 1915 (algodão + lã + juta + seda). Valores monetários em réis.'},
+  'Indústria têxtil — algodão (1915)':{dim:'Estado',medidas:[['Nº de fábricas','#2f5496'],['Capital (réis)','#1d9e75'],['Empréstimos (réis)','#e05c2a'],['Reservas (réis)','#8e44ad'],['Valor da produção (réis)','#c0392b'],['Operários','#16a085'],['Teares','#ba7517'],['Fusos','#7f77dd'],['Força (cavalos)','#41526b']],nota:'Fiação e tecidos de algodão (inclui malha, rendas, tiras bordadas e cortinados), 1915. Valores em réis.'},
+  'Indústria têxtil — lã, juta e seda (1915)':{dim:'Estado',medidas:[['Nº de fábricas','#2f5496'],['Capital (réis)','#1d9e75'],['Empréstimos (réis)','#e05c2a'],['Reservas (réis)','#8e44ad'],['Valor da produção (réis)','#c0392b'],['Operários','#16a085'],['Teares','#ba7517'],['Fusos','#7f77dd'],['Força (cavalos)','#41526b']],nota:'Fábricas de lã, juta e seda, 1915. Valores em réis.'},
+  'Produção industrial (1925–29)':{dim:'Estado',medidas:[['Valor da produção (contos de réis)','#1d9e75']],nota:'Indústrias sujeitas ao imposto de consumo. Valor em contos de réis.'},
+  'Engenhos por município (1852)':{dim:'Município',medidas:[['Engenhos','#1d9e75']]},
+  'Propriedades rurais por distrito (1950)':{dim:'Distrito',medidas:[['Propriedades rurais','#16a085']]}
+};
+function renderLoboTabela(cfg){
+  for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
+  if(chart){chart.destroy();chart=null;}
+  const cv=document.getElementById('graf'),td=document.getElementById('cargaTabela');
+  if(!cv||!td)return; cv.style.display='none';
+  const base=F._activeGrupo, fmt=n=>Number(n).toLocaleString('pt-BR');
+  const medidas=cfg.medidas.map(m=>m[0]), corDe={}; cfg.medidas.forEach(m=>corDe[m[0]]=m[1]);
+  const dados={},tipoDe={},anosSet=new Set(),fregOrder=[]; let fontePrim='',dimLabel=cfg.dim||'Freguesia';
+  for(const c of F.cargas){
+    if(grpDe(c.notes)!==base)continue;
+    const p=c.produto||'', ix=p.indexOf(' · '); if(ix<0)continue;
+    const freg=p.slice(0,ix), med=p.slice(ix+3); if(medidas.indexOf(med)<0)continue;
+    const ano=(c.ano==null?'__':c.ano); anosSet.add(ano);
+    if(!dados[freg]){dados[freg]={};fregOrder.push(freg);} if(!dados[freg][ano])dados[freg][ano]={};
+    dados[freg][ano][med]=Number(c.valor)||0;
+    const mt=(c.notes||'').match(/\|tipo=([^|]+)/); if(mt)tipoDe[freg]=mt[1];
+    const md=(c.notes||'').match(/\|dim=([^|]+)/); if(md)dimLabel=md[1];
+    if(!fontePrim){const mf=(c.notes||'').match(/\|fonte=([^|]+)/); if(mf)fontePrim=mf[1];}
+  }
+  if(!fregOrder.length){td.innerHTML="<p style='color:#7a8aa0;font-size:12px'>Sem dados.</p>";return;}
+  const anos=[...anosSet].filter(a=>a!=='__').sort((a,b)=>a-b), multiAno=anos.length>1;
+  const anoSel=multiAno?((F._loboAno&&anos.indexOf(F._loboAno)>=0)?F._loboAno:anos[anos.length-1]):(anos.length?anos[0]:'__');
+  const medSel=cfg.empilhado?medidas[0]:((F._loboMed&&medidas.indexOf(F._loboMed)>=0)?F._loboMed:medidas[0]);
+  const temTipo=Object.keys(tipoDe).length>0;
+  const val=(freg,med,ano)=>{const a=(ano!=null?ano:anoSel); return (dados[freg]&&dados[freg][a]&&dados[freg][a][med]!=null)?dados[freg][a][med]:0;};
+  let h="<div style='margin:8px 0'>";
+  if(!cfg.empilhado){ h+="<div style='margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px'>";
+    for(const [m,cor] of cfg.medidas){const act=m===medSel;h+="<button onclick=\"F._loboMed='"+m.replace(/'/g,"\\'")+"';renderCargas()\" style=\"padding:5px 14px;border-radius:18px;font-size:12px;cursor:pointer;border:2px solid "+(act?cor:'#d9e0ea')+";background:"+(act?cor:'#fff')+";color:"+(act?'#fff':'#41526b')+";font-weight:"+(act?'600':'400')+"\">"+esc(m)+"</button>";}
+    h+="</div>"; }
+  if(multiAno){ h+="<div style='margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center'><span style='font-size:11px;color:#7a8aa0'>Ano:</span>";
+    for(const a of anos){const act=a===anoSel;h+="<button onclick=\"F._loboAno="+a+";renderCargas()\" style=\"padding:4px 12px;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid "+(act?'#2f5496':'#d9e0ea')+";background:"+(act?'#2f5496':'#fff')+";color:"+(act?'#fff':'#41526b')+"\">"+a+"</button>";}
+    h+="</div>"; }
+  const anoTit=anoSel==='__'?'':(' — '+anoSel);
+  h+="<div style='font-size:12px;font-weight:600;color:#1f3a5f;margin:0 0 6px;text-align:center'>"+esc(base)+anoTit+(cfg.empilhado?'':(' · '+esc(medSel)))+"</div>";
+  h+="<div style='max-width:680px;margin:0 auto'><canvas id='dn_lobo' style='max-height:"+Math.max(240,fregOrder.length*22)+"px'></canvas></div>";
+  const ordMed=cfg.empilhado?medidas[0]:medSel;
+  const fregSorted=[...fregOrder].sort((a,b)=>val(b,ordMed,anoSel)-val(a,ordMed,anoSel));
+  const tot={}; medidas.forEach(m=>tot[m]=0);
+  h+="<table style='width:100%;font-size:12px;border-collapse:collapse;margin-top:12px'><thead><tr><th style='text-align:left;color:#fff;padding:4px;border-bottom:1px solid #e3e8ef'>"+esc(dimLabel)+"</th>";
+  if(temTipo)h+="<th style='text-align:left;color:#fff;padding:4px;border-bottom:1px solid #e3e8ef'>Tipo</th>";
+  for(const m of medidas)h+="<th style='text-align:right;color:#fff;padding:4px;border-bottom:1px solid #e3e8ef'>"+esc(m)+"</th>";
+  h+="</tr></thead><tbody>";
+  for(const freg of fregSorted){ h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+esc(freg)+"</td>";
+    if(temTipo)h+="<td style='padding:4px;border-top:1px solid #f0f3f7;color:#7a8aa0'>"+esc(tipoDe[freg]||'')+"</td>";
+    for(const m of medidas){const x=val(freg,m,anoSel);tot[m]+=x;h+="<td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+fmt(x)+"</td>";}
+    h+="</tr>"; }
+  h+="<tr style='font-weight:600;background:#f4f7fb'><td style='padding:5px 4px'>Total</td>";
+  if(temTipo)h+="<td></td>";
+  for(const m of medidas)h+="<td style='padding:5px 4px;text-align:right'>"+fmt(tot[m])+"</td>";
+  h+="</tr></tbody></table>";
+  const fonteTxt=(fontePrim?("Fonte primária: "+esc(fontePrim)+" "):"")+"<span style='color:#9aa7b8'>— transcrito de LOBO, E. M. L. (1978).</span>";
+  h+="<div style='font-size:10.5px;color:#7a8aa0;margin-top:8px;line-height:1.45'>"+(cfg.nota?("<div style='color:#b06a00;margin-bottom:3px'>⚠ "+esc(cfg.nota)+"</div>"):"")+fonteTxt+"</div></div>";
+  td.innerHTML=h;
+  const labels=fregSorted;
+  const datasets=cfg.empilhado
+    ? cfg.medidas.map(([m,cor])=>({label:m,data:labels.map(f=>val(f,m,anoSel)),backgroundColor:cor}))
+    : [{label:medSel,data:labels.map(f=>val(f,medSel,anoSel)),backgroundColor:corDe[medSel]}];
+  chartsD.push(new Chart(document.getElementById('dn_lobo'),{type:'bar',data:{labels,datasets},options:{indexAxis:'y',plugins:{legend:{display:cfg.empilhado,position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.x)}}},scales:{x:{stacked:!!cfg.empilhado,beginAtZero:true,ticks:{font:{size:10},callback:v=>Number(v).toLocaleString('pt-BR')}},y:{stacked:!!cfg.empilhado,ticks:{font:{size:10}}}}}}));
+}
+
 function renderObitos(){
   for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
   if(chart){chart.destroy();chart=null;}
@@ -1778,6 +1885,7 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   if(F._activeGrupo==="Censo 1872"){renderCenso1872();return;}
   if(F._activeGrupo==="Raças 1872"){renderRacas();return;}
   if(F._activeGrupo==='Faixa etária 1872'){renderPiramide();return;}
+  if(_grpLobo[F._activeGrupo]){renderLoboTabela(_grpLobo[F._activeGrupo]);return;}
   if(_grpBarras[F._activeGrupo]){renderBarrasOutros(_grpBarras[F._activeGrupo]);return;}
   if(_grpComposicao[F._activeGrupo]){renderComposicao(_grpComposicao[F._activeGrupo]);return;}
   if(F._activeGrupo==="Óbitos"){renderObitos();return;}
@@ -1987,6 +2095,31 @@ async function carregarCategorias(){
     dados.forEach(d=>{ const o=document.createElement("option"); o.value=d.categoria_social; o.textContent=d.categoria_social+" ("+d.atores+")"; sel.appendChild(o); });
   }catch(e){}
 }
+async function carregarHeaderCounts(){
+  try{
+    const {dados}=await getJSON("v_contagem_tipos?select=tipo,n");
+    const m={}; (dados||[]).forEach(d=>m[d.tipo]=d.n);
+    const fmt=n=>(n==null?'—':Number(n).toLocaleString('pt-BR'));
+    const set=(id,v)=>{const el=document.getElementById(id); if(el)el.textContent=fmt(v);};
+    set('hc-pessoa',m['Pessoa']); set('hc-inst',m['Instituição']); set('hc-emb',m['Embarcação']); set('hc-comp',m['Companhia']);
+  }catch(e){}
+}
+async function carregarRelacaoTipos(){
+  try{
+    const {dados}=await getJSON("v_relacao_tipos?select=relation_name,relation_category,n_atores&order=n_atores.desc");
+    const sel=document.getElementById("relacao"); if(!sel||!dados)return;
+    const catPt={Administrative:'Administrativa',Geographic:'Geográfica',Financial:'Financeira'};
+    const grupos={};
+    dados.forEach(d=>{ const c=catPt[d.relation_category]||d.relation_category||'Outras'; (grupos[c]=grupos[c]||[]).push(d); });
+    Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt')).forEach(c=>{
+      const og=document.createElement("optgroup"); og.label=c;
+      grupos[c].forEach(d=>{ const o=document.createElement("option"); o.value=d.relation_name; o.textContent=d.relation_name+" ("+d.n_atores+")"; og.appendChild(o); });
+      sel.appendChild(og);
+    });
+  }catch(e){}
+}
+carregarRelacaoTipos();
+carregarHeaderCounts();
 carregarCategorias();
 document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
