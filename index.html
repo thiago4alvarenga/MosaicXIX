@@ -260,6 +260,36 @@
     .modal{ max-height:none; width:100%; } .modal-body{ grid-template-columns:1fr; }
     #rede{ height:340px; } .ficha{ height:auto; overflow:visible; } .x,.rede-tools,.ffiltros,.mtools{ display:none; }
   }
+
+  /* ─── Rede multi-ator ─── */
+  #rede-section{ display:none; }
+  #rede-section.on{ display:block; }
+  .modo-rede-btn{ font-size:12px; font-weight:700; padding:5px 14px; background:var(--card2); color:var(--txt2); border:1.5px solid var(--borda); border-radius:8px; cursor:pointer; transition:all .15s; }
+  .modo-rede-btn.on{ background:var(--ferro); color:#fff; border-color:var(--ferro); }
+  .rede-sel-bar{ background:var(--ferro); color:#fff; border-radius:10px; padding:9px 14px; display:flex; align-items:center; gap:10px; font-size:13px; margin:8px 0 0; }
+  .rede-sel-bar-btn{ background:#fff; color:var(--ferro); border:none; border-radius:7px; padding:5px 13px; font-size:12px; font-weight:700; cursor:pointer; }
+  .rede-sel-bar-btn.ghost{ background:rgba(255,255,255,.2); color:#fff; }
+  .rede-sugestoes{ border:1.5px solid var(--verde); border-radius:10px; padding:10px 14px; margin:8px 0 0; background:var(--alt); }
+  .rede-sug-title{ font-size:12px; font-weight:700; color:var(--verde); margin-bottom:8px; }
+  .rede-sug-item{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px; border-bottom:1px solid var(--linha); }
+  .rede-sug-item:last-child{ border-bottom:none; }
+  .rede-sug-nome{ flex:1; }
+  .rede-sug-badge{ font-size:11px; color:var(--verde); background:rgba(46,122,80,.12); padding:2px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+  .rede-sug-add{ font-size:12px; font-weight:700; background:var(--verde); color:#fff; border:none; border-radius:6px; padding:3px 10px; cursor:pointer; flex-shrink:0; }
+  .rede-sug-add:hover{ background:var(--verde-d); }
+  .rede-multi-cont{ background:var(--card); border:1px solid var(--borda); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
+  .rede-multi-header{ background:var(--ferro); color:#fff; padding:10px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .rede-multi-chips{ display:flex; flex-wrap:wrap; gap:7px; padding:12px 16px; border-bottom:1px solid var(--borda); align-items:center; min-height:48px; }
+  .rede-chip{ display:inline-flex; align-items:center; gap:5px; background:rgba(46,122,80,.12); color:var(--verde); font-size:12.5px; padding:4px 11px; border-radius:20px; font-weight:600; }
+  .rede-chip-warn{ background:rgba(186,117,23,.12); color:var(--cobre); }
+  html[data-theme="dark"] .rede-chip-warn{ background:rgba(211,145,66,.15); color:var(--cobre); }
+  .rede-chip .cx{ cursor:pointer; font-size:15px; line-height:1; color:var(--txt3); margin-left:2px; }
+  .rede-chip .cx:hover{ color:#c0392b; }
+  #rede-multi{ height:65vh; background:var(--card2); }
+  .rede-multi-tools{ padding:9px 14px; border-top:1px solid var(--borda); background:var(--card2); display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--txt2); }
+  .rede-grau-btn{ font-size:11.5px; padding:3px 10px; border-radius:6px; border:1px solid var(--borda); background:var(--card); color:var(--txt2); cursor:pointer; }
+  .rede-grau-btn.on{ background:var(--ferro); color:#fff; border-color:var(--ferro); font-weight:700; }
+  tbody tr.rede-selecionado{ background:var(--hover); }
 </style>
 <script>(function(){try{var t=localStorage.getItem('ogum-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 </head>
@@ -285,6 +315,7 @@
   <div class="tab" id="tab-busca" onclick="switchTab('busca')">🔍 Busca</div>
   <div class="tab" id="tab-fontes" onclick="switchTab('fontes')">📚 Fontes</div>
   <div class="tab" id="tab-mapa" onclick="switchTab('mapa')">🗺 Atlas</div>
+  <div class="tab" id="tab-rede" onclick="switchTab('rede')">🕸 Rede</div>
 </div>
 <div class="aviso">⚠️ Protótipo de pesquisa — acesso público temporário, somente leitura.</div>
 
@@ -347,10 +378,20 @@
   </div>
   <div class="barra">
     <div class="status" id="status">Carregando…</div>
-    <button class="btn-sm" onclick="exportBuscaCSV()">Exportar resultados (CSV)</button>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="modo-rede-btn" id="btn-modo-rede" onclick="toggleModoRede()">🕸 Modo rede</button>
+      <button class="btn-sm" onclick="exportBuscaCSV()">Exportar (CSV)</button>
+    </div>
   </div>
-  <div class="tabela-box">
+  <div id="rede-sel-bar" style="display:none" class="rede-sel-bar">
+    <span id="rede-sel-count">0 selecionados</span>
+    <button class="rede-sel-bar-btn" onclick="verRedeConjunto()">Ver rede →</button>
+    <button class="rede-sel-bar-btn ghost" onclick="limparSelecao()">Limpar</button>
+  </div>
+  <div id="rede-sugestoes" style="display:none" class="rede-sugestoes"></div>
+  <div class="tabela-box" style="margin-top:8px">
     <table><thead><tr>
+      <th id="th-cb" style="display:none;width:26px;padding:10px 4px 10px 10px"></th>
       <th onclick="setSort('nome')" id="th_nome" style="cursor:pointer">Nome</th><th>Tipo</th><th>Período</th><th class="num" onclick="setSort('pontuacao')" id="th_pontuacao" style="cursor:pointer">Relevância</th><th class="num" onclick="setSort('n_registros')" id="th_n_registros" style="cursor:pointer">Estat.</th><th class="num" onclick="setSort('n_relacoes')" id="th_n_relacoes" style="cursor:pointer">Rel.</th>
     </tr></thead><tbody id="tbody"></tbody></table>
   </div>
@@ -404,6 +445,34 @@
           <div style="font-size:10px;color:var(--txt2);margin-top:4px">Correntes e ventos do Atlântico Sul (séc. XVIII). Clique na rota para detalhes.</div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="rede-section">
+  <div class="rede-multi-cont">
+    <div class="rede-multi-header">
+      <span style="font-size:15px;font-weight:700">Rede combinada</span>
+      <span id="rede-multi-info" style="font-size:12px;opacity:.8"></span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.35)" onclick="exportRedeMultiPNG()">⬇ PNG</button>
+        <button class="btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.35)" onclick="switchTab('busca')">← Busca</button>
+      </div>
+    </div>
+    <div id="rede-multi-chips" class="rede-multi-chips">
+      <span style="font-size:12px;color:var(--txt3)">Selecione atores na aba Busca para montar a rede.</span>
+    </div>
+    <div id="rede-multi" style="height:65vh;background:var(--card2)">
+      <p style="padding:24px;color:var(--txt3);text-align:center">Selecione atores na aba 🔍 Busca (modo rede) e clique "Ver rede →".</p>
+    </div>
+    <div class="rede-multi-tools">
+      <span>Vizinhança:</span>
+      <button class="rede-grau-btn on" id="btn-grau1" onclick="setGrauRede(1)">1º grau</button>
+      <button class="rede-grau-btn" id="btn-grau2" onclick="setGrauRede(2)">2º grau</button>
+      <label style="margin-left:8px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px">
+        <input type="checkbox" id="ck-so-selecionados" onchange="renderRedeMulti()"> só relações entre selecionados
+      </label>
+      <span id="rede-multi-info-bar" style="margin-left:auto;font-size:11.5px;color:var(--txt3)"></span>
     </div>
   </div>
 </div>
@@ -589,12 +658,38 @@ async function buscar(){
   const status=document.getElementById("status"),tbody=document.getElementById("tbody"); status.textContent="Buscando…";
   try{
     const {dados,total}=await getJSON(montarURL(),true); ultimaBusca=dados;
-    if(!dados.length){ tbody.innerHTML='<tr><td colspan="5" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
-    tbody.innerHTML=dados.map(d=>{ const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
-      return '<tr onclick="abrirFicha('+d.actor_id+')"><td>'+esc(d.nome)+tituloParen(d.nome,d.honorifico)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td><td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+'</span>'+(d.institution_type?'<br><span style="font-size:10.5px;color:#9aa6b5">'+esc(d.institution_type)+'</span>':'')+'</td><td>'+esc(per)+'</td><td class="num" style="color:var(--ink-muted);font-size:11px">'+esc(d.pontuacao)+'</td><td class="num">'+esc(d.n_registros)+'</td><td class="num">'+esc(d.n_relacoes)+'</td></tr>';
-    }).join("");
+    const cols=_modoRede?7:6;
+    if(!dados.length){ tbody.innerHTML='<tr><td colspan="'+cols+'" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
+    _renderTbody();
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
   }catch(e){ status.textContent="Erro: "+e.message; }
+}
+function _renderTbody(){
+  const tbody=document.getElementById("tbody"); if(!tbody||!ultimaBusca.length) return;
+  tbody.innerHTML=ultimaBusca.map(d=>{
+    const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
+    if(_modoRede){
+      const sel=_selecao.has(d.actor_id);
+      const nm=esc(d.nome).replace(/'/g,"\\'"); const tp=esc(d.tipo).replace(/'/g,"\\'");
+      return '<tr id="row-ator-'+d.actor_id+'"'+(sel?' class="rede-selecionado"':'')+' onclick="toggleSelecao('+d.actor_id+',\''+nm+'\',\''+tp+'\')" style="cursor:pointer">'
+        +'<td style="width:22px;padding:7px 4px 7px 10px"><input type="checkbox" id="cb-ator-'+d.actor_id+'"'+(sel?' checked':'')+' onclick="event.stopPropagation();toggleSelecao('+d.actor_id+',\''+nm+'\',\''+tp+'\')" style="cursor:pointer"></td>'
+        +'<td>'+esc(d.nome)+tituloParen(d.nome,d.honorifico)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px" title="Nome incompleto">⚠</span>':'')+'</td>'
+        +'<td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+'</span></td>'
+        +'<td>'+per+'</td>'
+        +'<td class="num" style="color:var(--ink-muted);font-size:11px">'+esc(d.pontuacao)+'</td>'
+        +'<td class="num">'+esc(d.n_registros)+'</td>'
+        +'<td class="num">'+esc(d.n_relacoes)+'</td>'
+        +'</tr>';
+    }
+    return '<tr onclick="abrirFicha('+d.actor_id+')">'
+      +'<td>'+esc(d.nome)+tituloParen(d.nome,d.honorifico)+(d.nome_incompleto?' <span style="color:#b06a00;font-size:10.5px;white-space:nowrap" title="Nome incompleto (sem sobrenome): não agregável">⚠ nome incompleto</span>':'')+'</td>'
+      +'<td><span class="badge b-'+esc(d.tipo)+'">'+esc(d.tipo)+'</span>'+(d.institution_type?'<br><span style="font-size:10.5px;color:#9aa6b5">'+esc(d.institution_type)+'</span>':'')+'</td>'
+      +'<td>'+per+'</td>'
+      +'<td class="num" style="color:var(--ink-muted);font-size:11px">'+esc(d.pontuacao)+'</td>'
+      +'<td class="num">'+esc(d.n_registros)+'</td>'
+      +'<td class="num">'+esc(d.n_relacoes)+'</td>'
+      +'</tr>';
+  }).join("");
 }
 function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("subtipo").value=""; const rel=document.getElementById("relacao"); if(rel)rel.value=""; const nob=document.getElementById("nobreza"); if(nob)nob.value=""; ["campo-catsoc","campo-genero","campo-subtipo","campo-nobreza"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";}); document.getElementById("limite").value="300"; buscar(); }
 
@@ -2601,6 +2696,267 @@ function renderFontes(){
 }
 function _toggleCol(id,btn){ var el=document.getElementById(id); if(!el) return; var open=el.style.display!=='none'; el.style.display=open?'none':'block'; var a=btn.querySelector('.arw'); if(a) a.textContent=open?'▸':'▾'; }
 function filtrarFontes(){ renderFontes(); }
+
+/* ===== REDE MULTI-ATOR ===== */
+var _selecao=new Set();
+var _selecaoNomes=new Map();
+var _selecaoTipos=new Map();
+var _modoRede=false;
+var _grauRede=1;
+var _netMulti=null;
+
+function toggleModoRede(){
+  _modoRede=!_modoRede;
+  var btn=document.getElementById('btn-modo-rede');
+  var thCb=document.getElementById('th-cb');
+  if(btn){ btn.classList.toggle('on',_modoRede); btn.textContent=_modoRede?'🕸 Modo rede ON':'🕸 Modo rede'; }
+  if(thCb) thCb.style.display=_modoRede?'':'none';
+  _renderTbody();
+  _atualizarBarraSelecao();
+}
+
+function toggleSelecao(id,nome,tipo){
+  id=Number(id);
+  if(_selecao.has(id)){ _selecao.delete(id); _selecaoNomes.delete(id); _selecaoTipos.delete(id); }
+  else { _selecao.add(id); _selecaoNomes.set(id,nome); _selecaoTipos.set(id,tipo||'Desconhecido'); }
+  var cb=document.getElementById('cb-ator-'+id); if(cb) cb.checked=_selecao.has(id);
+  var row=document.getElementById('row-ator-'+id);
+  if(row){ if(_selecao.has(id)) row.classList.add('rede-selecionado'); else row.classList.remove('rede-selecionado'); }
+  _atualizarBarraSelecao();
+  _carregarSugestoes();
+}
+
+function adicionarDaSugestao(id,nome,tipo){
+  id=Number(id);
+  if(!_selecao.has(id)){ _selecao.add(id); _selecaoNomes.set(id,nome); _selecaoTipos.set(id,tipo||'Desconhecido'); }
+  var cb=document.getElementById('cb-ator-'+id); if(cb) cb.checked=true;
+  var row=document.getElementById('row-ator-'+id); if(row) row.classList.add('rede-selecionado');
+  _atualizarBarraSelecao();
+  _carregarSugestoes();
+}
+
+function removerDaSelecao(id){
+  id=Number(id);
+  _selecao.delete(id); _selecaoNomes.delete(id); _selecaoTipos.delete(id);
+  var cb=document.getElementById('cb-ator-'+id); if(cb) cb.checked=false;
+  var row=document.getElementById('row-ator-'+id); if(row) row.classList.remove('rede-selecionado');
+  _atualizarBarraSelecao();
+  _carregarSugestoes();
+  _renderChipsRede();
+  if(_selecao.size>0) renderRedeMulti();
+  else { var rm=document.getElementById('rede-multi'); if(rm) rm.innerHTML='<p style="padding:24px;color:var(--txt3);text-align:center">Nenhum ator selecionado.</p>'; }
+}
+
+function limparSelecao(){
+  _selecao.clear(); _selecaoNomes.clear(); _selecaoTipos.clear();
+  _renderTbody();
+  _atualizarBarraSelecao();
+  var sug=document.getElementById('rede-sugestoes'); if(sug) sug.style.display='none';
+}
+
+function _atualizarBarraSelecao(){
+  var bar=document.getElementById('rede-sel-bar');
+  var cnt=document.getElementById('rede-sel-count');
+  var tr=document.getElementById('tab-rede');
+  var n=_selecao.size;
+  if(bar) bar.style.display=(n>0&&_modoRede)?'':'none';
+  if(cnt) cnt.textContent=n+(n===1?' selecionado':' selecionados');
+  if(tr) tr.textContent='🕸 Rede'+(n>0?' ('+n+')':'');
+}
+
+async function _carregarSugestoes(){
+  var sug=document.getElementById('rede-sugestoes'); if(!sug) return;
+  if(_selecao.size===0){ sug.style.display='none'; return; }
+  var ids=[..._selecao];
+  var neighbors={};
+  try{
+    for(var i=0;i<ids.length;i++){
+      var id=ids[i];
+      var res=await getJSON('v_rede_agregada?actor_id=eq.'+id+'&select=rel_actor_id,rel_nome,rel_tipo,n_rel&order=n_rel.desc&limit=20');
+      for(var j=0;j<res.dados.length;j++){
+        var r=res.dados[j];
+        if(_selecao.has(r.rel_actor_id)) continue;
+        var nid=r.rel_actor_id;
+        if(!neighbors[nid]) neighbors[nid]={id:nid,nome:r.rel_nome,tipo:r.rel_tipo,total:0,actors:[]};
+        neighbors[nid].total+=r.n_rel;
+        neighbors[nid].actors.push(id);
+      }
+    }
+  }catch(e){ return; }
+  var sorted=Object.values(neighbors).sort(function(a,b){
+    if(b.actors.length!==a.actors.length) return b.actors.length-a.actors.length;
+    return b.total-a.total;
+  }).slice(0,6);
+  if(!sorted.length){ sug.style.display='none'; return; }
+  var isPlural=_selecao.size>1;
+  var title=isPlural?'🕸 Vizinhos em comum (pontes)':'🕸 Mais conectados a '+esc((_selecaoNomes.values().next().value||'').split(' ')[0]);
+  sug.innerHTML='<div class="rede-sug-title">'+title+'</div>'
+    +sorted.map(function(n){
+      var nm=esc(n.nome||'').replace(/'/g,"\\'");
+      var tp=esc(n.tipo||'Desconhecido').replace(/'/g,"\\'");
+      var tipoBadge='<span class="badge b-'+esc(n.tipo||'Desconhecido')+'" style="font-size:10px;padding:1px 7px;margin-right:4px">'+esc(n.tipo||'?')+'</span>';
+      var contBadge=n.actors.length>1?('<span class="rede-sug-badge">conecta '+n.actors.length+'</span>'):('<span class="rede-sug-badge">'+n.total+' rel.</span>');
+      return '<div class="rede-sug-item">'+tipoBadge+'<span class="rede-sug-nome">'+esc(n.nome)+'</span>'+contBadge+'<button class="rede-sug-add" onclick="adicionarDaSugestao('+n.id+',\''+nm+'\',\''+tp+'\')">+</button></div>';
+    }).join('');
+  sug.style.display='';
+}
+
+function _renderChipsRede(){
+  var div=document.getElementById('rede-multi-chips'); if(!div) return;
+  if(_selecao.size===0){
+    div.innerHTML='<span style="font-size:12px;color:var(--txt3)">Selecione atores na aba Busca para montar a rede.</span>';
+    return;
+  }
+  div.innerHTML=[..._selecao].map(function(id){
+    var tipo=_selecaoTipos.get(id)||'';
+    var tipoBadge=tipo?('<span class="badge b-'+esc(tipo)+'" style="font-size:10px;padding:1px 6px;margin-right:4px">'+esc(tipo)+'</span>'):'';
+    return '<span class="rede-chip" id="chip-ator-'+id+'">'+tipoBadge+esc(_selecaoNomes.get(id)||String(id))+'<span class="cx" onclick="removerDaSelecao('+id+')" title="Remover da seleção">×</span></span>';
+  }).join('')+'<button class="btn-sm" onclick="switchTab(\'busca\')" style="font-size:11px;margin-left:4px">+ adicionar</button>';
+}
+
+function verRedeConjunto(){
+  switchTab('rede');
+}
+
+function setGrauRede(g){
+  _grauRede=g;
+  var b1=document.getElementById('btn-grau1'), b2=document.getElementById('btn-grau2');
+  if(b1) b1.classList.toggle('on',g===1);
+  if(b2) b2.classList.toggle('on',g===2);
+  renderRedeMulti();
+}
+
+async function renderRedeMulti(){
+  var cont=document.getElementById('rede-multi');
+  var infoBar=document.getElementById('rede-multi-info-bar');
+  var multiInfo=document.getElementById('rede-multi-info');
+  if(!cont) return;
+  _renderChipsRede();
+  if(_selecao.size===0){
+    cont.innerHTML='<p style="padding:24px;color:var(--txt3);text-align:center">Selecione atores na aba 🔍 Busca (ative o Modo rede) e clique "Ver rede →".</p>';
+    if(infoBar) infoBar.textContent='';
+    if(multiInfo) multiInfo.textContent='';
+    return;
+  }
+  if(typeof vis==='undefined'){
+    cont.innerHTML='<p style="padding:24px;color:var(--ink-muted)">Biblioteca vis-network não carregada.</p>';
+    return;
+  }
+  cont.innerHTML='<p style="padding:24px;color:var(--txt3);text-align:center">Carregando rede…</p>';
+  if(infoBar) infoBar.textContent='Carregando…';
+  var ids=[..._selecao];
+  var soSel=document.getElementById('ck-so-selecionados');
+  var apenasIntra=soSel&&soSel.checked;
+  var lim=_grauRede>=2?100:60;
+  // Busca ego de cada ator selecionado
+  var egoMaps={};
+  try{
+    for(var i=0;i<ids.length;i++){
+      var sid=ids[i];
+      var res=await getJSON('v_rede_agregada?actor_id=eq.'+sid+'&select=rel_actor_id,rel_nome,rel_tipo,n_rel,valor_reis,tipos&order=n_rel.desc&limit='+lim);
+      var m=new Map();
+      for(var j=0;j<res.dados.length;j++){ var r=res.dados[j]; m.set(r.rel_actor_id,r); }
+      egoMaps[sid]=m;
+    }
+  }catch(e){
+    cont.innerHTML='<p style="padding:24px;color:#a32d2d">Erro ao carregar: '+esc(e.message)+'</p>';
+    return;
+  }
+  // Construção dos nós e arestas
+  var nodeMap=new Map();
+  var edgeMap=new Map();
+  var neighborCount={};
+  for(var i=0;i<ids.length;i++){
+    var sid=ids[i];
+    nodeMap.set(sid,{id:sid,label:_selecaoNomes.get(sid)||String(sid),tipo:_selecaoTipos.get(sid)||'Desconhecido',isSelected:true});
+  }
+  for(var i=0;i<ids.length;i++){
+    var sid=ids[i];
+    var ego=egoMaps[sid]||new Map();
+    ego.forEach(function(r,nid){
+      if(apenasIntra&&!_selecao.has(nid)) return;
+      if(!_selecao.has(nid)){
+        neighborCount[nid]=(neighborCount[nid]||0)+1;
+        if(!nodeMap.has(nid)) nodeMap.set(nid,{id:nid,label:r.rel_nome||String(nid),tipo:r.rel_tipo||'Desconhecido',isSelected:false,sharedBy:0});
+      }
+      var ek=[Math.min(sid,nid),Math.max(sid,nid)].join('-');
+      if(!edgeMap.has(ek)) edgeMap.set(ek,{from:sid,to:nid,n_rel:r.n_rel||1});
+      else edgeMap.get(ek).n_rel+=(r.n_rel||1);
+    });
+  }
+  Object.keys(neighborCount).forEach(function(nid){
+    var nd=nodeMap.get(Number(nid)); if(nd) nd.sharedBy=neighborCount[nid];
+  });
+  // Detecta selecionados sem conexão
+  var connectedSel=new Set();
+  edgeMap.forEach(function(e){
+    if(_selecao.has(e.from)) connectedSel.add(e.from);
+    if(_selecao.has(e.to)) connectedSel.add(e.to);
+  });
+  var isolados=ids.filter(function(id){ return !connectedSel.has(id); });
+  // Atualiza chips com aviso de lacuna
+  ids.forEach(function(id){
+    var chip=document.getElementById('chip-ator-'+id);
+    if(!chip) return;
+    if(isolados.indexOf(id)>=0){ chip.classList.add('rede-chip-warn'); chip.title='Sem relações cadastradas com os outros selecionados — possível lacuna'; }
+    else { chip.classList.remove('rede-chip-warn'); chip.title=''; }
+  });
+  // vis nodes
+  var nRelAll=[]; edgeMap.forEach(function(e){ nRelAll.push(e.n_rel); });
+  var nRelMax=Math.max.apply(null,nRelAll.concat(1));
+  var visNodes=[];
+  nodeMap.forEach(function(nd){
+    var color,size,bw;
+    if(nd.isSelected&&isolados.indexOf(nd.id)>=0){ color='#ba7517'; size=22; bw=3; }
+    else if(nd.isSelected){ color=_isDark()?'#46b377':'#1b3a2c'; size=26; bw=3; }
+    else if((nd.sharedBy||0)>=2){ color='#2e7a50'; size=18; bw=2; }
+    else { color=COR[nd.tipo]||'#888'; size=12; bw=1; }
+    var tipLabel=nd.tipo&&nd.tipo!=='Desconhecido'?(' ['+nd.tipo+']'):'';
+    var tooltip=esc(nd.label)+tipLabel+(nd.sharedBy>=2?' · vizinho de '+nd.sharedBy+' selecionados':'')+(nd.isSelected?' · SELECIONADO':'');
+    visNodes.push({id:nd.id,label:nd.label,realId:nd.id,title:tooltip,
+      color:{background:color,border:_isDark()?'rgba(255,255,255,.3)':'#fff'},
+      size:size,borderWidth:bw,
+      font:{size:nd.isSelected?13:11,color:_isDark()?'#eef2ef':'#2a322c',strokeWidth:2,strokeColor:_isDark()?'#0b1014':'#fff'},
+      widthConstraint:{maximum:160}});
+  });
+  var visEdges=[];
+  edgeMap.forEach(function(e){
+    var intra=_selecao.has(e.from)&&_selecao.has(e.to);
+    var w=1+(e.n_rel/nRelMax)*7;
+    visEdges.push({from:e.from,to:e.to,width:intra?w+2:w,
+      color:{color:intra?'#2e7a50':'#9fb0c8',highlight:'#2f5496',hover:'#2f5496'},
+      smooth:false,title:e.n_rel+' relação(ões)'});
+  });
+  if(_netMulti){ try{_netMulti.destroy();}catch(ex){} _netMulti=null; }
+  _netMulti=new vis.Network(cont,{nodes:visNodes,edges:visEdges},{
+    nodes:{shape:'dot',font:{color:_isDark()?'#eef2ef':'#2a322c',strokeWidth:2,strokeColor:_isDark()?'#0b1014':'#fff'}},
+    edges:{smooth:false},
+    physics:{stabilization:{iterations:200},barnesHut:{springLength:180,gravitationalConstant:-6000}},
+    interaction:{hover:true,tooltipDelay:120}
+  });
+  _netMulti.on('click',function(p){
+    if(p.nodes.length){
+      var nid=p.nodes[0];
+      if(_selecao.has(nid)) return;
+      abrirFicha(nid);
+    }
+  });
+  _netMulti.once('stabilizationIterationsDone',function(){ try{_netMulti.fit({animation:{duration:300}});}catch(ex){} });
+  var totN=visNodes.length, totE=visEdges.length;
+  if(infoBar) infoBar.textContent=totN+' nós · '+totE+' arestas'+(isolados.length?' · ⚠ sem conexões: '+isolados.map(function(id){ return esc(_selecaoNomes.get(id)||String(id)); }).join(', '):'');
+  if(multiInfo) multiInfo.textContent=ids.length+' ator'+(ids.length>1?'es':'')+' selecionado'+(ids.length>1?'s':'');
+}
+
+function exportRedeMultiPNG(){
+  var cont=document.getElementById('rede-multi'); if(!cont) return;
+  var canvas=cont.querySelector('canvas');
+  if(!canvas){ alert('A rede ainda não foi renderizada.'); return; }
+  try{
+    var url=canvas.toDataURL('image/png');
+    var a=document.createElement('a'); a.href=url; a.download='rede-mosaico-'+Date.now()+'.png'; a.click();
+  }catch(e){ alert('Erro ao exportar: '+e.message); }
+}
+
 initPainel();
 
 </script>
@@ -2625,16 +2981,19 @@ function switchTab(tab){
   document.getElementById("busca-section").style.display  = tab==="busca"  ? "" : "none";
   var fs=document.getElementById("fontes-section"); if(fs) fs.style.display = tab==="fontes" ? "" : "none";
   document.getElementById("mapa-section").classList.toggle("on", tab==="mapa");
+  var rs=document.getElementById("rede-section"); if(rs) rs.classList.toggle("on", tab==="rede");
   document.getElementById("tab-painel").classList.toggle("on", tab==="painel");
   document.getElementById("tab-busca").classList.toggle("on", tab==="busca");
   var tf=document.getElementById("tab-fontes"); if(tf) tf.classList.toggle("on", tab==="fontes");
   document.getElementById("tab-mapa").classList.toggle("on", tab==="mapa");
+  var tr=document.getElementById("tab-rede"); if(tr) tr.classList.toggle("on", tab==="rede");
   if(tab==="mapa"){
     initMapa();
     setTimeout(()=>{ if(_mapObj) _mapObj.invalidateSize(); },120);
   }
   if(tab==="painel"){ try{ initPainel(); }catch(e){} }
   if(tab==="fontes"){ try{ initFontes(); }catch(e){} }
+  if(tab==="rede"){ try{ renderRedeMulti(); }catch(e){} }
 }
 
 function initMapa(){
