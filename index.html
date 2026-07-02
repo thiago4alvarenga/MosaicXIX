@@ -120,11 +120,18 @@
   .mtools{ display:flex; gap:6px; align-items:center; }
   .modal header .x{ background:transparent; color:#fff; font-size:20px; padding:0 6px; }
   .modal header .btn-sm{ background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.35); }
-  .modal-body{ display:grid; grid-template-columns:1.05fr 1fr; gap:0; overflow:hidden; min-height:0; }
+  .modal-body{ display:grid; grid-template-columns:1.45fr 1fr; gap:0; overflow:hidden; min-height:0; }
   .col-rede{ border-right:1px solid var(--borda); }
   .rede-tools{ padding:6px 10px; border-bottom:1px solid var(--borda); display:flex; gap:8px; align-items:center; font-size:11.5px; color:var(--txt2); }
   #rede{ height:58vh; background:var(--card2); }
-  .ficha{ height:64vh; overflow:auto; padding:14px 16px; }
+  .ficha{ height:58vh; overflow:auto; padding:10px 14px; }
+  .modal-footer{ padding:7px 14px; border-top:1px solid var(--borda); background:var(--card2); display:flex; align-items:center; justify-content:flex-end; gap:4px; flex-shrink:0; }
+  .ficha-tabs{ display:flex; gap:0; border-bottom:2px solid var(--borda); margin:-4px -14px 10px; padding:0 14px; position:sticky; top:-10px; background:var(--card); z-index:5; }
+  .ficha-tab{ padding:7px 13px; font-size:12px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; color:var(--txt2); white-space:nowrap; transition:color .15s; }
+  .ficha-tab:hover{ color:var(--txt); }
+  .ficha-tab.on{ color:var(--verde); border-bottom-color:var(--verde); font-weight:600; }
+  .ficha-panel{ display:none; }
+  .ficha-panel.on{ display:block; }
   .ident{ background:var(--card2); border:1px solid var(--borda); border-radius:10px; padding:10px 12px; margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; }
   .ident div{ font-size:12.4px; } .ident b{ color:var(--txt2); font-weight:600; }
   .sech{ margin:6px 0 8px; color:var(--ferro); font-size:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
@@ -277,7 +284,7 @@
   <div class="tab on" id="tab-painel" onclick="switchTab('painel')">📊 Painel</div>
   <div class="tab" id="tab-busca" onclick="switchTab('busca')">🔍 Busca</div>
   <div class="tab" id="tab-fontes" onclick="switchTab('fontes')">📚 Fontes</div>
-  <div class="tab" id="tab-mapa" onclick="switchTab('mapa')">🗺 Mapa 1872</div>
+  <div class="tab" id="tab-mapa" onclick="switchTab('mapa')">🗺 Atlas</div>
 </div>
 <div class="aviso">⚠️ Protótipo de pesquisa — acesso público temporário, somente leitura.</div>
 
@@ -292,6 +299,8 @@
     <div class="card-chart"><h3>Atores por década <span style="font-weight:400;color:var(--txt3)">(período em que aparecem)</span></h3><div class="chart-wrap"><canvas id="dashPeriodo"></canvas></div><div class="dash-tools" id="chips-dashPeriodo"></div></div>
     <div class="card-chart"><h3>Principais tipos de relação</h3><div class="chart-wrap"><canvas id="dashRelacoes"></canvas></div><div class="dash-tools" id="chips-dashRelacoes"></div></div>
     <div class="card-chart"><h3>Instituições por subtipo</h3><div class="chart-wrap"><canvas id="dashSubtipos"></canvas></div><div class="dash-tools" id="chips-dashSubtipos"></div></div>
+    <div class="card-chart"><h3>Condição jurídica <span style="font-weight:400;color:var(--txt3)">(pessoas c/ status registrado)</span></h3><div class="chart-wrap"><canvas id="dashCondJur"></canvas></div></div>
+    <div class="card-chart"><h3>Gênero <span style="font-weight:400;color:var(--txt3)">(pessoas c/ gênero registrado)</span></h3><div class="chart-wrap"><canvas id="dashGenero"></canvas></div></div>
   </div>
   <div class="painel-guia">
     <h3>Comece por aqui</h3>
@@ -429,6 +438,7 @@
       <span class="badge b-Companhia">Companhia</span><span class="badge b-Instituição">Instituição</span>
       · clique num nó para abrir o dossiê dele
     </div>
+    <div class="modal-footer" id="moedaFooter"></div>
   </div>
 </div>
 
@@ -481,16 +491,27 @@ function fmtSomaCargo(o){
   const sym=F.moeda==="libra"?"£ ":"US$ ";
   return (o.aprox?"≈ ":"")+sym+Math.round(o.conv).toLocaleString("pt-BR");
 }
-function setMoeda(m){ if(F&&F.info){F.moeda=m; renderHead(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes();} }
-function setTaxa(t){ if(F&&F.info){F.taxa=t; renderHead(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes();} }
-function controleMoeda(){
-  const b=(m,lab)=>"<button onclick=\"setMoeda('"+m+"')\" style=\"padding:4px 10px;border-radius:6px;font-size:12px;margin-right:4px;cursor:pointer;border:1px solid rgba(255,255,255,.45);"+(F.moeda===m?"background:var(--card);color:var(--ink2);font-weight:600":"background:rgba(255,255,255,.30);color:#fff")+"\">"+lab+"</button>";
-  let h="<div style='margin-top:8px;font-size:12px;color:#fff'>Valores em: "+b("reis","Réis")+b("libra","£ Libra")+b("dolar","US$ Dólar");
-  if(F.moeda!=="reis"){
-    const t=(v,lab,tip)=>"<button onclick=\"setTaxa('"+v+"')\" title=\""+tip+"\" style=\"padding:3px 9px;border-radius:6px;font-size:11.5px;margin-right:4px;cursor:pointer;border:1px solid rgba(255,255,255,.45);"+(F.taxa===v?"background:#1d9e75;color:#fff;font-weight:600":"background:rgba(255,255,255,.30);color:#fff")+"\">"+lab+"</button>";
-    h+="<span style='margin-left:8px'>Taxa:</span> "+t("c","Corrente","Câmbio do próprio ano (valor de mercado).")+t("l","Longo prazo","Tendência secular do câmbio, que suaviza oscilações de conjuntura (guerras, crises).")+" <span title='Câmbio de Moura Filho (2010), 1795–1914. Anos fora desse intervalo usam a taxa do ano mais próximo, marcada com ≈.' style='cursor:help;opacity:.85'>ⓘ</span>";
+function setMoeda(m){ if(F&&F.info){F.moeda=m; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes();} }
+function setTaxa(t){ if(F&&F.info){F.taxa=t; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes();} }
+function controleMoeda(){ return ""; } // mantido por compatibilidade; renderização agora em renderMoedaFooter()
+function renderMoedaFooter(){
+  const ft=document.getElementById("moedaFooter"); if(!ft||!F.info) return;
+  // Embarcações com cargas apenas físicas (não monetárias) não têm conversão cambial
+  const _temMonet=(F.cargas||[]).some(c=>isMonet(c.produto,c.moeda))||
+                  (F.rels||[]).some(r=>r.valor!=null)||
+                  (F.cotacoes||[]).length>0||
+                  (F.bens||[]).some(b=>b.valor!=null);
+  if(!_temMonet){
+    ft.innerHTML="<span style='font-size:11.5px;color:var(--txt2)'>Quantidades físicas — sem conversão monetária</span>";
+    return;
   }
-  h+="</div>"; return h;
+  const b=(m,lab)=>"<button onclick=\"setMoeda('"+m+"')\" style=\"padding:4px 10px;border-radius:6px;font-size:12px;margin-right:4px;cursor:pointer;border:1px solid var(--borda);"+(F.moeda===m?"background:var(--ferro);color:#fff;font-weight:600":"background:var(--card);color:var(--txt)")+"\">"+lab+"</button>";
+  let h="<span style='font-size:11.5px;color:var(--txt2);margin-right:6px'>Valores em:</span>"+b("reis","Réis")+b("libra","£ Libra")+b("dolar","US$ Dólar");
+  if(F.moeda!=="reis"){
+    const t=(v,lab,tip)=>"<button onclick=\"setTaxa('"+v+"')\" title=\""+tip+"\" style=\"padding:3px 9px;border-radius:6px;font-size:11.5px;margin-right:4px;cursor:pointer;border:1px solid var(--borda);"+(F.taxa===v?"background:#1d9e75;color:#fff;font-weight:600":"background:var(--card);color:var(--txt)")+"\">"+lab+"</button>";
+    h+="<span style='margin-left:8px;font-size:11.5px;color:var(--txt2)'>Taxa:</span> "+t("c","Corrente","Câmbio do próprio ano (valor de mercado).")+t("l","Longo prazo","Tendência secular do câmbio, que suaviza oscilações de conjuntura (guerras, crises).")+" <span title='Câmbio de Moura Filho (2010), 1795–1914. Anos fora desse intervalo usam a taxa do ano mais próximo, marcada com ≈.' style='cursor:help;opacity:.75;font-size:12px'>ⓘ</span>";
+  }
+  ft.innerHTML=h;
 }
 
 let net=null, chart=null, chartBens=null, chartCot=null, chartCotAtiv=null, chartBolsaA=null, chartBolsaS=null, topo=40;
@@ -612,9 +633,22 @@ function fecharFicha(){ fecharFichaMapa(); document.getElementById("overlay").cl
 function renderHead(){
   const i=F.info,mv=F.mv; const tipo=mv.tipo||"Desconhecido";
   const per=mv.ano_min==null?"":(mv.ano_min===mv.ano_max?mv.ano_min:mv.ano_min+"–"+mv.ano_max);
+  // Identidade compacta para o cabeçalho
+  const identParts=[];
+  if(i.institution_type) identParts.push(esc(i.institution_type));
+  else{
+    if(i.legal_status) identParts.push(esc(i.legal_status));
+    if(i.primary_occupation) identParts.push(esc(i.primary_occupation));
+    if(i.nobility && !identParts.includes(esc(i.nobility))) identParts.push(esc(i.nobility));
+  }
+  const identStr=identParts.length?" · <span style='opacity:.8'>"+identParts.join(" · ")+"</span>":"";
+  const _isEmb=mv.tipo==="Embarcação";
+  const _nViagens=_isEmb?parsaViagens(F.cargas).length:0;
   document.getElementById("mhead").innerHTML="<div style='color:#fff'><div style='font-size:17px;font-weight:600'>"+esc(i.nome)+(tituloParen(i.nome,i.honorific).replace("#7a8aa0","#dbe6ff"))+"</div>"+
-    "<div style='font-size:12.5px;opacity:.9;margin-top:3px'><span class=\"badge b-"+esc(tipo)+"\">"+esc(tipo)+"</span> "+
-    (per?(" · "+esc(per)):"")+" · "+esc(mv.origem||"")+" · "+(F.relsTotal||0)+" relações · "+(mv.n_registros||0)+" estatísticas</div>"+(mv.nome_incompleto?"<div style='font-size:11.5px;color:#ffd9a8;margin-top:3px'>⚠ Nome incompleto (sem sobrenome) — não agregável; cada ocorrência é uma pessoa distinta.</div>":"")+controleMoeda()+"</div>";
+    "<div style='font-size:12.5px;opacity:.9;margin-top:3px'><span class=\"badge b-"+esc(tipo)+"\">"+esc(tipo)+"</span>"+identStr+
+    (per?(" · "+esc(per)):"")+(mv.origem?(" · "+esc(mv.origem)):"")+" · "+(F.relsTotal||0)+" relações"+(_isEmb&&_nViagens?" · "+_nViagens+" viagens":"")+" · "+(mv.n_registros||0)+" estatísticas</div>"+
+    (mv.nome_incompleto?"<div style='font-size:11.5px;color:#ffd9a8;margin-top:3px'>⚠ Nome incompleto (sem sobrenome) — não agregável; cada ocorrência é uma pessoa distinta.</div>":"")+"</div>";
+  renderMoedaFooter();
 }
 
 // valor de uma relação convertido para réis (para ponderar arestas)
@@ -712,24 +746,42 @@ function blocoDescricao(){
 }
 function renderFichaTudo(){
   const f=document.getElementById("ficha"); let h="";
-  h+=blocoFoto();
-  h+=blocoIdentidade();
-  h+=blocoDescricao();
+  h+="<div class='ficha-tabs'>";
+  h+="<div class='ficha-tab on' onclick='switchFichaTab(\"relacoes\",this)'>Relações</div>";
+  h+="<div class='ficha-tab' onclick='switchFichaTab(\"dados\",this)'>Dados</div>";
+  h+="<div class='ficha-tab' onclick='switchFichaTab(\"notas\",this)'>Perfil & Notas</div>";
+  h+="</div>";
+  h+="<div class='ficha-panel on' id='fpanel-relacoes'>";
   h+="<div id='eventosWrap'></div>";
   h+="<div class='sech'>Relações</div>"+filtrosFichaHTML();
   h+="<div id='relWrap'></div>";
-  h+="<div id='grafWrap'></div>";
-  h+="<div id='estatWrap'></div>";
-  h+="<div id='cargasWrap'></div>";
-  h+="<div id='bensWrap'></div>";
-  h+="<div id='cotacoesWrap'></div>";
-  h+="<div id='bolsaWrap'></div>";
-  h+="<div id='senadoWrap'></div>";
-  h+="<div id='conselhoWrap'></div>";
-  h+="<div id='camaraWrap'></div>";
+  h+="</div>";
+  h+="<div class='ficha-panel' id='fpanel-dados'>";
+  h+="<div id='viagensWrap'></div>";
+  h+="<div id='grafWrap'></div><div id='estatWrap'></div><div id='cargasWrap'></div>";
+  h+="<div id='bensWrap'></div><div id='cotacoesWrap'></div><div id='bolsaWrap'></div>";
+  h+="<div id='senadoWrap'></div><div id='conselhoWrap'></div><div id='camaraWrap'></div>";
+  h+="</div>";
+  h+="<div class='ficha-panel' id='fpanel-notas'>";
+  h+=blocoFoto()+blocoIdentidade()+blocoDescricao();
   h+="<div id='notasRefWrap'></div>";
+  h+="</div>";
   f.innerHTML=h;
-  renderEventos(); renderRelacoes(); renderCargas(); renderBens(); renderEstatisticas(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderCamara(); renderNotasRef();
+  F._fichaTabRendered={relacoes:true, dados:false, notas:false};
+  renderEventos(); renderRelacoes();
+}
+function switchFichaTab(tab, el){
+  document.querySelectorAll('.ficha-tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.ficha-panel').forEach(p=>p.classList.remove('on'));
+  if(el) el.classList.add('on');
+  const panel=document.getElementById('fpanel-'+tab);
+  if(panel) panel.classList.add('on');
+  if(!F._fichaTabRendered) F._fichaTabRendered={};
+  if(!F._fichaTabRendered[tab]){
+    F._fichaTabRendered[tab]=true;
+    if(tab==='dados'){ renderViagens(); renderCargas(); renderBens(); renderEstatisticas(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderCamara(); }
+    if(tab==='notas'){ renderNotasRef(); }
+  }
 }
 
 /* ----- ESTATÍSTICAS DO ATOR (core_actor_statistics) ----- */
@@ -1436,15 +1488,66 @@ async function carregarTodasRel(){
   }catch(e){ if(btn){ btn.disabled=false; btn.textContent="Erro — tentar de novo"; } }
 }
 
+/* ----- VIAGENS DE EMBARCAÇÃO ----- */
+function parsaViagens(cargas){
+  const viagens=new Map();
+  const _g=(n,k)=>(n.match(new RegExp(k+'=([^;|\\n]+)'))||[])[1]?.trim()||"";
+  for(const c of cargas){
+    const n=c.notes||"";
+    const aba=_g(n,"aba"); if(!aba) continue;
+    const rota=_g(n,"rota"); const k=aba+"|"+rota;
+    if(!viagens.has(k)){
+      const saida=_g(n,"saida_pernambuco")||_g(n,"saida_bahia")||_g(n,"saida_maranhao")||_g(n,"saida_para")||_g(n,"saida_outros")||_g(n,"saida_rio")||_g(n,"saida_angola");
+      const entrada=_g(n,"entrada_lisboa")||_g(n,"entrada_porto")||_g(n,"entrada_outros")||_g(n,"entrada_rio")||_g(n,"entrada_pernambuco");
+      viagens.set(k,{aba,rota,capitao:_g(n,"capitao"),tonelagem:_g(n,"tonelagem"),saida,entrada,fonte:_g(n,"fonte_mapa_carga"),nitens:0});
+    }
+    viagens.get(k).nitens++;
+  }
+  return [...viagens.values()].sort((a,b)=>String(a.aba).localeCompare(String(b.aba)));
+}
+function renderViagens(){
+  const vw=document.getElementById("viagensWrap"); if(!vw) return;
+  if(F.mv?.tipo!=="Embarcação"||!F.cargas.length){vw.innerHTML="";return;}
+  const vgs=parsaViagens(F.cargas); if(!vgs.length){vw.innerHTML="";return;}
+  const temTon=vgs.some(v=>v.tonelagem); const temSaida=vgs.some(v=>v.saida); const temEntrada=vgs.some(v=>v.entrada);
+  let h="<div class='sech'>Viagens <span class='cnt'>"+vgs.length+"</span></div>";
+  h+="<div style='overflow-x:auto;margin-bottom:18px'><table style='width:100%;font-size:11.5px;border-collapse:collapse'><thead><tr>";
+  h+="<th style='padding:4px 7px;background:#2f5496;color:#fff;text-align:left;white-space:nowrap'>Ano/Aba</th>";
+  h+="<th style='padding:4px 7px;background:#2f5496;color:#fff;text-align:left'>Rota</th>";
+  h+="<th style='padding:4px 7px;background:#2f5496;color:#fff;text-align:left'>Capitão</th>";
+  if(temTon) h+="<th style='padding:4px 7px;background:#2f5496;color:#fff;text-align:right'>Ton.</th>";
+  if(temSaida) h+="<th style='padding:4px 7px;background:#2f5496;color:#fff;text-align:left;white-space:nowrap'>Saída</th>";
+  if(temEntrada) h+="<th style='padding:4px 7px;background:#2f5496;color:#fff;text-align:left;white-space:nowrap'>Chegada</th>";
+  h+="<th style='padding:4px 7px;background:#2f5496;color:#fff;text-align:right'>Itens</th>";
+  h+="</tr></thead><tbody>";
+  vgs.forEach((v,j)=>{
+    const bg=j%2?"background:#f7f9fc":"";
+    h+="<tr style='"+bg+"'>";
+    h+="<td style='padding:4px 7px;border-top:1px solid #eef;font-weight:600'>"+esc(v.aba)+"</td>";
+    h+="<td style='padding:4px 7px;border-top:1px solid #eef'>"+esc(v.rota)+"</td>";
+    h+="<td style='padding:4px 7px;border-top:1px solid #eef;color:var(--txt2)'>"+esc(v.capitao)+"</td>";
+    if(temTon) h+="<td style='padding:4px 7px;border-top:1px solid #eef;text-align:right;color:var(--txt2)'>"+esc(v.tonelagem)+"</td>";
+    if(temSaida) h+="<td style='padding:4px 7px;border-top:1px solid #eef;color:var(--txt2)'>"+esc(v.saida)+"</td>";
+    if(temEntrada) h+="<td style='padding:4px 7px;border-top:1px solid #eef;color:var(--txt2)'>"+esc(v.entrada)+"</td>";
+    h+="<td style='padding:4px 7px;border-top:1px solid #eef;text-align:right;color:var(--txt2)'>"+v.nitens+"</td>";
+    h+="</tr>";
+  });
+  h+="</tbody></table></div>";
+  vw.innerHTML=h;
+}
+
 /* ----- ESTATÍSTICAS + GRÁFICO ----- */
 function unidDe(p){ const m=(p||"").match(/\(([^)]*)\)\s*$/); if(!m) return ""; const u=m[1].trim(); return /^(soma|arrob|caix|fech|caras|car\b|barr|sac|quint|paus?|sola|und|uni|unid|varas|pipas|almud|toneis|rolos?|molhos|fardos|achas|taboa|atanad|libras|couros|meios?|arrate|alqueire|feixo)/i.test(u)?u:""; }
 function baseDe(p){ return unidDe(p)?(p||"").replace(/\s*\([^)]*\)\s*$/,"").trim():(p||""); }
 function cargasFiltradas(){ return F.cargas.filter(c=>{ if(F.cargaProds&&F.cargaProds.size&&!F.cargaProds.has(baseDe(c.produto))) return false; if(F.cargaUnid&&unidDe(c.produto)!==F.cargaUnid) return false; if(F.cargaAnoDe&&!(c.ano>=+F.cargaAnoDe)) return false; if(F.cargaAnoAte&&!(c.ano<=+F.cargaAnoAte)) return false; return true; }); }
 // Navegação de dados em 2 níveis: categoria (1º) → grupo (2º). _catGrupo mapeia grupo→categoria; grupos sem mapa viram a própria categoria.
-const _prioGrupos=["Censo 1872","Raças 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Censo 1890","População livre e escrava (1838)","População, casas e fogos por paróquia","Cortiços por paróquia","População, prédios e domicílios (1906 e 1920)","Indústria e manufatura","População e escravidão","Indústria têxtil — total (1915)","Indústria têxtil — algodão (1915)","Indústria têxtil — lã, juta e seda (1915)","Produção industrial (1925–29)","Engenhos por município (1852)","Propriedades rurais por distrito (1950)","Açúcar","Madeiras","Totais"];
+const _prioGrupos=["Censo 1872","Raças 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Censo 1890","População livre e escrava (1838)","População, casas e fogos por paróquia","Cortiços por paróquia","Batizados por paróquia (1835-1840)","Óbitos por paróquia (1835-1840)","Casamentos por paróquia (1835-1840)","Batizados por sexo e condição (1840-1869)","Óbitos por sexo e condição (1840-1849)","Casamentos por paróquia (1840-1869)","População, prédios e domicílios (1906 e 1920)","Indústria e manufatura","População e escravidão","Indústria têxtil — total (1915)","Indústria têxtil — algodão (1915)","Indústria têxtil — lã, juta e seda (1915)","Produção industrial (1925–29)","Engenhos por município (1852)","Propriedades rurais por distrito (1950)","Açúcar","Madeiras","Totais"];
 const _catGrupo={
   'Censo 1872':'Censo 1872','Raças 1872':'Censo 1872','Faixa etária 1872':'Censo 1872','Estado civil 1872':'Censo 1872','Religião 1872':'Censo 1872','Instrução 1872':'Censo 1872','Instrução escolar 1872':'Censo 1872','Presença 1872':'Censo 1872','Defeitos físicos 1872':'Censo 1872','Origem brasileiros 1872':'Censo 1872','Origem estrangeiros 1872':'Censo 1872','Profissões 1872':'Censo 1872',
-  'População livre e escrava (1838)':'Lobo (1978)','População, casas e fogos por paróquia':'Lobo (1978)','Cortiços por paróquia':'Lobo (1978)','População, prédios e domicílios (1906 e 1920)':'Lobo (1978)',
+  'População livre e escrava (1838)':'Lobo (1978)','População, casas e fogos por paróquia':'Lobo (1978)','Cortiços por paróquia':'Lobo (1978)',
+  'Batizados por paróquia (1835-1840)':'Lobo (1978)','Óbitos por paróquia (1835-1840)':'Lobo (1978)','Casamentos por paróquia (1835-1840)':'Lobo (1978)',
+  'Batizados por sexo e condição (1840-1869)':'Lobo (1978)','Óbitos por sexo e condição (1840-1849)':'Lobo (1978)','Casamentos por paróquia (1840-1869)':'Lobo (1978)',
+  'População, prédios e domicílios (1906 e 1920)':'Lobo (1978)',
   'Indústria e manufatura':'Negócios da Escravidão','População e escravidão':'Negócios da Escravidão',
   'Indústria têxtil — total (1915)':'Indústria têxtil (1915)','Indústria têxtil — algodão (1915)':'Indústria têxtil (1915)','Indústria têxtil — lã, juta e seda (1915)':'Indústria têxtil (1915)',
   'Produção industrial (1925–29)':'Produção industrial',
@@ -1511,6 +1614,13 @@ function barraFiltroCargas(){
         h+="</div>";
       }
     }
+  } else if(F._agg&&F._agg.usarGrupo&&F._agg.grupos&&F.mv&&F.mv.tipo==="Embarcação"){
+    const _emOrd=["Açúcar","Coloniais","Madeiras","Couros","Outros","Totais"];
+    const grupos=[...new Set(F._agg.grupos)].sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));
+    const ga=F._activeAutoGrp||grupos[0];
+    h+="<div style='display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap'>";
+    for(const g of grupos){const act=g===ga;h+="<button onclick='_selAutoGrp(\""+esc1(g)+"\")' style='padding:4px 14px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid "+(act?"#2f5496":"#d9e0ea")+";background:"+(act?"#2f5496":"#eef2f7")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"500")+"'>"+esc(g)+"</button>";}
+    h+="</div>";
   } else {
     const bases=[...new Set(F.cargas.map(c=>baseDe(c.produto)))].sort();
     const chip=(act,onc,lab)=>"<button onclick=\""+onc+"\" style='padding:3px 8px;margin:0 4px 4px 0;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid #d9e0ea;background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+"'>"+lab+"</button>";
@@ -1524,9 +1634,10 @@ function barraFiltroCargas(){
 }
 
 function toggleProd(b){ if(F.cargaProds.has(b))F.cargaProds.delete(b); else F.cargaProds.add(b); renderCargas(); }
+function _selAutoGrp(g){F._activeAutoGrp=g;F._activeGrupo=g;F.cargaProds=new Set();renderCargas();}
 function selecionarGrupo(g){const A=F._agg||{};F.cargaProds=new Set((A.ks||[]).filter(k=>(A.porProd||{})[k]?.grupo===g).map(k=>baseDe(k)));F._activeGrupo=g;F._catAtiva=_catDe(g);F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null;F._loboMed=null;F._loboAno=null;renderCargas();}function todosProd(){F._activeGrupo=null;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null;F._loboMed=null;F._loboAno=null; F.cargaProds.clear(); renderCargas(); }
 function setUnid(u){ F.cargaUnid=u; renderCargas(); }
-function limparCargas(){ F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; renderCargas(); }
+function limparCargas(){ F.cargaProds.clear(); F.cargaUnid=""; F.cargaAnoDe=""; F.cargaAnoAte=""; F.cargaSel=null; F._activeAutoGrp=null; F._activeGrupo=null; renderCargas(); }
 function grpDe(n){ const m=(n||"").match(/grupo=([^|]+)/); return m?m[1].trim():"Outros"; }
 function flagDe(n){ n=(n||"").toLowerCase(); if(n.indexOf("estimado")>=0) return "estimado"; if(n.indexOf("convertido")>=0||n.indexOf("não documental")>=0||n.indexOf("nao documental")>=0) return "convertido"; return ""; }
 function renderCenso1872(){
@@ -1806,7 +1917,13 @@ const _grpLobo={
   'Indústria têxtil — lã, juta e seda (1915)':{dim:'Estado',medidas:[['Nº de fábricas','#2f5496'],['Capital (réis)','#1d9e75'],['Empréstimos (réis)','#e05c2a'],['Reservas (réis)','#8e44ad'],['Valor da produção (réis)','#c0392b'],['Operários','#16a085'],['Teares','#ba7517'],['Fusos','#7f77dd'],['Força (cavalos)','#41526b']],nota:'Fábricas de lã, juta e seda, 1915. Valores em réis.'},
   'Produção industrial (1925–29)':{dim:'Estado',medidas:[['Valor da produção (contos de réis)','#1d9e75']],nota:'Indústrias sujeitas ao imposto de consumo. Valor em contos de réis.'},
   'Engenhos por município (1852)':{dim:'Município',medidas:[['Engenhos','#1d9e75']]},
-  'Propriedades rurais por distrito (1950)':{dim:'Distrito',medidas:[['Propriedades rurais','#16a085']]}
+  'Propriedades rurais por distrito (1950)':{dim:'Distrito',medidas:[['Propriedades rurais','#16a085']]},
+  'Batizados por paróquia (1835-1840)':{medidas:[['Batizados — Livres e Libertos','#2f5496'],['Batizados — Escravos','#c0392b']]},
+  'Óbitos por paróquia (1835-1840)':{medidas:[['Óbitos — Livres e Libertos','#2f5496'],['Óbitos — Escravos','#c0392b']]},
+  'Casamentos por paróquia (1835-1840)':{medidas:[['Casamentos — Livres e Libertos','#1d9e75'],['Casamentos — Escravos','#c0392b']]},
+  'Batizados por sexo e condição (1840-1869)':{medidas:[['Batizados — Homens Livres','#2f5496'],['Batizados — Mulheres Livres','#7f77dd'],['Batizados — Escravos','#c0392b'],['Batizados — Escravas','#e05c2a']]},
+  'Óbitos por sexo e condição (1840-1849)':{medidas:[['Óbitos — Homens Livres','#2f5496'],['Óbitos — Mulheres Livres','#7f77dd'],['Óbitos — Escravos','#c0392b'],['Óbitos — Escravas','#e05c2a']]},
+  'Casamentos por paróquia (1840-1869)':{medidas:[['Casamentos','#1d9e75']]}
 };
 function renderLoboTabela(cfg){
   for(const c of chartsD){try{c.destroy();}catch(e){}}chartsD=[];
@@ -1985,8 +2102,13 @@ function _autoGrpEmb(nome){
   if(p.startsWith("total")) return "Totais";
   if(p.includes("acucar")||p.includes("assucar")||p.includes("melaco")||p.includes("rapadura")) return "Açúcar";
   if(p.startsWith("pau ")||p.startsWith("paus")||p.startsWith("taboado")||
-     p.startsWith("aduela")||p.startsWith("varas")||p.includes("madeira")||p.includes("construcao")||
+     p.startsWith("aduela")||p.includes("madeira")||p.includes("construcao")||
      p.startsWith("br. de")) return "Madeiras";
+  if(p.includes("couro")||p.startsWith("sola")||p.startsWith("atanado")||p.includes("vaqueta")||p.includes("pelame")||p.includes("cabelo")||p.includes("coro ")||p.startsWith("coros")) return "Couros";
+  if(p.includes("algodao")||p.includes("tabaco")||p.startsWith("arroz")||p.includes("goma")||
+     p.includes("pacaconha")||p.includes("aguardente")||p.includes("agua ardente")||p.includes("agua-ardente")||
+     p.startsWith("cera")||p.includes("cacau")||p.includes("cafe")||p.includes("mandioca")||p.includes("anil")) return "Coloniais";
+  if(p.startsWith("varas")) return "Madeiras";
   return "Outros";
 }
 function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw) return;
@@ -1996,9 +2118,10 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   for(const c of cargasFiltradas()){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:"",ultimoAno:null,ultimoVal:null}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(c.ano!=null&&(o.ultimoAno==null||c.ano>=o.ultimoAno)){o.ultimoAno=c.ano;o.ultimoVal=Number(c.valor);} if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; let usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
-  if(!usarGrupo&&F.mv&&F.mv.tipo==="Embarcação"){for(const k in porProd)porProd[k].grupo=_autoGrpEmb(baseDe(k));grupos.length=0;[...new Set(Object.keys(porProd).map(k=>porProd[k].grupo))].forEach(g=>grupos.push(g));const _emOrd=["Açúcar","Madeiras","Outros","Totais"];grupos.sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));usarGrupo=!(grupos.length===1&&grupos[0]==="Outros");}
+  const _isEmbAutoGrp=!usarGrupo&&F.mv&&F.mv.tipo==="Embarcação";
+  if(_isEmbAutoGrp){for(const k in porProd)porProd[k].grupo=_autoGrpEmb(baseDe(k));grupos.length=0;[...new Set(Object.keys(porProd).map(k=>porProd[k].grupo))].forEach(g=>grupos.push(g));const _emOrd=["Açúcar","Coloniais","Madeiras","Couros","Outros","Totais"];grupos.sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));usarGrupo=!(grupos.length===1&&grupos[0]==="Outros");}
   F._agg={porProd,ks,grupos,usarGrupo};
-  if(usarGrupo&&!F._activeGrupo){const _prio=["Censo 1872","Raças 1872","Censo 1890"];const _firstG=_prio.find(g=>grupos.includes(g))||grupos.find(g=>g!=="Outros")||grupos[0];if(_firstG){F._activeGrupo=_firstG;F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo===_firstG).map(k=>baseDe(k)));}}
+  if(usarGrupo&&!F._activeGrupo){const _prio=["Censo 1872","Raças 1872","Censo 1890"];const _firstG=_prio.find(g=>grupos.includes(g))||grupos.find(g=>g!=="Outros")||grupos[0];if(_firstG){F._activeGrupo=_firstG;if(_isEmbAutoGrp){F._activeAutoGrp=_firstG;F.cargaProds=new Set();}else{F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo===_firstG).map(k=>baseDe(k)));}}}
   if(!usarGrupo&&!F._initialized){const _fBases=[...new Set(ks.map(k=>baseDe(k)))];const _fDef=_fBases.find(b=>/total acumulado/i.test(b))||_fBases.find(b=>/acumul/i.test(b));if(_fDef)F.cargaProds.add(_fDef);}F._initialized=true;
   const ehInventario=!!(F.bens&&F.bens.length);
   let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length && !ehInventario) h+=barraFiltroCargas();
@@ -2039,6 +2162,20 @@ function autoModo(){
 }
 function renderTabelaSerie(){
   const ct=document.getElementById("cargaTabela"); if(!ct) return;
+  /* — Embarcação modo auto-grupo: tabela de produtos do grupo com somas — */
+  if(F._activeAutoGrp&&F.mv&&F.mv.tipo==="Embarcação"){
+    const grp=F._activeAutoGrp;
+    const A=F._agg||{porProd:{},ks:[]};
+    const ksG=(A.ks||[]).filter(k=>(A.porProd||{})[k]?.grupo===grp);
+    let h="";
+    if(ksG.length){
+      h+="<table style='width:100%;font-size:12.2px;border-collapse:collapse;margin-top:10px'>";
+      h+="<thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Produto / métrica</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Anos</th><th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:4px'>Soma</th></tr></thead><tbody>";
+      for(const k of ksG){const o=A.porProd[k];const ys=[...o.anos].sort();const faixa=ys.length?(ys[0]+(ys.length>1?"–"+ys[ys.length-1]:"")):"";h+="<tr><td style='padding:4px;border-top:1px solid #f0f3f7'>"+esc(k)+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+esc(faixa)+"</td><td style='padding:4px;text-align:right;border-top:1px solid #f0f3f7'>"+fmtSomaCargo(o)+"</td></tr>";}
+      h+="</tbody></table>";
+    }
+    ct.innerHTML=h; return;
+  }
   const modo=autoModo();
   let h="";
   if(modo==="reltot"){
@@ -2093,6 +2230,29 @@ function renderGrafico(){
   if(chart){chart.destroy();chart=null;}
   const simb=F.moeda==="reis"?"réis":(F.moeda==="libra"?"£":"US$");
   const CORES=["#2f5496","#1d9e75","#e05c2a","#7f77dd","#ba7517","#c0392b","#16a085","#8e44ad"];
+
+  /* — Embarcação modo auto-grupo: agrega todos produtos do grupo por viagem/ano → 1 série limpa — */
+  if(F._activeAutoGrp&&F.mv&&F.mv.tipo==="Embarcação"){
+    const grp=F._activeAutoGrp;
+    // conta viagens distintas por ano neste grupo
+    const viagensPorAno={}, itensPorAno={};
+    for(const c of F.cargas){
+      if(c.ano==null) continue;
+      if(_autoGrpEmb(baseDe(c.produto||""))!==grp) continue;
+      itensPorAno[c.ano]=(itensPorAno[c.ano]||0)+1;
+      const aba=(c.notes||"").match(/aba=([^;|]+)/)?.[1]?.trim()||String(c.ano);
+      const vk=c.ano+"|"+aba;
+      if(!viagensPorAno[c.ano]) viagensPorAno[c.ano]=new Set();
+      viagensPorAno[c.ano].add(vk);
+    }
+    const anos=Object.keys(itensPorAno).map(Number).sort((a,b)=>a-b);
+    if(anos.length&&typeof Chart!=="undefined") chart=new Chart(cv,{type:"bar",
+      data:{labels:anos,datasets:[{label:"Itens de carga ("+grp+")",data:anos.map(y=>itensPorAno[y]||0),backgroundColor:"#2f5496"}]},
+      options:{responsive:true,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const y=Number(ctx.label);const nv=(viagensPorAno[y]||new Set()).size;const vs=nv?" ("+nv+" viagem"+(nv>1?"ns":"")+")":" ";return "Itens: "+ctx.parsed.y+vs;}}}},
+        scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10},callback:v=>v.toLocaleString("pt-BR")},title:{display:true,text:"N° de itens registrados",font:{size:10}}}}}});
+    return;
+  }
 
   /* — Produtos específicos selecionados → multi-série, eixo duplo automático — */
   if(F.cargaProds&&F.cargaProds.size>0){
@@ -2256,14 +2416,16 @@ function _fmt(n){ return Number(n||0).toLocaleString('pt-BR'); }
 async function loadPainelData(){
   if(_painelData) return _painelData;
   const q=async(p)=>{ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn('Painel:',p,e); return []; } };
-  const [tot,tipos,per,rel,sub]=await Promise.all([
+  const [tot,tipos,per,rel,sub,cond,gen]=await Promise.all([
     q("v_dash_totais?select=*"),
     q("v_contagem_tipos?select=tipo,n"),
     q("v_dash_periodo?select=decada,n"),
     q("v_relacao_tipos?select=relation_name,n_atores&order=n_atores.desc&limit=12"),
-    q("v_subtipos_instituicao?select=subtipo,n&order=n.desc&limit=12")
+    q("v_subtipos_instituicao?select=subtipo,n&order=n.desc&limit=12"),
+    q("v_dash_legal_status?select=*"),
+    q("v_dash_genero?select=*")
   ]);
-  const obj={ tot:tot[0]||{}, tipos, per, rel, sub };
+  const obj={ tot:tot[0]||{}, tipos, per, rel, sub, cond, gen };
   if(tipos.length||tot.length) _painelData=obj;
   return obj;
 }
@@ -2332,6 +2494,20 @@ async function initPainel(){
     _initBar('dashPeriodo', d.per.map(function(x){return {label:x.decada,value:x.n};}), '#2e9e63','#1f7d4a','atores', true);
     _initBar('dashRelacoes', d.rel.map(function(x){return {label:x.relation_name,value:x.n_atores};}), '#c9832a','#9a5c15','atores', false);
     _initBar('dashSubtipos', d.sub.map(function(x){return {label:x.subtipo,value:x.n};}), '#8b7bd8','#6e5db8','instituições', false);
+    var CORC={'Livre':'#2f5496','Escravizado':'#c0392b','Liberto/a':'#1d9e75','Menor':'#8e44ad'};
+    var condData=d.cond||[];
+    if(condData.length&&document.getElementById('dashCondJur')){
+      dashCharts.dashCondJur=new Chart(document.getElementById('dashCondJur'),{type:'doughnut',
+        data:{labels:condData.map(function(x){return x.status;}),datasets:[{data:condData.map(function(x){return x.n;}),backgroundColor:condData.map(function(x){return CORC[x.status]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',animation:{animateScale:true},plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
+    }
+    var CORG={'Masculino':'#2f5496','Feminino':'#c9832a'};
+    var genData=d.gen||[];
+    if(genData.length&&document.getElementById('dashGenero')){
+      dashCharts.dashGenero=new Chart(document.getElementById('dashGenero'),{type:'doughnut',
+        data:{labels:genData.map(function(x){return x.genero;}),datasets:[{data:genData.map(function(x){return x.n;}),backgroundColor:genData.map(function(x){return CORG[x.genero]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',animation:{animateScale:true},plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
+    }
   }catch(e){ console.error('initPainel',e); }
 }
 function irParaBusca(p){
