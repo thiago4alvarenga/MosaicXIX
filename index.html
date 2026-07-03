@@ -470,7 +470,10 @@
       <button class="rede-grau-btn on" id="btn-grau1" onclick="setGrauRede(1)">1º grau</button>
       <button class="rede-grau-btn" id="btn-grau2" onclick="setGrauRede(2)">2º grau</button>
       <label style="margin-left:8px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px">
-        <input type="checkbox" id="ck-so-selecionados" onchange="renderRedeMulti()"> só relações entre selecionados
+        <input type="checkbox" id="ck-so-selecionados" onchange="renderRedeMulti()"> só entre selecionados
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px">
+        <input type="checkbox" id="ck-label-arestas" onchange="renderRedeMulti()"> rótulos das arestas
       </label>
       <span id="rede-multi-info-bar" style="margin-left:auto;font-size:11.5px;color:var(--txt3)"></span>
     </div>
@@ -2880,8 +2883,12 @@ async function renderRedeMulti(){
         if(!nodeMap.has(nid)) nodeMap.set(nid,{id:nid,label:r.rel_nome||String(nid),tipo:r.rel_tipo||'Desconhecido',isSelected:false,sharedBy:0});
       }
       var ek=[Math.min(sid,nid),Math.max(sid,nid)].join('-');
-      if(!edgeMap.has(ek)) edgeMap.set(ek,{from:sid,to:nid,n_rel:r.n_rel||1});
-      else edgeMap.get(ek).n_rel+=(r.n_rel||1);
+      if(!edgeMap.has(ek)){
+        edgeMap.set(ek,{from:sid,to:nid,n_rel:r.n_rel||1,tipos:Object.assign({},r.tipos||{})});
+      } else {
+        var ex=edgeMap.get(ek); ex.n_rel+=(r.n_rel||1);
+        var t=r.tipos||{}; Object.keys(t).forEach(function(k){ ex.tipos[k]=(ex.tipos[k]||0)+t[k]; });
+      }
     });
   }
   Object.keys(neighborCount).forEach(function(nid){
@@ -2919,13 +2926,21 @@ async function renderRedeMulti(){
       font:{size:nd.isSelected?13:11,color:_isDark()?'#eef2ef':'#2a322c',strokeWidth:2,strokeColor:_isDark()?'#0b1014':'#fff'},
       widthConstraint:{maximum:160}});
   });
+  var showLabels=document.getElementById('ck-label-arestas')&&document.getElementById('ck-label-arestas').checked;
   var visEdges=[];
   edgeMap.forEach(function(e){
     var intra=_selecao.has(e.from)&&_selecao.has(e.to);
     var w=1+(e.n_rel/nRelMax)*7;
+    // Rótulo: tipos de relação ordenados por frequência
+    var tiposKeys=e.tipos?Object.keys(e.tipos).sort(function(a,b){return (e.tipos[b]||0)-(e.tipos[a]||0);}):[];
+    var tipsTxt=tiposKeys.slice(0,2).join('\n')+(tiposKeys.length>2?'\n…':'');
+    var tooltip=tipsTxt+(e.n_rel>1?' ('+e.n_rel+'×)':'')||e.n_rel+' relação(ões)';
     visEdges.push({from:e.from,to:e.to,width:intra?w+2:w,
       color:{color:intra?'#2e7a50':'#9fb0c8',highlight:'#2f5496',hover:'#2f5496'},
-      smooth:false,title:e.n_rel+' relação(ões)'});
+      smooth:false,title:tooltip,
+      label:showLabels&&tipsTxt?tipsTxt:undefined,
+      font:showLabels?{size:10,color:_isDark()?'#c8d8c8':'#5f5e5a',strokeWidth:2,strokeColor:_isDark()?'#0f1417':'#fff',align:'middle'}:undefined
+    });
   });
   if(_netMulti){ try{_netMulti.destroy();}catch(ex){} _netMulti=null; }
   _netMulti=new vis.Network(cont,{nodes:visNodes,edges:visEdges},{
