@@ -330,8 +330,22 @@
     <div class="card-chart"><h3>Atores por década <span style="font-weight:400;color:var(--txt3)">(período em que aparecem)</span></h3><div class="chart-wrap"><canvas id="dashPeriodo"></canvas></div><div class="dash-tools" id="chips-dashPeriodo"></div></div>
     <div class="card-chart"><h3>Principais tipos de relação</h3><div class="chart-wrap"><canvas id="dashRelacoes"></canvas></div><div class="dash-tools" id="chips-dashRelacoes"></div></div>
     <div class="card-chart"><h3>Instituições por subtipo</h3><div class="chart-wrap"><canvas id="dashSubtipos"></canvas></div><div class="dash-tools" id="chips-dashSubtipos"></div></div>
-    <div class="card-chart"><h3>Condição jurídica <span style="font-weight:400;color:var(--txt3)">(pessoas c/ status registrado)</span></h3><div class="chart-wrap"><canvas id="dashCondJur"></canvas></div></div>
+    <div class="card-chart"><h3>Condição jurídica — terminal <span style="font-weight:400;color:var(--txt3)">(última condição conhecida)</span></h3><div class="chart-wrap"><canvas id="dashCondJur"></canvas></div></div>
+    <div class="card-chart"><h3>Condições experimentadas <span style="font-weight:400;color:var(--txt3)">(cada pessoa conta em toda condição que viveu)</span></h3><div class="chart-wrap"><canvas id="dashCondExp"></canvas></div></div>
     <div class="card-chart"><h3>Gênero <span style="font-weight:400;color:var(--txt3)">(pessoas c/ gênero registrado)</span></h3><div class="chart-wrap"><canvas id="dashGenero"></canvas></div></div>
+  </div>
+  <div class="card-chart" style="margin-top:14px">
+    <h3>Alforrias ao longo do tempo <span style="font-weight:400;color:var(--txt3)">(coorte MPB — arraste o slider para ver como estava a coorte no ano)</span></h3>
+    <div style="display:flex;align-items:center;gap:12px;margin:8px 0 14px">
+      <span style="font-size:12px;color:var(--txt3)">ano</span>
+      <input type="range" id="cohorteAno" style="flex:1" oninput="atualizaCohorte(+this.value)">
+      <span id="cohorteAnoLbl" style="font-weight:600;min-width:42px;text-align:right">—</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px">
+      <div class="chart-wrap"><canvas id="dashPorAno"></canvas></div>
+      <div class="chart-wrap"><canvas id="dashCohorteDonut"></canvas></div>
+    </div>
+    <div style="font-size:12px;color:var(--txt3);margin-top:10px" id="cohorteResumo"></div>
   </div>
   <div class="painel-guia">
     <h3>Comece por aqui</h3>
@@ -1779,8 +1793,8 @@ function renderCenso1872(){
     wrap+=mkC('dn_m',"Mulheres &mdash; "+fmt(mTot)+" hab.");
     wrap+="</div>";
     td.innerHTML=wrap+"</div>";
-    chartsD.push(new Chart(document.getElementById('dn_h'),{type:'doughnut',data:{labels:['Livres','Escravos'],datasets:[{data:[lhTot,ehTot],backgroundColor:['#1d9e75','#e05c2a'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,hTot)}}},cutout:'55%'}}));
-    chartsD.push(new Chart(document.getElementById('dn_m'),{type:'doughnut',data:{labels:['Livres','Escravas'],datasets:[{data:[lmTot,emTot],backgroundColor:['#1d9e75','#e05c2a'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,mTot)}}},cutout:'55%'}}));
+    chartsD.push(new Chart(document.getElementById('dn_h'),{type:'doughnut',data:{labels:['Livres','Escravos'],datasets:[{data:[lhTot,ehTot],backgroundColor:['#2f5496','#8b1e1e'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,hTot)}}},cutout:'55%'}}));
+    chartsD.push(new Chart(document.getElementById('dn_m'),{type:'doughnut',data:{labels:['Livres','Escravas'],datasets:[{data:[lmTot,emTot],backgroundColor:['#2f5496','#8b1e1e'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,mTot)}}},cutout:'55%'}}));
   } else {
     const isH=(sex==='Homens');
     const tot=isH?hTot:mTot;
@@ -1798,7 +1812,7 @@ function renderCenso1872(){
     wrap+=mkC('dn_enac',lblE+" &mdash; nac.");
     wrap+="</div>";
     td.innerHTML=wrap+"</div>";
-    chartsD.push(new Chart(document.getElementById('dn_cond'),{type:'doughnut',data:{labels:[lblL,lblE],datasets:[{data:[lTot,eTot],backgroundColor:['#1d9e75','#e05c2a'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,tot)}}},cutout:'55%'}}));
+    chartsD.push(new Chart(document.getElementById('dn_cond'),{type:'doughnut',data:{labels:[lblL,lblE],datasets:[{data:[lTot,eTot],backgroundColor:['#2f5496','#8b1e1e'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,tot)}}},cutout:'55%'}}));
     chartsD.push(new Chart(document.getElementById('dn_lnac'),{type:'doughnut',data:{labels:['Brasileira','Estrangeira'],datasets:[{data:[lBras,lEstr],backgroundColor:['#2f5496','#7f77dd'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,lTot)}}},cutout:'55%'}}));
     chartsD.push(new Chart(document.getElementById('dn_enac'),{type:'doughnut',data:{labels:['Brasileira','Africana'],datasets:[{data:[eBras,eAfr],backgroundColor:['#ba7517','#c0392b'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)+pct(c.parsed,eTot)}}},cutout:'55%'}}));
   }
@@ -2514,16 +2528,18 @@ function _fmt(n){ return Number(n||0).toLocaleString('pt-BR'); }
 async function loadPainelData(){
   if(_painelData) return _painelData;
   const q=async(p)=>{ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn('Painel:',p,e); return []; } };
-  const [tot,tipos,per,rel,sub,cond,gen]=await Promise.all([
+  const [tot,tipos,per,rel,sub,cond,condExp,gen,porAno]=await Promise.all([
     q("v_dash_totais?select=*"),
     q("v_contagem_tipos?select=tipo,n"),
     q("v_dash_periodo?select=decada,n"),
     q("v_relacao_tipos?select=relation_name,n_atores&order=n_atores.desc&limit=12"),
     q("v_subtipos_instituicao?select=subtipo,n&order=n.desc&limit=12"),
     q("v_dash_legal_status?select=*"),
-    q("v_dash_genero?select=*")
+    q("v_dash_status_experienced?select=*"),
+    q("v_dash_genero?select=*"),
+    q("v_dash_mpb_por_ano?select=*&order=ano")
   ]);
-  const obj={ tot:tot[0]||{}, tipos, per, rel, sub, cond, gen };
+  const obj={ tot:tot[0]||{}, tipos, per, rel, sub, cond, condExp, gen, porAno };
   if(tipos.length||tot.length) _painelData=obj;
   return obj;
 }
@@ -2592,11 +2608,17 @@ async function initPainel(){
     _initBar('dashPeriodo', d.per.map(function(x){return {label:x.decada,value:x.n};}), '#2e9e63','#1f7d4a','atores', true);
     _initBar('dashRelacoes', d.rel.map(function(x){return {label:x.relation_name,value:x.n_atores};}), '#c9832a','#9a5c15','atores', false);
     _initBar('dashSubtipos', d.sub.map(function(x){return {label:x.subtipo,value:x.n};}), '#8b7bd8','#6e5db8','instituições', false);
-    var CORC={'Livre':'#2f5496','Escravizado':'#c0392b','Liberto/a':'#1d9e75','Menor':'#8e44ad'};
+    var CORC={'Livre':'#2f5496','Liberto(a)':'#e08a2b','Liberto/a':'#e08a2b','Escravizado(a)':'#8b1e1e','Escravizado':'#8b1e1e','Menor':'#8e44ad'};
     var condData=d.cond||[];
     if(condData.length&&document.getElementById('dashCondJur')){
       dashCharts.dashCondJur=new Chart(document.getElementById('dashCondJur'),{type:'doughnut',
         data:{labels:condData.map(function(x){return x.status;}),datasets:[{data:condData.map(function(x){return x.n;}),backgroundColor:condData.map(function(x){return CORC[x.status]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',animation:{animateScale:true},plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
+    }
+    var condExpData=d.condExp||[];
+    if(condExpData.length&&document.getElementById('dashCondExp')){
+      dashCharts.dashCondExp=new Chart(document.getElementById('dashCondExp'),{type:'doughnut',
+        data:{labels:condExpData.map(function(x){return x.status;}),datasets:[{data:condExpData.map(function(x){return x.n;}),backgroundColor:condExpData.map(function(x){return CORC[x.status]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
         options:{responsive:true,maintainAspectRatio:false,cutout:'62%',animation:{animateScale:true},plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
     }
     var CORG={'Masculino':'#2f5496','Feminino':'#c9832a'};
@@ -2605,6 +2627,35 @@ async function initPainel(){
       dashCharts.dashGenero=new Chart(document.getElementById('dashGenero'),{type:'doughnut',
         data:{labels:genData.map(function(x){return x.genero;}),datasets:[{data:genData.map(function(x){return x.n;}),backgroundColor:genData.map(function(x){return CORG[x.genero]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
         options:{responsive:true,maintainAspectRatio:false,cutout:'62%',animation:{animateScale:true},plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
+    }
+    var porAno=(d.porAno||[]).slice().sort(function(a,b){return a.ano-b.ano;});
+    if(porAno.length&&document.getElementById('dashPorAno')){
+      if(dashCharts.dashPorAno){try{dashCharts.dashPorAno.destroy();}catch(e){}}
+      dashCharts.dashPorAno=new Chart(document.getElementById('dashPorAno'),{type:'bar',
+        data:{labels:porAno.map(function(x){return x.ano;}),datasets:[
+          {label:'Imediatas (liberto)',data:porAno.map(function(x){return x.imediatas;}),backgroundColor:'#e08a2b',stack:'s'},
+          {label:'Diferidas (ainda escravizado)',data:porAno.map(function(x){return x.diferidas;}),backgroundColor:'#8b1e1e',stack:'s'}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+_fmt(c.parsed.y);}}}},scales:{x:{stacked:true,ticks:{font:{size:9},maxRotation:60,minRotation:45}},y:{stacked:true,ticks:{font:{size:9}}}}}});
+      var anos=porAno.map(function(x){return x.ano;});
+      var sl=document.getElementById('cohorteAno');
+      sl.min=anos[0]; sl.max=anos[anos.length-1]; sl.step=1; sl.value=anos[anos.length-1];
+      window._porAno=porAno;
+      window.atualizaCohorte=function(Y){
+        document.getElementById('cohorteAnoLbl').textContent=Y;
+        var lib=0,esc=0;
+        window._porAno.forEach(function(x){ if(x.ano<=Y){ lib+=x.imediatas; esc+=x.diferidas; } });
+        var labels=['Liberto(a)','Escravizado(a)'],data=[lib,esc],cores=['#e08a2b','#8b1e1e'];
+        if(dashCharts.dashCohorteDonut){ dashCharts.dashCohorteDonut.data.datasets[0].data=data; dashCharts.dashCohorteDonut.update(); }
+        else if(document.getElementById('dashCohorteDonut')){
+          dashCharts.dashCohorteDonut=new Chart(document.getElementById('dashCohorteDonut'),{type:'doughnut',
+            data:{labels:labels,datasets:[{data:data,backgroundColor:cores,borderWidth:0,hoverOffset:8}]},
+            options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
+        }
+        var tot=lib+esc;
+        document.getElementById('cohorteResumo').textContent='Até '+Y+': '+_fmt(tot)+' pessoas com alforria registrada — '+_fmt(lib)+' libertas de imediato e '+_fmt(esc)+' ainda escravizadas (alforria diferida, liberdade futura/incerta).';
+      };
+      atualizaCohorte(+sl.value);
     }
   }catch(e){ console.error('initPainel',e); }
 }
