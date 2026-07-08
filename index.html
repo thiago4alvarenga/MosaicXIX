@@ -57,7 +57,7 @@
   .tab.on{ color:#fff; border-bottom-color:#6fcf97; }
 
   /* ─── Layout ─── */
-  .wrap{ max-width:1180px; margin:0 auto; padding:16px 24px 60px; }
+  .wrap{ max-width:1400px; margin:0 auto; padding:16px 24px 60px; }
 
   /* ─── Painel de filtros ─── */
   .filtros{
@@ -204,7 +204,8 @@
   .sc-ic{ font-size:17px; line-height:1; margin-bottom:6px; opacity:.85; }
   .sc-num{ font-size:26px; font-weight:800; background:linear-gradient(120deg,var(--verde),var(--cobre)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-variant-numeric:tabular-nums; line-height:1.15; letter-spacing:-.01em; }
   .sc-lab{ font-size:11px; color:var(--txt2); margin-top:3px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
-  .painel-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; }
+  .painel-grid{ display:flex; flex-wrap:wrap; gap:16px; align-items:stretch; }
+  .painel-grid > .card-chart{ flex:1 1 300px; min-width:280px; }
   .card-chart{ background:var(--card); border:1px solid var(--borda); border-radius:14px; padding:14px 16px 14px; box-shadow:var(--shadow); transition:box-shadow .15s,border-color .15s; }
   .card-chart:hover{ box-shadow:0 6px 18px rgba(20,40,28,.08); }
   .card-chart h3{ margin:0 0 10px; font-size:13.5px; color:var(--ink2); font-weight:700; }
@@ -335,17 +336,25 @@
     <div class="card-chart"><h3>Gênero <span style="font-weight:400;color:var(--txt3)">(pessoas c/ gênero registrado)</span></h3><div class="chart-wrap"><canvas id="dashGenero"></canvas></div></div>
   </div>
   <div class="card-chart" style="margin-top:14px">
-    <h3>Alforrias ao longo do tempo <span style="font-weight:400;color:var(--txt3)">(coorte MPB — arraste o slider para ver como estava a coorte no ano)</span></h3>
+    <h3>Condição jurídica ao longo do tempo <span style="font-weight:400;color:var(--txt3)">(arraste o slider para ver a composição da base em cada ano)</span></h3>
     <div style="display:flex;align-items:center;gap:12px;margin:8px 0 14px">
       <span style="font-size:12px;color:var(--txt3)">ano</span>
       <input type="range" id="cohorteAno" style="flex:1" oninput="atualizaCohorte(+this.value)">
       <span id="cohorteAnoLbl" style="font-weight:600;min-width:42px;text-align:right">—</span>
     </div>
     <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px">
-      <div class="chart-wrap"><canvas id="dashPorAno"></canvas></div>
-      <div class="chart-wrap"><canvas id="dashCohorteDonut"></canvas></div>
+      <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px">Alforrias registradas por ano (imediatas × diferidas)</div><div class="chart-wrap"><canvas id="dashPorAno"></canvas></div></div>
+      <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px">Composição da base no ano selecionado</div><div class="chart-wrap"><canvas id="dashCohorteDonut"></canvas></div></div>
     </div>
     <div style="font-size:12px;color:var(--txt3);margin-top:10px" id="cohorteResumo"></div>
+  </div>
+  <div class="card-chart" style="margin-top:14px">
+    <h3>Perfil das alforrias <span style="font-weight:400;color:var(--txt3)">(fonte MPB — Salvador/Bahia, 1831-1840)</span></h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:10px">
+      <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px">Nação / cor (grupo)</div><div class="chart-wrap"><canvas id="dashNacaoGrupo"></canvas></div></div>
+      <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px">Principais nações e cores</div><div class="chart-wrap"><canvas id="dashNacaoTop"></canvas></div></div>
+      <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px">Faixa de preço da alforria</div><div class="chart-wrap"><canvas id="dashPrecoFaixa"></canvas></div></div>
+    </div>
   </div>
   <div class="painel-guia">
     <h3>Comece por aqui</h3>
@@ -371,7 +380,11 @@
     <div class="campo"><label>Tipo de relação</label>
       <select id="relacao"><option value="">Qualquer relação</option></select></div>
     <div class="campo" id="campo-catsoc" style="display:none"><label>Categoria social</label>
-      <select id="catsoc"><option value="">Todas</option></select></div>
+      <select id="catsoc"><option value="">Todas</option></select>
+      <div style="display:flex;gap:14px;margin-top:5px;font-size:12px;color:var(--txt3)">
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="catsocmodo" value="terminal" checked onchange="if(typeof buscar==='function')buscar()"> condição final</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="catsocmodo" value="alguma_vez" onchange="if(typeof buscar==='function')buscar()"> em algum momento</label>
+      </div></div>
     <div class="campo" id="campo-genero" style="display:none"><label>Gênero</label>
       <select id="genero"><option value="">Todos</option><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="__null__">Não identificado</option></select></div>
     <div class="campo" id="campo-nobreza" style="display:none"><label>Nobreza</label>
@@ -660,7 +673,14 @@ function montarURL(){
            "limit="+encodeURIComponent(document.getElementById("limite").value)];
   const t=document.getElementById("texto").value.trim(); if(t){const tn=t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); p.push("nome_busca=ilike."+encodeURIComponent("*"+tn+"*"));}
   const tp=document.getElementById("tipo").value; if(tp)p.push("tipo=eq."+encodeURIComponent(tp));
-  const cs=document.getElementById("catsoc").value; if(cs)p.push("categoria_social=eq."+encodeURIComponent(cs));
+  const cs=document.getElementById("catsoc").value;
+  if(cs){
+    const relSel=document.getElementById("relacao")?document.getElementById("relacao").value:"";
+    const modoEl=document.querySelector('input[name="catsocmodo"]:checked');
+    const modo=modoEl?modoEl.value:"terminal";
+    if(modo==="alguma_vez" && !relSel) p.push("condicoes_todas=cs."+encodeURIComponent('{"'+cs.replace(/"/g,'\\"')+'"}'));
+    else p.push("categoria_social=eq."+encodeURIComponent(cs));
+  }
   const g=document.getElementById("genero").value; if(g==="__null__")p.push("genero=is.null"); else if(g)p.push("genero=eq."+encodeURIComponent(g));
   const an=document.getElementById("ano").value; if(an)p.push("anos=cs."+encodeURIComponent("{"+an+"}"));
   const sub=document.getElementById("subtipo").value; if(sub)p.push("institution_type=eq."+encodeURIComponent(sub));
@@ -2528,7 +2548,7 @@ function _fmt(n){ return Number(n||0).toLocaleString('pt-BR'); }
 async function loadPainelData(){
   if(_painelData) return _painelData;
   const q=async(p)=>{ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn('Painel:',p,e); return []; } };
-  const [tot,tipos,per,rel,sub,cond,condExp,gen,porAno]=await Promise.all([
+  const [tot,tipos,per,rel,sub,cond,condExp,gen,porAno,nacGrp,nacTop,precoFaixa,statusAno]=await Promise.all([
     q("v_dash_totais?select=*"),
     q("v_contagem_tipos?select=tipo,n"),
     q("v_dash_periodo?select=decada,n"),
@@ -2537,9 +2557,13 @@ async function loadPainelData(){
     q("v_dash_legal_status?select=*"),
     q("v_dash_status_experienced?select=*"),
     q("v_dash_genero?select=*"),
-    q("v_dash_mpb_por_ano?select=*&order=ano")
+    q("v_dash_mpb_por_ano?select=*&order=ano"),
+    q("v_dash_mpb_nacao_grupo?select=*"),
+    q("v_dash_mpb_nacao_top?select=*&order=n.desc"),
+    q("v_dash_mpb_preco_faixa?select=*&order=ord"),
+    q("v_dash_status_por_ano?select=*&order=ano")
   ]);
-  const obj={ tot:tot[0]||{}, tipos, per, rel, sub, cond, condExp, gen, porAno };
+  const obj={ tot:tot[0]||{}, tipos, per, rel, sub, cond, condExp, gen, porAno, nacGrp, nacTop, precoFaixa, statusAno };
   if(tipos.length||tot.length) _painelData=obj;
   return obj;
 }
@@ -2637,25 +2661,56 @@ async function initPainel(){
           {label:'Diferidas (ainda escravizado)',data:porAno.map(function(x){return x.diferidas;}),backgroundColor:'#8b1e1e',stack:'s'}
         ]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+_fmt(c.parsed.y);}}}},scales:{x:{stacked:true,ticks:{font:{size:9},maxRotation:60,minRotation:45}},y:{stacked:true,ticks:{font:{size:9}}}}}});
-      var anos=porAno.map(function(x){return x.ano;});
+    }
+    var statusAno=(d.statusAno||[]);
+    if(statusAno.length&&document.getElementById('cohorteAno')){
+      var byYear={},anosSet={};
+      statusAno.forEach(function(r){ if(!byYear[r.ano])byYear[r.ano]={}; byYear[r.ano][r.status]=r.n; anosSet[r.ano]=1; });
+      var anos=Object.keys(anosSet).map(Number).sort(function(a,b){return a-b;});
+      var CORC2={'Livre':'#2f5496','Liberto(a)':'#e08a2b','Escravizado(a)':'#8b1e1e','Menor':'#8e44ad'};
       var sl=document.getElementById('cohorteAno');
-      sl.min=anos[0]; sl.max=anos[anos.length-1]; sl.step=1; sl.value=anos[anos.length-1];
-      window._porAno=porAno;
+      sl.min=anos[0]; sl.max=anos[anos.length-1]; sl.step=1; sl.value=Math.min(1842,anos[anos.length-1]);
+      window._byYear=byYear;
       window.atualizaCohorte=function(Y){
         document.getElementById('cohorteAnoLbl').textContent=Y;
-        var lib=0,esc=0;
-        window._porAno.forEach(function(x){ if(x.ano<=Y){ lib+=x.imediatas; esc+=x.diferidas; } });
-        var labels=['Liberto(a)','Escravizado(a)'],data=[lib,esc],cores=['#e08a2b','#8b1e1e'];
-        if(dashCharts.dashCohorteDonut){ dashCharts.dashCohorteDonut.data.datasets[0].data=data; dashCharts.dashCohorteDonut.update(); }
+        var comp=window._byYear[Y]||{};
+        var ordem=['Livre','Liberto(a)','Escravizado(a)','Menor'];
+        var labels=[],data=[],cores=[];
+        ordem.forEach(function(s){ if(comp[s]){ labels.push(s); data.push(comp[s]); cores.push(CORC2[s]); } });
+        Object.keys(comp).forEach(function(s){ if(ordem.indexOf(s)<0){ labels.push(s); data.push(comp[s]); cores.push('#8a9a92'); } });
+        if(dashCharts.dashCohorteDonut){ dashCharts.dashCohorteDonut.data.labels=labels; dashCharts.dashCohorteDonut.data.datasets[0].data=data; dashCharts.dashCohorteDonut.data.datasets[0].backgroundColor=cores; dashCharts.dashCohorteDonut.update(); }
         else if(document.getElementById('dashCohorteDonut')){
           dashCharts.dashCohorteDonut=new Chart(document.getElementById('dashCohorteDonut'),{type:'doughnut',
             data:{labels:labels,datasets:[{data:data,backgroundColor:cores,borderWidth:0,hoverOffset:8}]},
             options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
         }
-        var tot=lib+esc;
-        document.getElementById('cohorteResumo').textContent='Até '+Y+': '+_fmt(tot)+' pessoas com alforria registrada — '+_fmt(lib)+' libertas de imediato e '+_fmt(esc)+' ainda escravizadas (alforria diferida, liberdade futura/incerta).';
+        var tot=data.reduce(function(a,b){return a+b;},0);
+        document.getElementById('cohorteResumo').textContent='Em '+Y+': '+_fmt(tot)+' pessoas datáveis na base — '+labels.map(function(l,i){return _fmt(data[i])+' '+l;}).join(', ')+'.';
       };
       atualizaCohorte(+sl.value);
+    }
+    var nacGrp=d.nacGrp||[];
+    if(nacGrp.length&&document.getElementById('dashNacaoGrupo')){
+      var palG=['#1d6e56','#2f5496','#ba7517','#8e44ad','#8a9a92'];
+      if(dashCharts.dashNacaoGrupo){try{dashCharts.dashNacaoGrupo.destroy();}catch(e){}}
+      dashCharts.dashNacaoGrupo=new Chart(document.getElementById('dashNacaoGrupo'),{type:'doughnut',
+        data:{labels:nacGrp.map(function(x){return x.grupo;}),datasets:[{data:nacGrp.map(function(x){return x.n;}),backgroundColor:nacGrp.map(function(_,i){return palG[i%palG.length];}),borderWidth:0,hoverOffset:8}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10,padding:6,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
+    }
+    var nacTop=d.nacTop||[];
+    if(nacTop.length&&document.getElementById('dashNacaoTop')){
+      if(dashCharts.dashNacaoTop){try{dashCharts.dashNacaoTop.destroy();}catch(e){}}
+      dashCharts.dashNacaoTop=new Chart(document.getElementById('dashNacaoTop'),{type:'bar',
+        data:{labels:nacTop.map(function(x){return x.nacao;}),datasets:[{data:nacTop.map(function(x){return x.n;}),backgroundColor:'#2f5496',borderRadius:3}]},
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return _fmt(c.parsed.x);}}}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:10}}}}}});
+    }
+    var precoF=d.precoFaixa||[];
+    if(precoF.length&&document.getElementById('dashPrecoFaixa')){
+      var corP=precoF.map(function(x){return x.faixa==='Gratuita'?'#1d9e75':'#ba7517';});
+      if(dashCharts.dashPrecoFaixa){try{dashCharts.dashPrecoFaixa.destroy();}catch(e){}}
+      dashCharts.dashPrecoFaixa=new Chart(document.getElementById('dashPrecoFaixa'),{type:'bar',
+        data:{labels:precoF.map(function(x){return x.faixa;}),datasets:[{data:precoF.map(function(x){return x.n;}),backgroundColor:corP,borderRadius:3}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return _fmt(c.parsed.y);}}}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}});
     }
   }catch(e){ console.error('initPainel',e); }
 }
