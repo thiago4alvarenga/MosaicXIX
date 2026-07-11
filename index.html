@@ -684,8 +684,8 @@ function fmtSomaCargo(o){
   const sym=F.moeda==="libra"?"£ ":"US$ ";
   return (o.aprox?"≈ ":"")+sym+Math.round(o.conv).toLocaleString("pt-BR");
 }
-function setMoeda(m){ if(F&&F.info){F.moeda=m; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes();} }
-function setTaxa(t){ if(F&&F.info){F.taxa=t; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes();} }
+function setMoeda(m){ if(F&&F.info){F.moeda=m; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); if(typeof renderEstatisticas==='function') renderEstatisticas(); if(typeof renderCaderneta==='function') renderCaderneta();} }
+function setTaxa(t){ if(F&&F.info){F.taxa=t; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); if(typeof renderEstatisticas==='function') renderEstatisticas(); if(typeof renderCaderneta==='function') renderCaderneta();} }
 function controleMoeda(){ return ""; } // mantido por compatibilidade; renderização agora em renderMoedaFooter()
 function renderMoedaFooter(){
   const ft=document.getElementById("moedaFooter"); if(!ft||!F.info) return;
@@ -693,7 +693,9 @@ function renderMoedaFooter(){
   const _temMonet=(F.cargas||[]).some(c=>isMonet(c.produto,c.moeda))||
                   (F.rels||[]).some(r=>r.valor!=null)||
                   (F.cotacoes||[]).length>0||
-                  (F.bens||[]).some(b=>b.valor!=null);
+                  (F.bens||[]).some(b=>b.valor!=null)||
+                  (F.caderneta||[]).some(c=>c.valor!=null)||
+                  (F.stats||[]).some(s=>/r[eé]is/i.test(s.currency||""));
   if(!_temMonet){
     ft.innerHTML="<span style='font-size:11.5px;color:var(--txt2)'>Quantidades físicas — sem conversão monetária</span>";
     return;
@@ -838,7 +840,7 @@ async function abrirFicha(id){
     const ben=await getJSON("v_inventario_bens?actor_id=eq."+id+"&select=item_id,categoria,subcategoria,descricao,quantidade,unidade,valor,moeda,ano,local,rel_actor_id,rel_nome,notes,fonte,contribuidor&order=valor.desc.nullslast&limit=2000");
     const cot=await getJSON("v_cotacoes?actor_id=eq."+id+"&select=ano,nome_ativo,ativo,tipo,categoria_epoca,fase_historica,min_reis,max_reis,avg_reis,volume,faixa_preco,is_percent,moeda,fonte,base_dados,contribuidor&order=ativo.asc,ano.asc&limit=3000");
     const sta=await getJSON("v_actor_estatisticas?actor_id=eq."+id+"&select=stat_year,metric_type,value_numeric,currency,notes,source_id&order=metric_type.asc,stat_year.asc&limit=500");
-    const cad=await getJSON("v_caderneta_poupanca?actor_id=eq."+id+"&select=ano,mes,operacao,valor,moeda,id_xlsx,conta_ativa,valor_ilegivel&order=id_xlsx.asc,ano.asc,mes.asc.nullsfirst&limit=2000");
+    const cad=await getJSON("v_caderneta_poupanca?actor_id=eq."+id+"&select=ano,mes,operacao,valor,moeda,id_xlsx,conta_ativa,valor_ilegivel,pasta&order=id_xlsx.asc,ano.asc,mes.asc.nullsfirst&limit=2000");
     let bolsaAno=[], bolsaSetor=[], bolsaFonte=null;
     if((det.institution_type||"")==="Bolsa de valores"){
       bolsaAno=(await getJSON("v_bolsa_por_ano?select=ano,emissores,ativos,volume_total&order=ano.asc")).dados;
@@ -1021,6 +1023,7 @@ function switchFichaTab(tab, el){
 
 /* ----- ESTATÍSTICAS DO ATOR (core_actor_statistics) ----- */
 let estatCharts=[];
+let estatDefs={};
 function renderEstatisticas(){
   const w=document.getElementById("estatWrap"); if(!w) return;
   for(const c of estatCharts){try{c.destroy();}catch(e){}} estatCharts=[];
@@ -1030,6 +1033,12 @@ function renderEstatisticas(){
   const grupos={}; for(const s of d){ (grupos[s.metric_type]=grupos[s.metric_type]||[]).push(s); }
   const tipos=Object.keys(grupos);
   const CORES=["#2f5496","#1d9e75","#e05c2a","#7f77dd","#ba7517","#c0392b"];
+  const isReis=(F.moeda==="reis");
+  const _isMon=cur=>/r[eé]is/i.test(cur||"");
+  const _cv=(v,ano,cur)=> (v==null?null:((isReis||!_isMon(cur))? Number(v) : convAno(Number(v),ano).val));
+  const _un=cur=> !_isMon(cur)? (cur||"") : (isReis?(cur||"réis"):(F.moeda==="libra"?"£":"US$"));
+  const _fmtN=(v,cur)=> v==null?"—":((isReis||!_isMon(cur))? Number(v).toLocaleString("pt-BR") : Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}));
+  const _TBOX="overflow-x:auto;margin:0 0 16px;display:flex;justify-content:center";
   let h="<div class='sech'>Indicadores</div>";
 
   // --- Gráfico combinado Balanços (Entradas + Saídas [+ Apólices]) ---
@@ -1039,11 +1048,12 @@ function renderEstatisticas(){
     const serieS=grupos["Saídas"].sort((a,b)=>a.stat_year-b.stat_year);
     const serieA=grupos["Apólices"]?grupos["Apólices"].sort((a,b)=>a.stat_year-b.stat_year):null;
     const todosAnos=[...new Set([...serieE.map(s=>s.stat_year),...serieS.map(s=>s.stat_year)])].sort((a,b)=>a-b);
-    const mapE=Object.fromEntries(serieE.map(s=>[s.stat_year,Number(s.value_numeric)]));
-    const mapS=Object.fromEntries(serieS.map(s=>[s.stat_year,Number(s.value_numeric)]));
-    const mapA=serieA?Object.fromEntries(serieA.map(s=>[s.stat_year,Number(s.value_numeric)])):null;
-    const moedaE=serieE[0].currency||"";
-    h+="<div style='font-weight:600;color:var(--ink2);font-size:12.6px;margin:8px 0 4px'>Balanços anuais"+(moedaE?" <span style='font-weight:400;color:var(--ink-muted);font-size:11px'>("+esc(moedaE)+")</span>":"")+"</div>";
+    const moedaE=serieE[0].currency||"", moedaA=serieA?(serieA[0].currency||""):"";
+    const mapE=Object.fromEntries(serieE.map(s=>[s.stat_year,_cv(s.value_numeric,s.stat_year,s.currency)]));
+    const mapS=Object.fromEntries(serieS.map(s=>[s.stat_year,_cv(s.value_numeric,s.stat_year,s.currency)]));
+    const mapA=serieA?Object.fromEntries(serieA.map(s=>[s.stat_year,_cv(s.value_numeric,s.stat_year,s.currency)])):null;
+    const unE=_un(moedaE), unA=_un(moedaA);
+    h+="<div style='font-weight:600;color:var(--ink2);font-size:12.6px;margin:8px 0 4px'>Balanços anuais"+(unE?" <span style='font-weight:400;color:var(--ink-muted);font-size:11px'>("+esc(unE)+")</span>":"")+"</div>";
     h+="<div style='display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink-muted);margin:0 0 4px'>"
       +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#378ADD'></span> Entradas</span>"
       +"<span><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:#D85A30'></span> Saídas</span>"
@@ -1051,17 +1061,17 @@ function renderEstatisticas(){
       +"</div>";
     h+="<div style='position:relative;height:240px;margin-bottom:6px'><canvas id='estat_balancos'></canvas></div>";
     // tabela combinada
-    h+="<div style='overflow-x:auto;margin-bottom:16px'><table style='font-size:11.5px;border-collapse:collapse;width:auto'><thead><tr>"
-      +"<th style='background:#2f5496;color:#fff;padding:4px 8px;text-align:left'>Ano</th>"
-      +"<th style='background:#378ADD;color:#fff;padding:4px 8px;text-align:right'>Entradas</th>"
-      +"<th style='background:#D85A30;color:#fff;padding:4px 8px;text-align:right'>Saídas</th>"
-      +(serieA?"<th style='background:#BA7517;color:#fff;padding:4px 8px;text-align:right'>Apólices</th>":"")
+    h+="<div style='"+_TBOX+"'><table style='font-size:11.5px;border-collapse:collapse;width:auto'><thead><tr>"
+      +"<th style='background:#2f5496;color:#fff;padding:4px 10px;text-align:left'>Ano</th>"
+      +"<th style='background:#378ADD;color:#fff;padding:4px 10px;text-align:right'>Entradas</th>"
+      +"<th style='background:#D85A30;color:#fff;padding:4px 10px;text-align:right'>Saídas</th>"
+      +(serieA?"<th style='background:#BA7517;color:#fff;padding:4px 10px;text-align:right'>Apólices</th>":"")
       +"</tr></thead><tbody>"
       +todosAnos.map((ano,j)=>"<tr style='"+(j%2?"background:#fafbfd":"")+"'>"
-        +"<td style='padding:3px 8px'>"+ano+"</td>"
-        +"<td style='padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums'>"+(mapE[ano]!=null?mapE[ano].toLocaleString("pt-BR"):"—")+"</td>"
-        +"<td style='padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums'>"+(mapS[ano]!=null?mapS[ano].toLocaleString("pt-BR"):"—")+"</td>"
-        +(serieA?"<td style='padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums'>"+(mapA[ano]!=null?mapA[ano].toLocaleString("pt-BR"):"—")+"</td>":"")
+        +"<td style='padding:3px 10px'>"+ano+"</td>"
+        +"<td style='padding:3px 10px;text-align:right;font-variant-numeric:tabular-nums'>"+_fmtN(mapE[ano],moedaE)+"</td>"
+        +"<td style='padding:3px 10px;text-align:right;font-variant-numeric:tabular-nums'>"+_fmtN(mapS[ano],moedaE)+"</td>"
+        +(serieA?"<td style='padding:3px 10px;text-align:right;font-variant-numeric:tabular-nums'>"+_fmtN(mapA[ano],moedaA)+"</td>":"")
         +"</tr>").join("")
       +"</tbody></table></div>";
     setTimeout(()=>{
@@ -1076,43 +1086,85 @@ function renderEstatisticas(){
         scales.y2={type:"linear",position:"right",beginAtZero:true,grid:{drawOnChartArea:false},ticks:{font:{size:10},color:"#BA7517",callback:v=>v.toLocaleString("pt-BR")}};
       }
       estatCharts.push(new Chart(cv,{type:"bar",data:{labels:todosAnos,datasets},options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const v=c.parsed.y;return v==null?null:c.dataset.label+": "+v.toLocaleString("pt-BR")+(moedaE?" "+moedaE:"")}}}},scales}}));
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const v=c.parsed.y;if(v==null)return null;const ap=c.dataset.label==="Apólices";const u=ap?unA:unE;return c.dataset.label+": "+_fmtN(v,ap?moedaA:moedaE)+(u?" "+u:"")}}}},scales}}));
     },0);
   }
 
-  // --- Gráficos individuais (exclui os já mostrados no combinado) ---
+  // --- Indicadores individuais em DUAS CAMADAS (tema -> subgrupo), com desenho preguiçoso ---
   const noCombi=new Set(temEntradas&&temSaidas?["Entradas","Saídas","Apólices"]:[]);
-  tipos.filter(t=>!noCombi.has(t)).forEach((tipo,i)=>{
+  const restantes=tipos.filter(t=>!noCombi.has(t));
+  estatDefs={}; let _ci=0;
+  const _block=(tipo)=>{
     const serie=grupos[tipo].sort((a,b)=>a.stat_year-b.stat_year);
     const anos=serie.map(s=>s.stat_year);
-    const vals=serie.map(s=>Number(s.value_numeric));
-    const unid=serie[0].currency||"";
-    const canId="estat_"+i;
-    h+="<div style='font-weight:600;color:var(--ink2);font-size:12.6px;margin:8px 0 4px'>"+esc(tipo)+(unid?" <span style='font-weight:400;color:var(--ink-muted);font-size:11px'>("+esc(unid)+")</span>":"")+"</div>";
-    h+="<div style='position:relative;height:180px;margin-bottom:14px'><canvas id='"+canId+"'></canvas></div>";
-    // tabela compacta
-    h+="<div style='overflow-x:auto;margin-bottom:16px'><table style='font-size:11.5px;border-collapse:collapse;width:auto'><thead><tr>"
-      +"<th style='background:#2f5496;color:#fff;padding:4px 8px;text-align:left'>Ano</th>"
-      +"<th style='background:#2f5496;color:#fff;padding:4px 8px;text-align:right'>"+esc(tipo)+"</th>"
+    const cur=serie[0].currency||""; const un=_un(cur);
+    const dec=(!isReis && _isMon(cur));
+    const vals=serie.map(s=>_cv(s.value_numeric,s.stat_year,s.currency));
+    const canId="estat_"+(_ci); const cor=CORES[_ci%CORES.length]; _ci++;
+    estatDefs[canId]={anos,vals,un,dec,cor,tipo};
+    let x="<div style='font-weight:600;color:var(--ink2);font-size:12.6px;margin:8px 0 4px'>"+esc(tipo)+(un?" <span style='font-weight:400;color:var(--ink-muted);font-size:11px'>("+esc(un)+")</span>":"")+"</div>";
+    x+="<div style='position:relative;height:180px;margin-bottom:14px'><canvas id='"+canId+"'></canvas></div>";
+    x+="<div style='"+_TBOX+"'><table style='font-size:11.5px;border-collapse:collapse;width:auto'><thead><tr>"
+      +"<th style='background:#2f5496;color:#fff;padding:4px 10px;text-align:left'>Ano</th>"
+      +"<th style='background:#2f5496;color:#fff;padding:4px 10px;text-align:right'>"+esc(tipo)+(un?" ("+esc(un)+")":"")+"</th>"
       +"</tr></thead><tbody>"
       +serie.map((s,j)=>"<tr style='"+(j%2?"background:#fafbfd":"")+"'>"
-        +"<td style='padding:3px 8px'>"+s.stat_year+"</td>"
-        +"<td style='padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums'>"+Number(s.value_numeric).toLocaleString("pt-BR")+(unid?" "+esc(unid):"")+"</td>"
+        +"<td style='padding:3px 10px'>"+s.stat_year+"</td>"
+        +"<td style='padding:3px 10px;text-align:right;font-variant-numeric:tabular-nums'>"+_fmtN(_cv(s.value_numeric,s.stat_year,s.currency),cur)+"</td>"
         +"</tr>").join("")
       +"</tbody></table></div>";
-    // chart (criado depois de inserir HTML)
-    setTimeout(()=>{
-      const cv=document.getElementById(canId); if(!cv) return;
-      const cor=CORES[i%CORES.length];
-      estatCharts.push(new Chart(cv,{type:"line",
-        data:{labels:anos,datasets:[{label:tipo,data:vals,borderColor:cor,backgroundColor:cor+"28",tension:.2,fill:true,pointRadius:4}]},
-        options:{responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+(unid?" "+unid:"")}}},
-          scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10}},title:{display:!!unid,text:unid,color:"#7a8aa0",font:{size:10}}}}}}));
-    },0);
-  });
+    return x;
+  };
+  const _cat=(mt)=>{
+    const s=mt||"";
+    if(/·/.test(s)){ const p=s.split("·"); return {tema:"Estatísticas por localidade", sub:p[0].trim()}; }
+    if(/popula/i.test(s)){ let sub="População — outros"; if(/por cor/i.test(s))sub="População por cor"; else if(/escrav/i.test(s))sub="População escrava"; else if(/total/i.test(s))sub="População total"; return {tema:"População", sub}; }
+    if(/cota[çc][aã]o|bolsa/i.test(s)) return {tema:"Bolsa de Valores do RJ", sub:"Cotações"};
+    if(/imigr/i.test(s)) return {tema:"Imigração", sub:"Entradas de imigrantes"};
+    return {tema:"Outros indicadores", sub:"Geral"};
+  };
+  const tree={}; restantes.forEach(tp=>{ const c=_cat(tp); (tree[c.tema]=tree[c.tema]||{}); (tree[c.tema][c.sub]=tree[c.tema][c.sub]||[]).push(tp); });
+  const temas=Object.keys(tree).sort((a,b)=>a.localeCompare(b,"pt"));
+  const usarAcc=(restantes.length>8 || temas.length>2);
+  if(!usarAcc){
+    restantes.forEach(tp=> h+=_block(tp));
+  } else {
+    h+="<p style='font-size:11px;color:var(--txt3);margin:6px 0 8px'>Indicadores organizados em dois níveis — clique num tema e depois num subgrupo para abrir os gráficos.</p>";
+    temas.forEach((tema,ti)=>{
+      const subs=Object.keys(tree[tema]).sort((a,b)=>a.localeCompare(b,"pt"));
+      const nM=subs.reduce((a,k)=>a+tree[tema][k].length,0);
+      const openT=(ti===0);
+      h+="<div style='border:1px solid var(--linha,#e3e8ef);border-radius:8px;margin:8px 0;overflow:hidden'>";
+      h+="<div onclick='estatTgTema(this)' style='cursor:pointer;background:var(--ink2,#2f5496);color:#fff;padding:8px 12px;font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center'><span>"+esc(tema)+" <span style='font-weight:400;opacity:.85;font-size:11px'>· "+nM+" indicadores</span></span><span class='acc-ar'>"+(openT?"▾":"▸")+"</span></div>";
+      h+="<div class='acc-tema-panel' style='padding:6px 12px;"+(openT?"":"display:none;")+"'>";
+      subs.forEach((sub,si)=>{
+        const openS=(openT && si===0);
+        h+="<div style='margin:6px 0'>";
+        h+="<div onclick='estatTgSub(this)' style='cursor:pointer;background:#eef2f8;color:#2f5496;padding:5px 10px;border-radius:6px;font-weight:600;font-size:12px;display:flex;justify-content:space-between;align-items:center'><span>"+esc(sub)+" <span style='font-weight:400;opacity:.7'>· "+tree[tema][sub].length+"</span></span><span class='acc-ar'>"+(openS?"▾":"▸")+"</span></div>";
+        h+="<div class='acc-sub-panel' style='padding:8px 2px 0;"+(openS?"":"display:none;")+"'>";
+        tree[tema][sub].forEach(tp=> h+=_block(tp));
+        h+="</div></div>";
+      });
+      h+="</div></div>";
+    });
+  }
   w.innerHTML=h;
+  setTimeout(()=>{
+    if(!usarAcc){ Object.keys(estatDefs).forEach(id=>_estatDrawCanvas(id)); }
+    else { const ew=document.getElementById("estatWrap"); if(ew) ew.querySelectorAll(".acc-sub-panel").forEach(p=>{ if(p.style.display!=="none") p.querySelectorAll("canvas[id^='estat_']").forEach(cv=>_estatDrawCanvas(cv.id)); }); }
+  },0);
 }
+function _estatDrawCanvas(canId){
+  const def=estatDefs[canId]; if(!def) return;
+  const cv=document.getElementById(canId); if(!cv||cv._drawn) return; cv._drawn=true;
+  try{ estatCharts.push(new Chart(cv,{type:"line",
+    data:{labels:def.anos,datasets:[{label:def.tipo,data:def.vals,borderColor:def.cor,backgroundColor:def.cor+"28",tension:.2,fill:true,pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const v=c.parsed.y;return (v==null?"":Number(v).toLocaleString("pt-BR",def.dec?{minimumFractionDigits:2,maximumFractionDigits:2}:{}))+(def.un?" "+def.un:"");}}}},
+      scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10},callback:v=>Number(v).toLocaleString("pt-BR")},title:{display:!!def.un,text:def.un,color:"#7a8aa0",font:{size:10}}}}}})); }catch(e){}
+}
+function estatTgTema(el){ const p=el.nextElementSibling; if(!p)return; const open=(p.style.display==="none"); p.style.display=open?"":"none"; const ar=el.querySelector(".acc-ar"); if(ar)ar.textContent=open?"▾":"▸"; setTimeout(()=>{estatCharts.forEach(c=>{try{c.resize();}catch(e){}});},40); }
+function estatTgSub(el){ const p=el.nextElementSibling; if(!p)return; const open=(p.style.display==="none"); p.style.display=open?"":"none"; const ar=el.querySelector(".acc-ar"); if(ar)ar.textContent=open?"▾":"▸"; if(open){ p.querySelectorAll("canvas[id^='estat_']").forEach(cv=>_estatDrawCanvas(cv.id)); } setTimeout(()=>{estatCharts.forEach(c=>{try{c.resize();}catch(e){}});},40); }
 
 /* ----- SENADO DO IMPÉRIO — gráficos (só no dossiê do Senado) ----- */
 function renderSenado(){
@@ -1443,33 +1495,62 @@ function renderCotacoes(){
 }
 
 /* ----- CADERNETA DE POUPANÇA (depositantes da Caixa Econômica — BD Operações) ----- */
+/* Juros da Caixa Econômica: 6% a.a. até 1871; 5% em 1872–1886; 4,5% a partir de 1887 (mantido após 1889). */
+function _jurosCaixa(y){ return y<=1871?0.06:(y<=1886?0.05:0.045); }
+function _cadAccrue(bal,t0,t1){
+  if(!(bal>0)||!(t1>t0)) return bal;
+  let t=t0,b=bal,g=0;
+  while(t<t1 && g++<800){ const y=Math.floor(t); const nb=Math.min(t1,y+1); b*=Math.pow(1+_jurosCaixa(y),nb-t); t=nb; }
+  return b;
+}
 function renderCaderneta(){
   const w=document.getElementById("cadernetaWrap"); if(!w) return;
   const cad=F.caderneta||[];
   if(chartCaderneta){try{chartCaderneta.destroy();}catch(e){} chartCaderneta=null;}
   if(!cad.length){ w.innerHTML=""; return; }
-  const OPCOR={Entrada:"#378ADD",Retirada:"#D85A30",Saldo:"#7f77dd"};
+  const isReis=(F.moeda==="reis");
+  const simb=isReis?"réis":(F.moeda==="libra"?"£":"US$");
+  const convV=(vReais,ano)=> isReis? vReais : convAno(vReais,ano).val;
+  const fmtV=(vReais,ano)=> isReis? milreis(vReais,"réis") : (simb+" "+convAno(vReais,ano).val.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}));
+  const OPCOR={Entrada:"#378ADD",Retirada:"#D85A30",Saldo:"#1d6e56"};
   const contas={}; for(const c of cad){ const k=c.id_xlsx||0; (contas[k]=contas[k]||[]).push(c); }
   const ks=Object.keys(contas);
-  const saldosPorAno={};
-  for(const c of cad){ if(c.operacao==="Saldo" && c.valor!=null){ saldosPorAno[c.ano]=(saldosPorAno[c.ano]||0)+Number(c.valor); } }
-  const anosSaldo=Object.keys(saldosPorAno).map(Number).sort((a,b)=>a-b);
-  let h="<div class='sech'>💰 Caderneta de Poupança <span class='cnt'>"+cad.length+" lançamentos"+(ks.length>1?(" · "+ks.length+" contas"):"")+"</span></div>";
-  h+="<p style='font-size:11.5px;color:var(--txt3);margin:0 0 10px'>Histórico de movimentações na Caixa Econômica da Corte, reconstituído a partir dos livros de registro (BD Operações).</p>";
-  if(anosSaldo.length>1) h+="<div style='position:relative;height:170px;margin-bottom:14px'><canvas id='grafCaderneta'></canvas></div>";
+
+  // --- Série estimada (entradas − retiradas + juros), ancorada nos saldos registrados ---
+  const evs=cad.filter(c=>c.operacao!=="Transporte").slice()
+              .sort((a,b)=> (a.ano-b.ano) || ((a.mes||6)-(b.mes||6)));
+  let bal=0, lastT=null, houveNegativo=false; const estPts=[], saldoPts=[];
+  for(const c of evs){
+    const t=c.ano + (c.mes? (c.mes-1)/12 : 0.5);
+    if(lastT!=null) bal=_cadAccrue(bal,lastT,t);
+    lastT=t;
+    if(c.operacao==="Saldo"){ if(c.valor!=null){ bal=Math.max(0,Number(c.valor)); saldoPts.push({x:t,y:bal,ano:c.ano}); } }
+    else if(c.valor!=null){ bal+=Number(c.valor); if(bal<0){ bal=0; houveNegativo=true; } } // Retirada já vem negativa; um saldo nunca é < 0
+    estPts.push({x:t,y:bal,ano:c.ano});
+  }
+
+  let h="<div class='sech'>💰 Caderneta de Poupança <span class='cnt'>"+cad.length+" lançamentos"+(ks.length>1?(" · "+ks.length+" cadernetas"):"")+"</span></div>";
+  h+="<p style='font-size:11.5px;color:var(--txt3);margin:0 0 4px'>Caderneta de poupança na <b>Caixa Econômica da Corte</b>, reconstituída a partir dos livros de registro (BD Operações).</p>";
+  if(ks.length>1) h+="<p style='font-size:11px;color:var(--txt3);margin:0 0 10px'>Este ator possui mais de uma caderneta — cada bloco abaixo é uma caderneta distinta (nunca duas na mesma Caixa).</p>";
+  if(estPts.length>1){
+    h+="<div style='position:relative;height:180px;margin-bottom:6px'><canvas id='grafCaderneta'></canvas></div>";
+    h+="<p style='font-size:10.5px;color:var(--txt3);margin:0 0 14px;line-height:1.5'>⚠️ <b>Saldo estimado</b>: a fonte registra o saldo apenas em alguns momentos, então a curva reconstrói o valor entre eles a partir das entradas, das retiradas e dos <b>juros da Caixa</b> (6% a.a. até 1871; 5% em 1872–1886; 4,5% a partir de 1887). Os losangos marcam os saldos efetivamente registrados; entre eles o valor é uma estimativa."+(houveNegativo?" <b>Em alguns trechos as retiradas registradas superaram as entradas conhecidas</b> (a fonte não registrou todas as entradas e/ou juros do período): nesses pontos a curva foi limitada a zero.":"")+"</p>";
+  }
   for(const k of ks){
     const linhas=contas[k].slice().sort((a,b)=> (a.ano-b.ano) || ((a.mes||0)-(b.mes||0)));
     h+="<div class='grp'>";
-    if(ks.length>1) h+="<h4><span class='badge' style='background:#9a5c15'>Conta nº "+esc(k)+"</span> <span class='cnt'>"+linhas.length+" lançamentos</span></h4>";
+    if(ks.length>1) h+="<h4><span class='badge' style='background:#9a5c15'>Caderneta · Caixa Econômica da Corte (registro nº "+esc(k)+")</span> <span class='cnt'>"+linhas.length+" lançamentos</span></h4>";
+    const _pasta=(contas[k][0]||{}).pasta;
+    if(_pasta) h+="<div style='font-size:11px;color:var(--txt3);margin:2px 0 8px'>📖 Localização na fonte: <b>"+esc(_pasta)+"</b>"+(ks.length>1?"":" <span style='opacity:.7'>· registro nº "+esc(k)+"</span>")+"</div>";
     h+="<table style='width:100%;font-size:12px;border-collapse:collapse;margin:4px 0 8px'><thead><tr>"
       +"<th style='text-align:left;color:#fff;background:var(--ferro);padding:4px 8px'>Ano</th>"
       +"<th style='text-align:left;color:#fff;background:var(--ferro);padding:4px 8px'>Mês</th>"
       +"<th style='text-align:left;color:#fff;background:var(--ferro);padding:4px 8px'>Operação</th>"
-      +"<th style='text-align:right;color:#fff;background:var(--ferro);padding:4px 8px'>Valor</th></tr></thead><tbody>";
+      +"<th style='text-align:right;color:#fff;background:var(--ferro);padding:4px 8px'>Valor ("+simb+")</th></tr></thead><tbody>";
     for(const c of linhas){
       const cor=OPCOR[c.operacao]||"var(--txt2)";
       const negrito=c.operacao==="Saldo"?"font-weight:600":"";
-      const valTxt=c.valor!=null?milreis(Number(c.valor),c.moeda):(c.valor_ilegivel?"(ilegível na fonte)":"—");
+      const valTxt=c.valor!=null?fmtV(Number(c.valor),c.ano):(c.valor_ilegivel?"(ilegível na fonte)":"—");
       h+="<tr><td style='padding:3px 8px;border-top:1px solid var(--linha)'>"+esc(c.ano)+"</td>"
         +"<td style='padding:3px 8px;border-top:1px solid var(--linha)'>"+(c.mes||"—")+"</td>"
         +"<td style='padding:3px 8px;border-top:1px solid var(--linha);color:"+cor+";"+negrito+"'>"+esc(c.operacao)+"</td>"
@@ -1478,14 +1559,21 @@ function renderCaderneta(){
     h+="</tbody></table></div>";
   }
   w.innerHTML=h;
-  if(typeof Chart==="undefined" || anosSaldo.length<=1) return;
+  if(typeof Chart==="undefined" || estPts.length<=1) return;
   const cv=document.getElementById("grafCaderneta"); if(!cv) return;
+  const estData=estPts.map(p=>({x:p.x,y:convV(p.y,p.ano)}));
+  const saldoData=saldoPts.map(p=>({x:p.x,y:convV(p.y,p.ano)}));
   chartCaderneta=new Chart(cv,{type:"line",
-    data:{labels:anosSaldo,datasets:[{label:"Saldo (réis)",data:anosSaldo.map(a=>saldosPorAno[a]),borderColor:"#7f77dd",backgroundColor:"rgba(127,119,221,.12)",tension:.2,fill:true,pointRadius:2}]},
+    data:{datasets:[
+      {type:"line",label:"Saldo estimado",data:estData,borderColor:"#7f77dd",backgroundColor:"rgba(127,119,221,.12)",tension:.15,fill:true,pointRadius:1.5,borderWidth:2,order:2},
+      {type:"scatter",label:"Saldo registrado",data:saldoData,borderColor:"#1d6e56",backgroundColor:"#1d6e56",pointRadius:4,pointHoverRadius:6,pointStyle:"rectRot",order:1}
+    ]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},title:{display:true,text:"Saldo ao longo do tempo",font:{size:12.5},color:_ink()},
-        tooltip:{callbacks:{label:c=>milreis(c.parsed.y,"Réis")}}},
-      scales:{x:{ticks:{font:{size:10}}},y:{ticks:{callback:v=>Number(v).toLocaleString("pt-BR")}}}}});
+      plugins:{legend:{display:true,labels:{font:{size:10},usePointStyle:true,boxWidth:8,padding:10}},
+        title:{display:true,text:"Saldo estimado ao longo do tempo",font:{size:12.5},color:_ink()},
+        tooltip:{callbacks:{label:c=> c.dataset.label+": "+(isReis? milreis(c.parsed.y,"Réis") : (simb+" "+Number(c.parsed.y).toLocaleString("pt-BR",{maximumFractionDigits:2})))}}},
+      scales:{x:{type:"linear",ticks:{callback:v=>Math.round(v),maxTicksLimit:10,font:{size:10}}},
+              y:{ticks:{callback:v=>Number(v).toLocaleString("pt-BR")}}}}});
 }
 
 /* ----- DOSSIÊ DA BOLSA (visão geral do mercado) ----- */
