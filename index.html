@@ -226,6 +226,15 @@
   .guia-card .gc-ic{ font-size:20px; margin-bottom:2px; }
   .guia-card b{ font-size:13px; font-weight:700; }
   .guia-card small{ font-size:11px; color:var(--txt2); }
+  .destaque-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:12px; margin-top:10px; }
+  .destaque-card{ display:flex; gap:13px; align-items:flex-start; text-align:left; background:var(--card); border:1px solid var(--borda); border-left:4px solid var(--verde); border-radius:14px; padding:15px 17px; cursor:pointer; transition:transform .1s, box-shadow .15s, border-color .15s; color:var(--txt); font-family:inherit; }
+  .destaque-card:hover{ box-shadow:var(--shadow); transform:translateY(-2px); }
+  .destaque-ic{ flex:0 0 auto; width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:23px; }
+  .destaque-bd{ display:flex; flex-direction:column; min-width:0; }
+  .destaque-tag{ align-self:flex-start; font-size:10px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; color:var(--txt3); border:1px solid var(--borda); border-radius:20px; padding:2px 9px; margin-bottom:6px; }
+  .destaque-h4{ font-size:14.5px; font-weight:700; color:var(--ink2); margin-bottom:3px; }
+  .destaque-p{ font-size:12px; color:var(--txt2); line-height:1.5; margin-bottom:7px; }
+  .destaque-cta{ font-size:12px; font-weight:700; color:var(--verde); }
 
   /* ─── Fontes ─── */
   .fontes-bar{ display:flex; align-items:center; gap:12px; margin:0 2px 14px; flex-wrap:wrap; }
@@ -335,18 +344,36 @@
     <div class="card-chart"><h3>Condições experimentadas <span style="font-weight:400;color:var(--txt3)">(cada pessoa conta em toda condição que viveu)</span></h3><div class="chart-wrap"><canvas id="dashCondExp"></canvas></div></div>
     <div class="card-chart"><h3>Gênero <span style="font-weight:400;color:var(--txt3)">(pessoas c/ gênero registrado)</span></h3><div class="chart-wrap"><canvas id="dashGenero"></canvas></div></div>
   </div>
-  <div class="card-chart" style="margin-top:14px;border:1px solid rgba(29,110,86,.5)">
-    <h3>💰 Poupanças da Caixa Econômica <span style="font-weight:400;color:var(--txt3)">(cadernetas de poupança — 1866–1931)</span></h3>
-    <p style="font-size:12.5px;color:var(--txt3);margin:2px 0 12px;line-height:1.5">Quem eram os poupadores populares da Caixa Econômica da Corte? Veja o perfil por profissão, condição social e gênero — com destaque para pessoas <b>escravizadas</b> e <b>libertas</b> — e clique em qualquer categoria para abrir a lista já pronta.</p>
-    <div class="guia-cards">
-      <button class="guia-card" onclick="_abrirStatPopup('popup-poupancas', _loadPoupancas)"><span class="gc-ic">💰</span><b>Conferir as poupanças</b><small>gráficos + perfil dos poupadores</small></button>
-    </div>
-  </div>
-  <div class="card-chart" style="margin-top:14px">
-    <h3>Estatísticas em destaque <span style="font-weight:400;color:var(--txt3)">(dados de fontes específicas ligados a atores do banco — clique para abrir)</span></h3>
-    <div class="guia-cards">
-      <button class="guia-card" onclick="_abrirStatPopup('popup-alforrias-mpb', _loadAlforriasMPB)"><span class="gc-ic">🧾</span><b>Alforrias em Salvador, 1831-1840</b><small>MPB-Bahia — cronologia, nação/cor, preço</small></button>
-      <button class="guia-card" onclick="_abrirStatPopup('popup-demografia-ibge', _loadDemografiaIBGE)"><span class="gc-ic">🌎</span><b>Demografia do Brasil, 1550-1991</b><small>IBGE — população total, escrava e por cor</small></button>
+  <div class="painel-guia" style="margin-top:22px">
+    <h3>Destaques do acervo <span style="font-weight:400;color:var(--txt3)">— conjuntos de fontes específicas, prontos para explorar</span></h3>
+    <div class="destaque-grid">
+      <button class="destaque-card" style="border-left-color:#1d6e56" onclick="_abrirStatPopup('popup-poupancas', _loadPoupancas)">
+        <span class="destaque-ic" style="background:rgba(29,110,86,.14)">💰</span>
+        <span class="destaque-bd">
+          <span class="destaque-tag">Caixa Econômica · 1866–1931</span>
+          <span class="destaque-h4">Poupadores populares da Corte</span>
+          <span class="destaque-p">Cadernetas de <b>2.401 trabalhadores</b> — mascates, costureiras, marinheiros — incluindo poupadores <b>escravizados</b> e <b>libertos</b>. Perfil por profissão, condição social e gênero.</span>
+          <span class="destaque-cta">Explorar poupanças →</span>
+        </span>
+      </button>
+      <button class="destaque-card" style="border-left-color:#ba7517" onclick="_abrirStatPopup('popup-alforrias-mpb', _loadAlforriasMPB)">
+        <span class="destaque-ic" style="background:rgba(186,117,23,.16)">🕊️</span>
+        <span class="destaque-bd">
+          <span class="destaque-tag">Salvador · 1831–1840</span>
+          <span class="destaque-h4">Cartas de alforria na Bahia</span>
+          <span class="destaque-p">Quando, a que preço e de quais nações e cores eram as pessoas que compraram ou receberam liberdade. Fonte: Mann &amp; Andrade.</span>
+          <span class="destaque-cta">Explorar alforrias →</span>
+        </span>
+      </button>
+      <button class="destaque-card" style="border-left-color:#2f5496" onclick="_abrirStatPopup('popup-demografia-ibge', _loadDemografiaIBGE)">
+        <span class="destaque-ic" style="background:rgba(47,84,150,.14)">🌎</span>
+        <span class="destaque-bd">
+          <span class="destaque-tag">Brasil · 1550–1991</span>
+          <span class="destaque-h4">Cinco séculos de população</span>
+          <span class="destaque-p">População total, escravizada e por cor ao longo dos censos — a demografia que emoldura as trajetórias do acervo. Fonte: IBGE.</span>
+          <span class="destaque-cta">Explorar demografia →</span>
+        </span>
+      </button>
     </div>
   </div>
   <div class="painel-guia">
@@ -554,7 +581,7 @@
 <div class="overlay" id="popup-alforrias-mpb">
   <div class="modal" style="width:min(1100px,96vw)">
     <header>
-      <div style="color:#fff;font-size:16px;font-weight:600">Alforrias em Salvador, 1831-1840 <span style="font-weight:400;font-size:12px;opacity:.85">— fonte MPB-Bahia (Mann &amp; Andrade 2023)</span></div>
+      <div style="color:#fff;font-size:16px;font-weight:600">Alforrias em Salvador, 1831-1840 <span style="font-weight:400;font-size:12px;opacity:.85">— fonte: Mann &amp; Andrade (2023)</span></div>
       <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-alforrias-mpb')" aria-label="Fechar">&times;</button></div>
     </header>
     <div class="ficha" style="height:74vh">
@@ -684,8 +711,8 @@ function fmtSomaCargo(o){
   const sym=F.moeda==="libra"?"£ ":"US$ ";
   return (o.aprox?"≈ ":"")+sym+Math.round(o.conv).toLocaleString("pt-BR");
 }
-function setMoeda(m){ if(F&&F.info){F.moeda=m; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); if(typeof renderEstatisticas==='function') renderEstatisticas(); if(typeof renderCaderneta==='function') renderCaderneta();} }
-function setTaxa(t){ if(F&&F.info){F.taxa=t; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); if(typeof renderEstatisticas==='function') renderEstatisticas(); if(typeof renderCaderneta==='function') renderCaderneta();} }
+function setMoeda(m){ if(F&&F.info){F.moeda=m; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); if(typeof renderCaderneta==='function') renderCaderneta();} }
+function setTaxa(t){ if(F&&F.info){F.taxa=t; renderMoedaFooter(); renderRelacoes(); renderCargas(); renderBens(); renderCotacoes(); if(typeof renderCaderneta==='function') renderCaderneta();} }
 function controleMoeda(){ return ""; } // mantido por compatibilidade; renderização agora em renderMoedaFooter()
 function renderMoedaFooter(){
   const ft=document.getElementById("moedaFooter"); if(!ft||!F.info) return;
@@ -839,7 +866,7 @@ async function abrirFicha(id){
     const car=await getJSON("v_actor_cargas?actor_id=eq."+id+"&select=ano,produto,valor,moeda,notes,fonte,contribuidor&order=ano.asc&limit=1500");
     const ben=await getJSON("v_inventario_bens?actor_id=eq."+id+"&select=item_id,categoria,subcategoria,descricao,quantidade,unidade,valor,moeda,ano,local,rel_actor_id,rel_nome,notes,fonte,contribuidor&order=valor.desc.nullslast&limit=2000");
     const cot=await getJSON("v_cotacoes?actor_id=eq."+id+"&select=ano,nome_ativo,ativo,tipo,categoria_epoca,fase_historica,min_reis,max_reis,avg_reis,volume,faixa_preco,is_percent,moeda,fonte,base_dados,contribuidor&order=ativo.asc,ano.asc&limit=3000");
-    const sta=await getJSON("v_actor_estatisticas?actor_id=eq."+id+"&select=stat_year,metric_type,value_numeric,currency,notes,source_id&order=metric_type.asc,stat_year.asc&limit=500");
+    const sta=await getJSON("v_actor_estatisticas?actor_id=eq."+id+"&select=stat_year,metric_type,value_numeric,currency,notes,source_id&order=metric_type.asc,stat_year.asc&limit=2000");
     const cad=await getJSON("v_caderneta_poupanca?actor_id=eq."+id+"&select=ano,mes,operacao,valor,moeda,id_xlsx,conta_ativa,valor_ilegivel,pasta&order=id_xlsx.asc,ano.asc,mes.asc.nullsfirst&limit=2000");
     let bolsaAno=[], bolsaSetor=[], bolsaFonte=null;
     if((det.institution_type||"")==="Bolsa de valores"){
@@ -980,6 +1007,7 @@ function renderFichaTudo(){
   h+="<div class='ficha-tab on' onclick='switchFichaTab(\"relacoes\",this)'>Relações</div>";
   h+="<div class='ficha-tab' onclick='switchFichaTab(\"dados\",this)'>Dados</div>";
   if(ehDepositante) h+="<div class='ficha-tab' onclick='switchFichaTab(\"caderneta\",this)'>💰 Caderneta</div>";
+  if(F.bens&&F.bens.length) h+="<div class='ficha-tab' onclick='switchFichaTab(\"inventario\",this)'>📦 Inventário</div>";
   h+="<div class='ficha-tab' onclick='switchFichaTab(\"notas\",this)'>Perfil & Notas</div>";
   h+="</div>";
   h+="<div class='ficha-panel on' id='fpanel-relacoes'>";
@@ -989,13 +1017,18 @@ function renderFichaTudo(){
   h+="</div>";
   h+="<div class='ficha-panel' id='fpanel-dados'>";
   h+="<div id='viagensWrap'></div>";
-  h+="<div id='grafWrap'></div><div id='estatWrap'></div><div id='cargasWrap'></div>";
-  h+="<div id='bensWrap'></div><div id='cotacoesWrap'></div><div id='bolsaWrap'></div>";
+  h+="<div id='cargasWrap'></div><div id='grafWrap'></div><div id='estatWrap'></div>";
+  h+="<div id='cotacoesWrap'></div><div id='bolsaWrap'></div>";
   h+="<div id='senadoWrap'></div><div id='conselhoWrap'></div><div id='camaraWrap'></div>";
   h+="</div>";
   if(ehDepositante){
     h+="<div class='ficha-panel' id='fpanel-caderneta'>";
     h+="<div id='cadernetaWrap'></div>";
+    h+="</div>";
+  }
+  if(F.bens&&F.bens.length){
+    h+="<div class='ficha-panel' id='fpanel-inventario'>";
+    h+="<div id='bensWrap'></div>";
     h+="</div>";
   }
   h+="<div class='ficha-panel' id='fpanel-notas'>";
@@ -1015,7 +1048,8 @@ function switchFichaTab(tab, el){
   if(!F._fichaTabRendered) F._fichaTabRendered={};
   if(!F._fichaTabRendered[tab]){
     F._fichaTabRendered[tab]=true;
-    if(tab==='dados'){ renderViagens(); renderCargas(); renderBens(); renderEstatisticas(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderCamara(); }
+    if(tab==='dados'){ renderViagens(); renderCargas(); renderCotacoes(); renderBolsa(); renderSenado(); renderConselho(); renderCamara(); }
+    if(tab==='inventario'){ renderBens(); }
     if(tab==='caderneta'){ renderCaderneta(); }
     if(tab==='notas'){ renderNotasRef(); }
   }
@@ -1023,11 +1057,12 @@ function switchFichaTab(tab, el){
 
 /* ----- ESTATÍSTICAS DO ATOR (core_actor_statistics) ----- */
 let estatCharts=[];
-let estatDefs={};
 function renderEstatisticas(){
   const w=document.getElementById("estatWrap"); if(!w) return;
   for(const c of estatCharts){try{c.destroy();}catch(e){}} estatCharts=[];
-  const d=(F.stats||[]);
+  // só indicadores "avulsos" (sem marcador grupo= nas notes); os dados curados por grupo
+  // aparecem na navegação em chips (categoria → grupo) da seção Cargas, evitando duplicação.
+  const d=(F.stats||[]).filter(s=>!/grupo=/.test(s.notes||""));
   if(!d.length){ w.innerHTML=""; return; }
   // Agrupa por metric_type
   const grupos={}; for(const s of d){ (grupos[s.metric_type]=grupos[s.metric_type]||[]).push(s); }
@@ -1090,21 +1125,17 @@ function renderEstatisticas(){
     },0);
   }
 
-  // --- Indicadores individuais em DUAS CAMADAS (tema -> subgrupo), com desenho preguiçoso ---
+  // --- Gráficos individuais (indicadores avulsos; dados curados por grupo ficam nos chips de Cargas) ---
   const noCombi=new Set(temEntradas&&temSaidas?["Entradas","Saídas","Apólices"]:[]);
-  const restantes=tipos.filter(t=>!noCombi.has(t));
-  estatDefs={}; let _ci=0;
-  const _block=(tipo)=>{
+  tipos.filter(t=>!noCombi.has(t)).forEach((tipo,i)=>{
     const serie=grupos[tipo].sort((a,b)=>a.stat_year-b.stat_year);
     const anos=serie.map(s=>s.stat_year);
     const cur=serie[0].currency||""; const un=_un(cur);
-    const dec=(!isReis && _isMon(cur));
     const vals=serie.map(s=>_cv(s.value_numeric,s.stat_year,s.currency));
-    const canId="estat_"+(_ci); const cor=CORES[_ci%CORES.length]; _ci++;
-    estatDefs[canId]={anos,vals,un,dec,cor,tipo};
-    let x="<div style='font-weight:600;color:var(--ink2);font-size:12.6px;margin:8px 0 4px'>"+esc(tipo)+(un?" <span style='font-weight:400;color:var(--ink-muted);font-size:11px'>("+esc(un)+")</span>":"")+"</div>";
-    x+="<div style='position:relative;height:180px;margin-bottom:14px'><canvas id='"+canId+"'></canvas></div>";
-    x+="<div style='"+_TBOX+"'><table style='font-size:11.5px;border-collapse:collapse;width:auto'><thead><tr>"
+    const canId="estat_"+i;
+    h+="<div style='font-weight:600;color:var(--ink2);font-size:12.6px;margin:8px 0 4px'>"+esc(tipo)+(un?" <span style='font-weight:400;color:var(--ink-muted);font-size:11px'>("+esc(un)+")</span>":"")+"</div>";
+    h+="<div style='position:relative;height:180px;margin-bottom:14px'><canvas id='"+canId+"'></canvas></div>";
+    h+="<div style='"+_TBOX+"'><table style='font-size:11.5px;border-collapse:collapse;width:auto'><thead><tr>"
       +"<th style='background:#2f5496;color:#fff;padding:4px 10px;text-align:left'>Ano</th>"
       +"<th style='background:#2f5496;color:#fff;padding:4px 10px;text-align:right'>"+esc(tipo)+(un?" ("+esc(un)+")":"")+"</th>"
       +"</tr></thead><tbody>"
@@ -1113,58 +1144,18 @@ function renderEstatisticas(){
         +"<td style='padding:3px 10px;text-align:right;font-variant-numeric:tabular-nums'>"+_fmtN(_cv(s.value_numeric,s.stat_year,s.currency),cur)+"</td>"
         +"</tr>").join("")
       +"</tbody></table></div>";
-    return x;
-  };
-  const _cat=(mt)=>{
-    const s=mt||"";
-    if(/·/.test(s)){ const p=s.split("·"); return {tema:"Estatísticas por localidade", sub:p[0].trim()}; }
-    if(/popula/i.test(s)){ let sub="População — outros"; if(/por cor/i.test(s))sub="População por cor"; else if(/escrav/i.test(s))sub="População escrava"; else if(/total/i.test(s))sub="População total"; return {tema:"População", sub}; }
-    if(/cota[çc][aã]o|bolsa/i.test(s)) return {tema:"Bolsa de Valores do RJ", sub:"Cotações"};
-    if(/imigr/i.test(s)) return {tema:"Imigração", sub:"Entradas de imigrantes"};
-    return {tema:"Outros indicadores", sub:"Geral"};
-  };
-  const tree={}; restantes.forEach(tp=>{ const c=_cat(tp); (tree[c.tema]=tree[c.tema]||{}); (tree[c.tema][c.sub]=tree[c.tema][c.sub]||[]).push(tp); });
-  const temas=Object.keys(tree).sort((a,b)=>a.localeCompare(b,"pt"));
-  const usarAcc=(restantes.length>8 || temas.length>2);
-  if(!usarAcc){
-    restantes.forEach(tp=> h+=_block(tp));
-  } else {
-    h+="<p style='font-size:11px;color:var(--txt3);margin:6px 0 8px'>Indicadores organizados em dois níveis — clique num tema e depois num subgrupo para abrir os gráficos.</p>";
-    temas.forEach((tema,ti)=>{
-      const subs=Object.keys(tree[tema]).sort((a,b)=>a.localeCompare(b,"pt"));
-      const nM=subs.reduce((a,k)=>a+tree[tema][k].length,0);
-      const openT=(ti===0);
-      h+="<div style='border:1px solid var(--linha,#e3e8ef);border-radius:8px;margin:8px 0;overflow:hidden'>";
-      h+="<div onclick='estatTgTema(this)' style='cursor:pointer;background:var(--ink2,#2f5496);color:#fff;padding:8px 12px;font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center'><span>"+esc(tema)+" <span style='font-weight:400;opacity:.85;font-size:11px'>· "+nM+" indicadores</span></span><span class='acc-ar'>"+(openT?"▾":"▸")+"</span></div>";
-      h+="<div class='acc-tema-panel' style='padding:6px 12px;"+(openT?"":"display:none;")+"'>";
-      subs.forEach((sub,si)=>{
-        const openS=(openT && si===0);
-        h+="<div style='margin:6px 0'>";
-        h+="<div onclick='estatTgSub(this)' style='cursor:pointer;background:#eef2f8;color:#2f5496;padding:5px 10px;border-radius:6px;font-weight:600;font-size:12px;display:flex;justify-content:space-between;align-items:center'><span>"+esc(sub)+" <span style='font-weight:400;opacity:.7'>· "+tree[tema][sub].length+"</span></span><span class='acc-ar'>"+(openS?"▾":"▸")+"</span></div>";
-        h+="<div class='acc-sub-panel' style='padding:8px 2px 0;"+(openS?"":"display:none;")+"'>";
-        tree[tema][sub].forEach(tp=> h+=_block(tp));
-        h+="</div></div>";
-      });
-      h+="</div></div>";
-    });
-  }
+    setTimeout(()=>{
+      const cv=document.getElementById(canId); if(!cv) return;
+      const cor=CORES[i%CORES.length];
+      estatCharts.push(new Chart(cv,{type:"line",
+        data:{labels:anos,datasets:[{label:tipo,data:vals,borderColor:cor,backgroundColor:cor+"28",tension:.2,fill:true,pointRadius:4}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>_fmtN(c.parsed.y,cur)+(un?" "+un:"")}}},
+          scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10},callback:v=>Number(v).toLocaleString("pt-BR")},title:{display:!!un,text:un,color:"#7a8aa0",font:{size:10}}}}}}));
+    },0);
+  });
   w.innerHTML=h;
-  setTimeout(()=>{
-    if(!usarAcc){ Object.keys(estatDefs).forEach(id=>_estatDrawCanvas(id)); }
-    else { const ew=document.getElementById("estatWrap"); if(ew) ew.querySelectorAll(".acc-sub-panel").forEach(p=>{ if(p.style.display!=="none") p.querySelectorAll("canvas[id^='estat_']").forEach(cv=>_estatDrawCanvas(cv.id)); }); }
-  },0);
 }
-function _estatDrawCanvas(canId){
-  const def=estatDefs[canId]; if(!def) return;
-  const cv=document.getElementById(canId); if(!cv||cv._drawn) return; cv._drawn=true;
-  try{ estatCharts.push(new Chart(cv,{type:"line",
-    data:{labels:def.anos,datasets:[{label:def.tipo,data:def.vals,borderColor:def.cor,backgroundColor:def.cor+"28",tension:.2,fill:true,pointRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const v=c.parsed.y;return (v==null?"":Number(v).toLocaleString("pt-BR",def.dec?{minimumFractionDigits:2,maximumFractionDigits:2}:{}))+(def.un?" "+def.un:"");}}}},
-      scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10},callback:v=>Number(v).toLocaleString("pt-BR")},title:{display:!!def.un,text:def.un,color:"#7a8aa0",font:{size:10}}}}}})); }catch(e){}
-}
-function estatTgTema(el){ const p=el.nextElementSibling; if(!p)return; const open=(p.style.display==="none"); p.style.display=open?"":"none"; const ar=el.querySelector(".acc-ar"); if(ar)ar.textContent=open?"▾":"▸"; setTimeout(()=>{estatCharts.forEach(c=>{try{c.resize();}catch(e){}});},40); }
-function estatTgSub(el){ const p=el.nextElementSibling; if(!p)return; const open=(p.style.display==="none"); p.style.display=open?"":"none"; const ar=el.querySelector(".acc-ar"); if(ar)ar.textContent=open?"▾":"▸"; if(open){ p.querySelectorAll("canvas[id^='estat_']").forEach(cv=>_estatDrawCanvas(cv.id)); } setTimeout(()=>{estatCharts.forEach(c=>{try{c.resize();}catch(e){}});},40); }
 
 /* ----- SENADO DO IMPÉRIO — gráficos (só no dossiê do Senado) ----- */
 function renderSenado(){
@@ -1920,9 +1911,11 @@ const _catGrupo={
   'Indústria e manufatura':'Negócios da Escravidão','População e escravidão':'Negócios da Escravidão',
   'Indústria têxtil — total (1915)':'Indústria têxtil (1915)','Indústria têxtil — algodão (1915)':'Indústria têxtil (1915)','Indústria têxtil — lã, juta e seda (1915)':'Indústria têxtil (1915)',
   'Produção industrial (1925–29)':'Produção industrial',
+  'População por cor':'Demografia','População escrava':'Demografia','População total':'Demografia',
+  'Imigração (entradas anuais)':'Imigração','Cotações (Bolsa do RJ)':'Economia',
   'Engenhos por município (1852)':'Agricultura','Propriedades rurais por distrito (1950)':'Agricultura'
 };
-const _catOrder=['Censo 1872','Censo 1890','Lobo (1978)','Indústria têxtil (1915)','Produção industrial','Agricultura','Óbitos','Imigração','Negócios da Escravidão','Diversos','Outros'];
+const _catOrder=['Censo 1872','Censo 1890','Lobo (1978)','Demografia','Indústria têxtil (1915)','Produção industrial','Economia','Agricultura','Óbitos','Imigração','Negócios da Escravidão','Diversos','Outros'];
 // grupos ocultados da navegação (dados ficam no banco, só não aparecem na ficha)
 const _gruposOcultos=["Pop. histórica","Indústria e manufatura","População e escravidão"];
 function _catDe(g){return _catGrupo[g]||g;}
@@ -1951,14 +1944,16 @@ function barraFiltroCargas(){
     // --- nível 1: categorias ---
     const _catsAll=[...new Set(_og.map(_catDe))];
     const _cats=[..._catOrder.filter(c=>_catsAll.includes(c)),..._catsAll.filter(c=>!_catOrder.includes(c))];
-    let _catAtiva=(F._catAtiva&&_cats.includes(F._catAtiva))?F._catAtiva:(F._activeGrupo?_catDe(F._activeGrupo):_cats[0]);
-    if(!_cats.includes(_catAtiva))_catAtiva=_cats[0];
+    const _extraCats=[]; if((F.cotacoes||[]).length)_extraCats.push("Cotações"); if((F.bolsaAno||[]).length||(F.bolsaSetor||[]).length)_extraCats.push("Mercado");
+    const _catsFull=_cats.concat(_extraCats.filter(c=>!_cats.includes(c)));
+    let _catAtiva=(F._catAtiva&&_catsFull.includes(F._catAtiva))?F._catAtiva:(F._activeGrupo?_catDe(F._activeGrupo):_catsFull[0]);
+    if(!_catsFull.includes(_catAtiva))_catAtiva=_catsFull[0];
     const _ogCat=_og.filter(g=>_catDe(g)===_catAtiva);
     const tabSt=(act)=>"padding:5px 14px;border:1px solid "+(act?"#2f5496 #2f5496 transparent":"#d9e0ea")+";border-bottom:"+(act?"none":"1px solid #d9e0ea")+";border-radius:6px 6px 0 0;cursor:pointer;font-size:12px;background:"+(act?"#fff":"#f0f3f8")+";color:"+(act?_ink():"#41526b")+";margin-right:2px;position:relative;top:1px;font-weight:"+(act?"600":"400");
-    if(_cats.length>1){
+    if(_catsFull.length>1){
       h+="<div style='display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:9px'>";
       h+="<span style='font-size:11px;color:var(--ink-muted);font-weight:600;margin-right:4px'>Conjunto:</span>";
-      for(const _c of _cats){const act=_c===_catAtiva;h+="<button onclick='setCategoria(\""+esc1(_c)+"\")' style='padding:5px 15px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid "+(act?_ink():"#cdd6e2")+";background:"+(act?_ink():"#eef2f7")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"500")+"'>"+esc(_c)+"</button>";}
+      for(const _c of _catsFull){const act=_c===_catAtiva;h+="<button onclick='setCategoria(\""+esc1(_c)+"\")' style='padding:5px 15px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid "+(act?_ink():"#cdd6e2")+";background:"+(act?_ink():"#eef2f7")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"500")+"'>"+esc(_c)+"</button>";}
       h+="</div>";
     }
     // --- nível 2: grupos da categoria ativa (só quando houver mais de um) ---
@@ -2492,13 +2487,23 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   F._agg={porProd,ks,grupos,usarGrupo};
   if(usarGrupo&&!F._activeGrupo){const _prio=["Censo 1872","Raças 1872","Censo 1890"];const _firstG=_prio.find(g=>grupos.includes(g))||grupos.find(g=>g!=="Outros")||grupos[0];if(_firstG){F._activeGrupo=_firstG;if(_isEmbAutoGrp){F._activeAutoGrp=_firstG;F.cargaProds=new Set();}else{F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo===_firstG).map(k=>baseDe(k)));}}}
   if(!usarGrupo&&!F._initialized){const _fBases=[...new Set(ks.map(k=>baseDe(k)))];const _fDef=_fBases.find(b=>/total acumulado/i.test(b))||_fBases.find(b=>/acumul/i.test(b));if(_fDef)F.cargaProds.add(_fDef);}F._initialized=true;
-  const ehInventario=!!(F.bens&&F.bens.length);
-  let h="<div class='sech'>"+(F.cargas.length?("Cargas / estatísticas <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length && !ehInventario) h+=barraFiltroCargas();
+  const ehInventario=false; // inventário (bens) agora tem aba própria; não muda o render de Dados
+  let h="<div class='sech'>"+(F.cargas.length?("Dados <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length && !ehInventario) h+=barraFiltroCargas();
   if(ehInventario) h+="<p style='font-size:11.5px;color:var(--ink-muted);margin:2px 0 0'>Totais do inventário (retrato de "+(F.bens[0].ano||"")+", sem série temporal). Veja a distribuição no gráfico de “Bens do inventário” abaixo.</p>";
   else h+="<canvas id='graf' height='150'></canvas>";
   h+="<div id='cargaTabela'></div>";
   if(F.moeda!=="reis") h+="<p style='font-size:11px;color:var(--ink-muted);margin-top:6px'>Conversão pela tabela de Moura Filho (2010); só valores monetários (Soma/valor) convertem; ≈ = taxa do ano mais próximo (fora de 1795–1914).</p>";
   cw.innerHTML=h;
+  { // Cotações / Mercado integrados à navegação de Dados (mostra a seção rica no lugar do gráfico de estatísticas)
+    const _cotW=document.getElementById('cotacoesWrap'), _bolW=document.getElementById('bolsaWrap');
+    const _grafEl=document.getElementById('graf'), _tabEl=document.getElementById('cargaTabela');
+    const _showCot=(F._catAtiva==="Cotações" && (F.cotacoes||[]).length);
+    const _showBol=(F._catAtiva==="Mercado" && ((F.bolsaAno||[]).length||(F.bolsaSetor||[]).length));
+    if(_cotW)_cotW.style.display=_showCot?'':'none';
+    if(_bolW)_bolW.style.display=_showBol?'':'none';
+    if(_showCot||_showBol){ if(_grafEl)_grafEl.style.display='none'; if(_tabEl)_tabEl.style.display='none';
+      setTimeout(()=>{[chartCot,chartCotAtiv,chartBolsaA,chartBolsaS].forEach(c=>{try{c&&c.resize();}catch(e){}});},30); return; }
+  }
   if(F._activeGrupo==="Censo 1872"){renderCenso1872();return;}
   if(F._activeGrupo==="Raças 1872"){renderRacas();return;}
   if(F._activeGrupo==='Faixa etária 1872'){renderPiramide();return;}
