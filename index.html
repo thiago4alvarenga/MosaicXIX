@@ -90,6 +90,23 @@
   .status{ font-size:12.5px; color:var(--txt2); }
   .pill{ display:inline-block; background:rgba(46,122,80,.12); border-radius:20px; padding:1px 10px; font-size:11.5px; color:var(--verde); font-weight:600; }
 
+  /* ─── Paginação ─── */
+  .pagbar{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin:10px 2px 4px; }
+  .pag-info{ font-size:12px; color:var(--txt3); font-variant-numeric:tabular-nums; }
+  .pag-info b{ color:var(--txt2); font-weight:600; }
+  .pag-nav{ display:flex; align-items:center; gap:2px; }
+  .pag-b{ min-width:30px; height:30px; padding:0 8px; display:inline-flex; align-items:center; justify-content:center;
+          font-size:12.5px; font-family:inherit; font-variant-numeric:tabular-nums; color:var(--txt2);
+          background:transparent; border:1px solid transparent; border-radius:8px; cursor:pointer;
+          transition:background .13s ease, color .13s ease, border-color .13s ease; }
+  .pag-b:hover:not(:disabled):not(.on){ background:var(--hover); color:var(--ink2); }
+  .pag-b.on{ background:var(--verde); border-color:var(--verde); color:#fff; font-weight:700; }
+  .pag-b:disabled{ opacity:.3; cursor:default; }
+  .pag-gap{ padding:0 4px; color:var(--txt3); font-size:12.5px; user-select:none; }
+  .pag-size{ height:30px; padding:0 8px; font-size:12px; font-family:inherit; color:var(--txt2);
+             background:var(--card); border:1px solid var(--borda); border-radius:8px; cursor:pointer; }
+  .pag-size:focus{ outline:none; border-color:var(--verde); box-shadow:0 0 0 3px var(--ring); }
+
   /* ─── Tabela ─── */
   .tabela-box{ background:var(--card); border:1px solid var(--borda); border-radius:12px; overflow:auto; max-height:58vh; box-shadow:0 1px 4px rgba(0,0,0,.05); }
   table{ border-collapse:collapse; width:100%; font-size:12.8px; }
@@ -226,15 +243,36 @@
   .guia-card .gc-ic{ font-size:20px; margin-bottom:2px; }
   .guia-card b{ font-size:13px; font-weight:700; }
   .guia-card small{ font-size:11px; color:var(--txt2); }
-  .destaque-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:12px; margin-top:10px; }
-  .destaque-card{ display:flex; gap:13px; align-items:flex-start; text-align:left; background:var(--card); border:1px solid var(--borda); border-left:4px solid var(--verde); border-radius:14px; padding:15px 17px; cursor:pointer; transition:transform .1s, box-shadow .15s, border-color .15s; color:var(--txt); font-family:inherit; }
-  .destaque-card:hover{ box-shadow:var(--shadow); transform:translateY(-2px); }
-  .destaque-ic{ flex:0 0 auto; width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:23px; }
-  .destaque-bd{ display:flex; flex-direction:column; min-width:0; }
-  .destaque-tag{ align-self:flex-start; font-size:10px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; color:var(--txt3); border:1px solid var(--borda); border-radius:20px; padding:2px 9px; margin-bottom:6px; }
-  .destaque-h4{ font-size:14.5px; font-weight:700; color:var(--ink2); margin-bottom:3px; }
-  .destaque-p{ font-size:12px; color:var(--txt2); line-height:1.5; margin-bottom:7px; }
-  .destaque-cta{ font-size:12px; font-weight:700; color:var(--verde); }
+  /* ─── Destaques: herói + secundários ─── */
+  .destaque-grid{ display:grid; grid-template-columns:1.4fr 1fr; gap:14px; margin-top:12px; align-items:stretch; }
+  @media(max-width:960px){ .destaque-grid{ grid-template-columns:1fr; } }
+  .destaque-sec{ display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .dcard{ position:relative; overflow:hidden; text-align:left; background:var(--card); border:1px solid var(--borda);
+          border-radius:16px; cursor:pointer; color:var(--txt); font-family:inherit;
+          transition:transform .12s ease, box-shadow .18s ease, border-color .18s ease; }
+  .dcard::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:3px; background:var(--dc); }
+  .dcard:hover{ transform:translateY(-2px); box-shadow:0 10px 26px rgba(0,0,0,.10); border-color:var(--dc); }
+  .dcard:focus-visible{ outline:none; border-color:var(--dc); box-shadow:0 0 0 3px color-mix(in srgb, var(--dc) 22%, transparent); }
+  .dc-tag{ align-self:flex-start; font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+           color:var(--dc); background:color-mix(in srgb, var(--dc) 12%, transparent); border-radius:20px; padding:3px 10px; }
+  .dc-body{ display:block; min-width:0; }
+  .dc-cta{ font-size:12.5px; font-weight:700; color:var(--dc); display:inline-flex; align-items:center; gap:5px; transition:gap .15s ease; }
+  .dcard:hover .dc-cta{ gap:10px; }
+  /* herói */
+  .dcard.hero{ display:flex; flex-direction:column; justify-content:space-between; gap:14px; padding:22px 24px; min-height:238px;
+               background:linear-gradient(145deg, color-mix(in srgb, var(--dc) 10%, var(--card)) 0%, var(--card) 60%); }
+  .dcard.hero .dc-num{ display:block; font-size:44px; line-height:1; font-weight:800; letter-spacing:-.025em; color:var(--dc); }
+  .dcard.hero .dc-num small{ font-size:13px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--txt3); margin-left:8px; }
+  .dcard.hero .dc-h{ display:block; font-size:19px; font-weight:700; color:var(--ink2); letter-spacing:-.01em; margin:11px 0 6px; }
+  .dcard.hero .dc-p{ display:block; font-size:12.5px; color:var(--txt2); line-height:1.55; }
+  /* secundários */
+  .dcard.mini{ display:flex; align-items:center; gap:13px; padding:14px 16px 14px 18px; flex:1; }
+  .dc-ic{ flex:0 0 auto; width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+          font-size:19px; background:color-mix(in srgb, var(--dc) 13%, transparent); }
+  .dcard.mini .dc-h{ display:block; font-size:13.5px; font-weight:700; color:var(--ink2); line-height:1.3; }
+  .dcard.mini .dc-p{ display:block; font-size:11.5px; color:var(--txt3); line-height:1.45; margin-top:3px; }
+  .dc-arrow{ margin-left:auto; flex:0 0 auto; font-size:15px; font-weight:700; color:var(--dc); opacity:.55; transition:opacity .15s ease, transform .15s ease; }
+  .dcard.mini:hover .dc-arrow{ opacity:1; transform:translateX(3px); }
 
   /* ─── Fontes ─── */
   .fontes-bar{ display:flex; align-items:center; gap:12px; margin:0 2px 14px; flex-wrap:wrap; }
@@ -248,6 +286,10 @@
   .fonte-badge{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#fff; background:var(--verde); border-radius:20px; padding:2px 9px; }
   .fonte-ano{ font-size:12px; color:var(--txt3); font-weight:600; font-variant-numeric:tabular-nums; }
   .fonte-ref{ font-size:13px; line-height:1.5; color:var(--txt); overflow-wrap:anywhere; word-break:break-word; }
+  .fonte-nome{ font-size:14px; font-weight:700; line-height:1.35; color:var(--ink2,var(--txt)); overflow-wrap:anywhere; word-break:break-word; }
+  .fonte-abnt{ font-size:11.5px; line-height:1.5; color:var(--txt2); overflow-wrap:anywhere; word-break:break-word; }
+  .fonte-badge.aut{ background:#5a6b8c; }
+  .fonte-aut{ border-left:3px solid #5a6b8c; }
   .fonte-meta{ font-size:11px; color:var(--txt2); line-height:1.5; overflow-wrap:anywhere; word-break:break-word; }
   .fonte-meta b{ color:var(--verde); }
   .fonte-acoes{ margin-top:2px; }
@@ -347,33 +389,41 @@
   <div class="painel-guia" style="margin-top:22px">
     <h3>Destaques do acervo <span style="font-weight:400;color:var(--txt3)">— conjuntos de fontes específicas, prontos para explorar</span></h3>
     <div class="destaque-grid">
-      <button class="destaque-card" style="border-left-color:#1d6e56" onclick="_abrirStatPopup('popup-poupancas', _loadPoupancas)">
-        <span class="destaque-ic" style="background:rgba(29,110,86,.14)">💰</span>
-        <span class="destaque-bd">
-          <span class="destaque-tag">Caixa Econômica · 1866–1931</span>
-          <span class="destaque-h4">Poupadores populares da Corte</span>
-          <span class="destaque-p">Cadernetas de <b>2.401 trabalhadores</b> — mascates, costureiras, marinheiros — incluindo poupadores <b>escravizados</b> e <b>libertos</b>. Perfil por profissão, condição social e gênero.</span>
-          <span class="destaque-cta">Explorar poupanças →</span>
+      <button class="dcard hero" style="--dc:#1d6e56" onclick="_abrirStatPopup('popup-poupancas', _loadPoupancas)">
+        <span class="dc-tag">Caixa Econômica da Corte · 1866–1931</span>
+        <span class="dc-body">
+          <span class="dc-num">2.401<small>poupadores</small></span>
+          <span class="dc-h">Quem guardava dinheiro no Império</span>
+          <span class="dc-p">Cadernetas de mascates, costureiras e marinheiros — e também de pessoas <b>escravizadas</b> e <b>libertas</b>, que pouparam antes mesmo de serem livres. Perfil por profissão, condição social e gênero.</span>
         </span>
+        <span class="dc-cta">Explorar poupanças →</span>
       </button>
-      <button class="destaque-card" style="border-left-color:#ba7517" onclick="_abrirStatPopup('popup-alforrias-mpb', _loadAlforriasMPB)">
-        <span class="destaque-ic" style="background:rgba(186,117,23,.16)">🕊️</span>
-        <span class="destaque-bd">
-          <span class="destaque-tag">Salvador · 1831–1840</span>
-          <span class="destaque-h4">Cartas de alforria na Bahia</span>
-          <span class="destaque-p">Quando, a que preço e de quais nações e cores eram as pessoas que compraram ou receberam liberdade. Fonte: Mann &amp; Andrade.</span>
-          <span class="destaque-cta">Explorar alforrias →</span>
-        </span>
-      </button>
-      <button class="destaque-card" style="border-left-color:#2f5496" onclick="_abrirStatPopup('popup-demografia-ibge', _loadDemografiaIBGE)">
-        <span class="destaque-ic" style="background:rgba(47,84,150,.14)">🌎</span>
-        <span class="destaque-bd">
-          <span class="destaque-tag">Brasil · 1550–1991</span>
-          <span class="destaque-h4">Cinco séculos de população</span>
-          <span class="destaque-p">População total, escravizada e por cor ao longo dos censos — a demografia que emoldura as trajetórias do acervo. Fonte: IBGE.</span>
-          <span class="destaque-cta">Explorar demografia →</span>
-        </span>
-      </button>
+      <div class="destaque-sec">
+        <button class="dcard mini" style="--dc:#ba7517" onclick="_abrirStatPopup('popup-alforrias-mpb', _loadAlforriasMPB)">
+          <span class="dc-ic">🕊️</span>
+          <span class="dc-body">
+            <span class="dc-h">Cartas de alforria na Bahia</span>
+            <span class="dc-p">Salvador, 1831–1840 · a que preço e de quais nações se comprava a liberdade</span>
+          </span>
+          <span class="dc-arrow">→</span>
+        </button>
+        <button class="dcard mini" style="--dc:#0e7490" onclick="_abrirStatPopup('popup-fsm', _loadFSM)">
+          <span class="dc-ic">⛵</span>
+          <span class="dc-body">
+            <span class="dc-h">Cargas e embarcações do Atlântico</span>
+            <span class="dc-p">Pernambuco–Portugal, 1756–1807 · 1.287 viagens, 577 embarcações</span>
+          </span>
+          <span class="dc-arrow">→</span>
+        </button>
+        <button class="dcard mini" style="--dc:#2f5496" onclick="_abrirStatPopup('popup-demografia-ibge', _loadDemografiaIBGE)">
+          <span class="dc-ic">🌎</span>
+          <span class="dc-body">
+            <span class="dc-h">Cinco séculos de população</span>
+            <span class="dc-p">Brasil, 1550–1991 · o Censo de 1872 em detalhe e a escravidão província a província</span>
+          </span>
+          <span class="dc-arrow">→</span>
+        </button>
+      </div>
     </div>
   </div>
   <div class="painel-guia">
@@ -442,6 +492,7 @@
       <th onclick="setSort('nome')" id="th_nome" style="cursor:pointer">Nome</th><th>Tipo</th><th>Período</th><th class="num" onclick="setSort('pontuacao')" id="th_pontuacao" style="cursor:pointer">Relevância</th><th class="num" onclick="setSort('n_registros')" id="th_n_registros" style="cursor:pointer">Estat.</th><th class="num" onclick="setSort('n_relacoes')" id="th_n_relacoes" style="cursor:pointer">Rel.</th>
     </tr></thead><tbody id="tbody"></tbody></table>
   </div>
+  <div class="pagbar" id="pagbar"></div>
 </div>
 
 <div class="wrap" id="fontes-section" style="display:none">
@@ -588,17 +639,8 @@
       <div id="stat-alforrias-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
       <div id="stat-alforrias-body" style="display:none">
         <div class="card-chart" style="box-shadow:none;border:none;padding:0">
-          <h3 style="font-size:13px">Condição jurídica ao longo do tempo <span style="font-weight:400;color:var(--txt3)">(arraste o slider para ver a composição da base em cada ano)</span></h3>
-          <div style="display:flex;align-items:center;gap:12px;margin:8px 0 14px">
-            <span style="font-size:12px;color:var(--txt3)">ano</span>
-            <input type="range" id="cohorteAno" style="flex:1" oninput="atualizaCohorte(+this.value)">
-            <span id="cohorteAnoLbl" style="font-weight:600;min-width:42px;text-align:right">—</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px">
-            <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px">Alforrias registradas por ano (imediatas × diferidas)</div><div class="chart-wrap"><canvas id="dashPorAno"></canvas></div></div>
-            <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px">Composição da base no ano selecionado</div><div class="chart-wrap"><canvas id="dashCohorteDonut"></canvas></div></div>
-          </div>
-          <div style="font-size:12px;color:var(--txt3);margin-top:10px" id="cohorteResumo"></div>
+          <h3 style="font-size:13px">Alforrias registradas por ano <span style="font-weight:400;color:var(--txt3)">(imediatas × diferidas)</span></h3>
+          <div class="chart-wrap" style="height:260px;margin-top:8px"><canvas id="dashPorAno"></canvas></div>
         </div>
         <div class="card-chart" style="box-shadow:none;border:none;padding:0;margin-top:18px">
           <h3 style="font-size:13px">Perfil das alforrias</h3>
@@ -633,6 +675,32 @@
           <div class="chart-wrap" style="height:360px"><canvas id="dashPopCor"></canvas></div>
           <div style="font-size:11px;color:var(--txt3);margin-top:8px">Barras empilhadas; categorias "amarela" e "sem declaração" só passaram a ser apuradas a partir de 1940.</div>
         </div>
+
+        <div style="margin-top:26px;padding-top:20px;border-top:1px solid var(--borda)">
+          <h3 style="font-size:15px;color:var(--ink2);margin:0 0 4px">O Censo de 1872 em detalhe</h3>
+          <p style="font-size:11.5px;color:var(--txt3);margin:0 0 16px;line-height:1.55">Primeiro recenseamento geral do Império. Os números abaixo agregam os <b>636 municípios</b> do acervo e somam <b>9.930.478 pessoas</b> — o total oficial do censo. Cada dimensão reparte essa mesma população de um jeito diferente.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+            <div>
+              <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Saber ler e escrever <span style="font-weight:400">(por sexo)</span></div>
+              <div class="chart-wrap" style="height:250px"><canvas id="grafCensoInstrucao"></canvas></div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Cor/raça declarada <span style="font-weight:400">(por sexo)</span></div>
+              <div class="chart-wrap" style="height:250px"><canvas id="grafCensoRaca"></canvas></div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Condição e origem <span style="font-weight:400">(livres × escravizados)</span></div>
+              <div class="chart-wrap" style="height:250px"><canvas id="grafCensoCondicao"></canvas></div>
+            </div>
+          </div>
+          <div id="censoNota" style="font-size:11.5px;color:var(--txt2);line-height:1.6;margin-top:14px;padding:12px 14px;background:rgba(47,84,150,.07);border-radius:10px"></div>
+        </div>
+
+        <div class="card-chart" style="box-shadow:none;border:none;padding:0;margin-top:24px">
+          <h3 style="font-size:13px">População escravizada por província <span style="font-weight:400;color:var(--txt3)">(1864–1887)</span></h3>
+          <div class="chart-wrap" style="height:520px"><canvas id="grafEscravosProv"></canvas></div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:8px">Quatro levantamentos entre a Lei do Ventre Livre e a Abolição. A queda é desigual: as províncias do Norte e Nordeste esvaziam-se muito antes do Sudeste cafeeiro, para onde parte dessas pessoas foi vendida no tráfico interprovincial.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -651,12 +719,65 @@
         <p style="font-size:12px;color:var(--txt3);margin:8px 0 12px">Clique em qualquer fatia, barra ou categoria para abrir a busca já filtrada com esses poupadores — cada resultado leva ao dossiê com a caderneta de poupança.</p>
         <div id="poup-destaque" style="display:none"></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:4px">
-          <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Por gênero</div><div class="chart-wrap"><canvas id="grafPoupGenero"></canvas></div></div>
-          <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Por condição social <span style="font-weight:400">(escravizados/libertos em destaque)</span></div><div class="chart-wrap"><canvas id="grafPoupCategoria"></canvas></div></div>
-          <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Por profissão <span style="font-weight:400">(principais)</span></div><div class="chart-wrap"><canvas id="grafPoupOcupacao"></canvas></div></div>
-          <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Depósitos por década</div><div class="chart-wrap"><canvas id="grafPoupDecada"></canvas></div></div>
+          <div>
+            <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Por gênero</div>
+            <div class="chart-wrap"><canvas id="grafPoupGenero"></canvas></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Por condição social <span style="font-weight:400">(anel interno: grupo · externo: detalhe)</span></div>
+            <div class="chart-wrap"><canvas id="grafPoupCategoria"></canvas></div>
+            <div style="font-size:10.5px;color:var(--txt3);line-height:1.5;margin-top:6px">"Livres" reúne pessoas livres e menores; sem esse agrupamento a fatia dominante achataria as demais.</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Por profissão <span style="font-weight:400">(principais)</span></div>
+            <div class="chart-wrap"><canvas id="grafPoupOcupacao"></canvas></div>
+            <div style="font-size:10.5px;color:var(--txt3);line-height:1.5;margin-top:6px">Formas masculina e feminina do mesmo ofício aparecem unificadas — Criado(a), Cozinheiro(a), Enfermeiro(a). Ofícios exercidos só por mulheres na fonte (costureira, lavadeira, engomadeira, modista) mantêm a forma registrada.</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Cadernetas abertas por década</div>
+            <div class="chart-wrap"><canvas id="grafPoupDecada"></canvas></div>
+            <div style="font-size:10.5px;color:var(--txt3);line-height:1.5;margin-top:6px">Cada barra conta <b>poupadores cuja caderneta foi aberta</b> naquela década — não o número de depósitos. O pico dos 1890 acompanha a expansão da Caixa após a Abolição e a República.</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Perfil de uso da caderneta</div>
+            <div class="chart-wrap"><canvas id="grafPoupUso"></canvas></div>
+            <div style="font-size:10.5px;color:var(--txt3);line-height:1.5;margin-top:6px">Quantos movimentos (entradas, retiradas e transportes) cada caderneta registrou. Distingue a poupança <b>pontual</b> — aberta, usada uma vez e abandonada — da poupança de <b>uso contínuo</b>. "Sem movimento registrado" são cadernetas de que só sobreviveu o saldo, sem o lançamento das operações.</div>
+          </div>
+          <div id="poup-amostra" style="border:1px solid var(--borda);border-radius:12px;padding:14px 16px;background:var(--card2)"></div>
         </div>
         <div style="margin-top:18px;text-align:center"><button class="btn-buscar" id="poup-vertodos" onclick="buscarPoupadores(null,null,'Todos os poupadores da Caixa')">Ver todos os poupadores →</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="popup-fsm">
+  <div class="modal" style="width:min(1100px,96vw)">
+    <header>
+      <div style="color:#fff;font-size:16px;font-weight:600">⛵ Cargas e embarcações do Atlântico <span style="font-weight:400;font-size:12px;opacity:.85">— comércio Pernambuco–Portugal (Souza Melo)</span></div>
+      <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-fsm')" aria-label="Fechar">&times;</button></div>
+    </header>
+    <div class="ficha" style="height:74vh">
+      <div id="stat-fsm-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
+      <div id="stat-fsm-body" style="display:none">
+        <div id="fsm-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:6px"></div>
+        <p style="font-size:12px;color:var(--txt3);margin:8px 0 12px">Uma <b>viagem</b> é o registro de uma embarcação num ano e rota; a mesma embarcação podia repetir a travessia por décadas. Clique em qualquer barra de <b>proprietário</b> ou <b>capitão</b> para abrir o dossiê correspondente.</p>
+        <div style="margin:4px 0 22px">
+          <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Viagens por ano <span style="font-weight:400">— por rota, 1756–1807</span></div>
+          <div class="chart-wrap" style="height:300px"><canvas id="grafFsmViagens"></canvas></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:4px">
+          <div>
+            <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Tipos de embarcação</div>
+            <div class="chart-wrap"><canvas id="grafFsmTipos"></canvas></div>
+            <div style="font-size:10.5px;color:var(--txt3);line-height:1.5;margin-top:6px">Aparelho de navegação registrado nos cartórios de Lisboa (BD2 do mesmo autor), cruzado com as embarcações desta fonte. O <b>navio</b> — de maior porte e três mastros — domina a rota de longo curso; sumacas e brigues, menores, aparecem de forma marginal.</div>
+          </div>
+          <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Embarcações distintas por década</div><div class="chart-wrap"><canvas id="grafFsmDecada"></canvas></div></div>
+          <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Cargas por categoria <span style="font-weight:400">(nº de registros)</span></div><div class="chart-wrap"><canvas id="grafFsmProdutos"></canvas></div></div>
+          <div style="grid-column:1/-1"><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Maiores proprietários <span style="font-weight:400">(nº de embarcações · clique para abrir o dossiê)</span></div><div class="chart-wrap" style="height:300px"><canvas id="grafFsmProprietarios"></canvas></div></div>
+          <div style="grid-column:1/-1"><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Capitães mais atuantes <span style="font-weight:400">(nº de embarcações · clique para abrir o dossiê)</span></div><div class="chart-wrap" style="height:300px"><canvas id="grafFsmCapitaes"></canvas></div></div>
+        </div>
+        <div style="margin-top:18px;text-align:center"><button class="btn-buscar" onclick="_fecharStatPopup('popup-fsm');irParaBusca({tipo:'Embarcação'})">Ver todas as embarcações →</button></div>
       </div>
     </div>
   </div>
@@ -819,14 +940,56 @@ async function buscar(){
   try{
     const {dados,total}=await getJSON(montarURL(),true); ultimaBusca=dados;
     const cols=_modoRede?7:6;
-    if(!dados.length){ tbody.innerHTML='<tr><td colspan="'+cols+'" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; return; }
+    _pag.page=1;
+    if(!dados.length){ tbody.innerHTML='<tr><td colspan="'+cols+'" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; const _pb=document.getElementById('pagbar'); if(_pb)_pb.innerHTML=''; return; }
     _renderTbody();
     status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
   }catch(e){ status.textContent="Erro: "+e.message; }
 }
+var _pag={page:1,size:50};
+function _irPag(n){ _pag.page=n; _renderTbody(); var tb=document.querySelector('.tabela-box'); if(tb) tb.scrollTop=0; }
+function _setPagSize(v){ _pag.size=(v==='all')?'all':Number(v); _pag.page=1; _renderTbody(); }
+function _renderPagbar(tot,ini,mostrados,nPag){
+  var bar=document.getElementById('pagbar'); if(!bar) return;
+  if(!tot){ bar.innerHTML=''; return; }
+  var p=_pag.page;
+  var nums=[], i;
+  if(nPag<=7){ for(i=1;i<=nPag;i++) nums.push(i); }
+  else{
+    nums.push(1);
+    var a=Math.max(2,p-1), b=Math.min(nPag-1,p+1);
+    if(a>2) nums.push('…');
+    for(i=a;i<=b;i++) nums.push(i);
+    if(b<nPag-1) nums.push('…');
+    nums.push(nPag);
+  }
+  var botoes=nums.map(function(n){
+    if(n==='…') return '<span class="pag-gap">…</span>';
+    return '<button class="pag-b'+(n===p?' on':'')+'" onclick="_irPag('+n+')"'+(n===p?' aria-current="page"':'')+'>'+n+'</button>';
+  }).join('');
+  var opts=[25,50,100,200].map(function(s){ return '<option value="'+s+'"'+(_pag.size===s?' selected':'')+'>'+s+' por página</option>'; }).join('')
+    +'<option value="all"'+(_pag.size==='all'?' selected':'')+'>Todos</option>';
+  bar.innerHTML=
+    '<div class="pag-info"><b>'+_fmt(ini+1)+'–'+_fmt(ini+mostrados)+'</b> de '+_fmt(tot)+' carregados</div>'
+    +'<div class="pag-nav">'
+      +'<button class="pag-b" onclick="_irPag('+(p-1)+')"'+(p<=1?' disabled':'')+' aria-label="Página anterior">‹</button>'
+      +botoes
+      +'<button class="pag-b" onclick="_irPag('+(p+1)+')"'+(p>=nPag?' disabled':'')+' aria-label="Próxima página">›</button>'
+      +'<select class="pag-size" onchange="_setPagSize(this.value)" style="margin-left:8px" aria-label="Itens por página">'+opts+'</select>'
+    +'</div>';
+}
 function _renderTbody(){
-  const tbody=document.getElementById("tbody"); if(!tbody||!ultimaBusca.length) return;
-  tbody.innerHTML=ultimaBusca.map(d=>{
+  const tbody=document.getElementById("tbody"); if(!tbody) return;
+  if(!ultimaBusca.length){ _renderPagbar(0,0,0,1); return; }
+  const _tot=ultimaBusca.length;
+  const _size=(_pag.size==='all')?_tot:_pag.size;
+  const _nPag=Math.max(1,Math.ceil(_tot/_size));
+  if(_pag.page>_nPag) _pag.page=_nPag;
+  if(_pag.page<1) _pag.page=1;
+  const _ini=(_pag.page-1)*_size;
+  const _fatia=ultimaBusca.slice(_ini,_ini+_size);
+  _renderPagbar(_tot,_ini,_fatia.length,_nPag);
+  tbody.innerHTML=_fatia.map(d=>{
     const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
     if(_modoRede){
       const sel=_selecao.has(d.actor_id);
@@ -854,6 +1017,28 @@ function _renderTbody(){
 function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value=""); document.getElementById("tipo").value=""; document.getElementById("catsoc").value=""; document.getElementById("genero").value=""; document.getElementById("subtipo").value=""; const rel=document.getElementById("relacao"); if(rel)rel.value=""; const nob=document.getElementById("nobreza"); if(nob)nob.value=""; ["campo-catsoc","campo-genero","campo-subtipo","campo-nobreza"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";}); document.getElementById("limite").value="300"; buscar(); }
 
 /* ----- DOSSIÊ ----- */
+/* Alerta de identidade possivelmente coincidente (flag possivel_mesma_pessoa) */
+function _renderFlagIdentidade(){
+  try{
+    var box=document.getElementById('ficha'); if(!box) return;
+    var antigo=document.getElementById('flag-identidade'); if(antigo) antigo.remove();
+    var fs=(F&&F.flags)||[]; if(!fs.length) return;
+    var itens=fs.map(function(f){
+      if(f.ref_actor_id==null) return '<li style="margin:3px 0">'+esc(f.flag_reason)+'</li>';
+      return '<li style="margin:3px 0">Pode ser a mesma pessoa que '
+        +'<a onclick="abrirFicha('+f.ref_actor_id+')" style="cursor:pointer;font-weight:700;color:var(--ink2);text-decoration:underline">'
+        +esc(f.ref_nome||('ator '+f.ref_actor_id))+'</a> '
+        +'<span style="color:var(--txt3)">(#'+f.ref_actor_id+')</span></li>';
+    }).join('');
+    var el=document.createElement('div');
+    el.id='flag-identidade';
+    el.style.cssText='border:1px solid #ba7517;background:rgba(186,117,23,.09);border-radius:10px;padding:12px 14px;margin:0 0 16px';
+    el.innerHTML='<div style="font-size:12.5px;font-weight:700;color:var(--ink2);margin-bottom:6px">⚠️ Identidade a confirmar</div>'
+      +'<ul style="margin:0;padding-left:18px;font-size:12px;color:var(--txt2);line-height:1.55">'+itens+'</ul>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-top:8px">Registros mantidos separados porque a identidade <b>não</b> foi confirmada. Se você dispuser de evidência documental que prove tratar-se da mesma pessoa, os atores podem ser fundidos.</div>';
+    box.insertBefore(el, box.firstChild);
+  }catch(e){ console.warn('flag identidade',e); }
+}
 async function abrirFicha(id){
   window._fichaId=id;
   document.getElementById("overlay").classList.add("on");
@@ -874,10 +1059,11 @@ async function abrirFicha(id){
       bolsaSetor=(await getJSON("v_bolsa_por_setor?select=setor,emissores,ativos&order=ativos.desc")).dados;
       bolsaFonte=(await getJSON("v_bolsa_fonte?select=fonte,base_dados,autor,contribuidor")).dados[0]||null;
     }
+    const flg=await getJSON("v_actor_flags?actor_id=eq."+id+"&flag_type=eq.possivel_mesma_pessoa&select=flag_reason,ref_actor_id,ref_nome,ref_tipo&limit=50");
     const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
     let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
-    F={ idAtual:id, info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados.filter(c=>!/Bolsa do RJ/i.test(c.produto||"")), bens:ben.dados, cotacoes:cot.dados, stats:sta.dados, caderneta:cad.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:((det.institution_type||"")==="Bolsa de valores"?"negociacao":"count"), redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
-    renderHead(); renderRede(); renderFichaTudo(); carregarRedeAgg();
+    F={ idAtual:id, info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados.filter(c=>!/Bolsa do RJ/i.test(c.produto||"")), bens:ben.dados, cotacoes:cot.dados, stats:sta.dados, caderneta:cad.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, flags:flg.dados, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:((det.institution_type||"")==="Bolsa de valores"?"negociacao":"count"), redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
+    renderHead(); renderRede(); renderFichaTudo(); carregarRedeAgg(); _renderFlagIdentidade();
     // Mini-mapa no dossiê (após render principal)
     const _tipo=mv.tipo||""; const _po=(det.place_of_origin||"");
     const _notes=det.notas||""; const _nome=det.nome||""; const _instType=det.institution_type||"";
@@ -2481,6 +2667,8 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   const porProd={};
   for(const c of cargasFiltradas()){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:"",ultimoAno:null,ultimoVal:null}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(c.ano!=null&&(o.ultimoAno==null||c.ano>=o.ultimoAno)){o.ultimoAno=c.ano;o.ultimoVal=Number(c.valor);} if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
+  const _anosTodos=new Set(); ks.forEach(k=>porProd[k].anos.forEach(y=>_anosTodos.add(y)));
+  const _semSerie=(_anosTodos.size<=1 && ks.length>0);
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; let usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
   const _isEmbAutoGrp=!usarGrupo&&F.mv&&F.mv.tipo==="Embarcação";
   if(_isEmbAutoGrp){for(const k in porProd)porProd[k].grupo=_autoGrpEmb(baseDe(k));grupos.length=0;[...new Set(Object.keys(porProd).map(k=>porProd[k].grupo))].forEach(g=>grupos.push(g));const _emOrd=["Açúcar","Coloniais","Madeiras","Couros","Outros","Totais"];grupos.sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));usarGrupo=!(grupos.length===1&&grupos[0]==="Outros");}
@@ -2513,7 +2701,31 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   if(F._activeGrupo==="Óbitos"){renderObitos();return;}
   if(F._activeGrupo==="Imigração"){renderImigracao();return;}
   if(F._activeGrupo==="Censo 1890"){renderCenso1890();return;}
+  if(_semSerie){ const _g=document.getElementById('graf'); if(_g)_g.style.display='none'; renderSnapshot(_anosTodos); return; }
   renderGrafico(); renderTabelaSerie();
+}
+/* Quadro-resumo para dados sem progressão cronológica (um único ano) */
+function renderSnapshot(anosSet){
+  const ct=document.getElementById("cargaTabela"); if(!ct) return;
+  const A=F._agg||{porProd:{},ks:[]}; const porProd=A.porProd||{}; const ks=(A.ks||[]);
+  if(!ks.length){ ct.innerHTML=""; return; }
+  const anos=[...(anosSet||[])];
+  const ano=anos.length?anos[0]:null;
+  let h="<p style='font-size:11.5px;color:var(--ink-muted);margin:8px 0 10px'>"
+       +"Retrato de um único momento"+(ano?(" (<b>"+ano+"</b>)"):"")
+       +" — como não há progressão ao longo do tempo, os valores aparecem como quadro-resumo em vez de gráfico.</p>";
+  h+="<div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px'>";
+  for(const k of ks){
+    const o=porProd[k]; if(!o) continue;
+    const ys=[...o.anos].sort();
+    h+="<div style='border:1px solid var(--borda);border-radius:10px;padding:11px 13px;background:var(--card)'>"
+      +"<div style='font-size:11.5px;color:var(--txt3);line-height:1.35'>"+esc(k)+"</div>"
+      +"<div style='font-size:17px;font-weight:700;color:var(--ink2);margin-top:6px;word-break:break-word'>"+fmtSomaCargo(o)+"</div>"
+      +(ys.length&&ys[0]!=ano?("<div style='font-size:10.5px;color:var(--txt3);margin-top:3px'>"+ys.join(", ")+"</div>"):"")
+      +"</div>";
+  }
+  h+="</div>";
+  ct.innerHTML=h;
 }
 function autoModo(){
   if(F.cargaProds&&F.cargaProds.size>0){
@@ -2782,13 +2994,13 @@ carregarHeaderCounts();
 carregarCategorias();
 document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
-["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas"].forEach(function(pid){
+["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm"].forEach(function(pid){
   var el=document.getElementById(pid);
   if(el) el.addEventListener("click",function(e){ if(e.target.id===pid) _fecharStatPopup(pid); });
 });
 document.addEventListener("keydown",function(e){
   if(e.key!=="Escape") return;
-  ["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas"].forEach(function(pid){ _fecharStatPopup(pid); });
+  ["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm"].forEach(function(pid){ _fecharStatPopup(pid); });
 });
 buscar();carregarSubtipos();setTimeout(()=>_updSortArrows(),100);
 
@@ -2897,18 +3109,82 @@ async function _loadDemografiaIBGE(){
     if(!cache){
       if(load){load.style.display='';load.textContent='Carregando…';} if(box)box.style.display='none';
       var q=async(p)=>{ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn('Painel:',p,e); return []; } };
-      var [popBrasil,popEscrava,popCor]=await Promise.all([
+      var [popBrasil,popEscrava,popCor,cInstr,cRaca,cCond,escProv]=await Promise.all([
         q("v_dash_populacao_brasil?select=*&order=ano"),
         q("v_dash_populacao_escrava_brasil?select=*&order=ano"),
-        q("v_dash_populacao_cor?select=*&order=ano")
+        q("v_dash_populacao_cor?select=*&order=ano"),
+        q("v_dash_censo1872_instrucao?select=*"),
+        q("v_dash_censo1872_raca?select=*"),
+        q("v_dash_censo1872_condicao?select=*"),
+        q("v_dash_escravos_provincia?select=*&order=ano")
       ]);
-      cache=window._demografiaIBGEData={popBrasil:popBrasil,popEscrava:popEscrava,popCor:popCor};
+      cache=window._demografiaIBGEData={popBrasil:popBrasil,popEscrava:popEscrava,popCor:popCor,cInstr:cInstr,cRaca:cRaca,cCond:cCond,escProv:escProv};
     }
     applyChartTheme();
     _renderPopBrasil(cache.popBrasil, cache.popEscrava);
     _renderPopCor(cache.popCor);
+    _renderCenso1872(cache);
     if(load)load.style.display='none'; if(box)box.style.display='';
   }catch(e){ console.error('_loadDemografiaIBGE',e); window._demografiaIBGEData=null; if(load){load.style.display='';load.textContent='Não foi possível carregar agora.';} if(box)box.style.display='none'; }
+}
+/* ===== Censo de 1872 (seção do popup de Demografia) ===== */
+var censoCharts={};
+function _censoDestroy(k){ try{ if(censoCharts[k]){ censoCharts[k].destroy(); censoCharts[k]=null; } }catch(e){} }
+function _censoSexoBar(key,elId,rows,campo,ordem,cores){
+  rows=rows||[]; var el=document.getElementById(elId); if(!el) return; _censoDestroy(key);
+  var cats=[]; rows.forEach(function(r){ if(cats.indexOf(r[campo])<0) cats.push(r[campo]); });
+  if(ordem) cats.sort(function(a,b){ var ia=ordem.indexOf(a), ib=ordem.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); });
+  var idx={}; rows.forEach(function(r){ idx[r[campo]+'|'+r.sexo]=Number(r.n)||0; });
+  var sexos=['Homens','Mulheres'];
+  var pal=cores||{'Homens':'#2f5496','Mulheres':'#ba1c6b'};
+  censoCharts[key]=new Chart(el,{type:'bar',
+    data:{labels:cats,datasets:sexos.map(function(sx){
+      return {label:sx,backgroundColor:pal[sx],borderRadius:3,data:cats.map(function(c){ return idx[c+'|'+sx]||0; })};
+    })},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10,padding:8,usePointStyle:true}},
+        tooltip:{callbacks:{label:function(cc){ return cc.dataset.label+': '+_fmt(cc.parsed.x); }}}},
+      scales:{x:{ticks:{font:{size:9},callback:function(v){ return v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' mi':(v>=1000?(v/1000)+' mil':v); }}},
+        y:{ticks:{font:{size:10},autoSkip:false}}}}});
+}
+function _renderCenso1872(c){
+  _censoSexoBar('instr','grafCensoInstrucao',c.cInstr,'categoria',['Sabem ler e escrever','Analfabetos']);
+  _censoSexoBar('raca','grafCensoRaca',c.cRaca,'categoria',['Branca','Parda','Preta','Cabocla']);
+  var cond=(c.cCond||[]).map(function(r){ return {categoria:r.condicao+' · '+r.origem,sexo:r.sexo,n:r.n}; });
+  _censoSexoBar('cond','grafCensoCondicao',cond,'categoria',['Livre · Brasileira','Livre · Estrangeira','Escravizada · Brasileira','Escravizada · Africana']);
+  var nz=document.getElementById('censoNota');
+  if(nz){
+    var t=function(rows,f){ return (rows||[]).reduce(function(s,r){ return s+(f(r)?Number(r.n)||0:0); },0); };
+    var sabH=t(c.cInstr,function(r){return r.categoria==='Sabem ler e escrever'&&r.sexo==='Homens';});
+    var sabM=t(c.cInstr,function(r){return r.categoria==='Sabem ler e escrever'&&r.sexo==='Mulheres';});
+    var totH=t(c.cInstr,function(r){return r.sexo==='Homens';}), totM=t(c.cInstr,function(r){return r.sexo==='Mulheres';});
+    var esc=t(c.cCond,function(r){return r.condicao==='Escravizada';});
+    var escAfr=t(c.cCond,function(r){return r.condicao==='Escravizada'&&r.origem==='Africana';});
+    var pc=function(a,b){ return b?((a/b)*100).toFixed(1).replace('.',','):'—'; };
+    nz.innerHTML='Em 1872, <b>'+pc(sabH,totH)+'%</b> dos homens e apenas <b>'+pc(sabM,totM)+'%</b> das mulheres sabiam ler e escrever. '
+      +'As <b>'+_fmt(esc)+'</b> pessoas escravizadas eram <b>'+pc(esc-escAfr,esc)+'%</b> nascidas no Brasil — '
+      +'22 anos depois do fim do tráfico atlântico, a escravidão já se reproduzia sobretudo internamente.';
+  }
+  _renderEscravosProv(c.escProv);
+}
+function _renderEscravosProv(rows){
+  rows=rows||[]; var el=document.getElementById('grafEscravosProv'); if(!el) return; _censoDestroy('prov');
+  var anos=[]; rows.forEach(function(r){ if(anos.indexOf(r.ano)<0) anos.push(r.ano); }); anos.sort(function(a,b){return a-b;});
+  var provs=[], base={};
+  rows.forEach(function(r){ var p=(r.provincia||'').trim(); if(!p) return; if(provs.indexOf(p)<0) provs.push(p);
+    base[p]=Math.max(base[p]||0, Number(r.escravizados)||0); });
+  provs.sort(function(a,b){ return (base[b]||0)-(base[a]||0); });
+  var idx={}; rows.forEach(function(r){ idx[(r.provincia||'').trim()+'|'+r.ano]=Number(r.escravizados)||0; });
+  var pal=['#8a1c1c','#ba7517','#2f5496','#1d6e56'];
+  censoCharts.prov=new Chart(el,{type:'bar',
+    data:{labels:provs,datasets:anos.map(function(a,i){
+      return {label:String(a),backgroundColor:pal[i%pal.length],borderRadius:2,data:provs.map(function(p){ return idx[p+'|'+a]||0; })};
+    })},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10,padding:8,usePointStyle:true}},
+        tooltip:{callbacks:{label:function(cc){ return cc.dataset.label+': '+_fmt(cc.parsed.x)+' escravizados'; }}}},
+      scales:{x:{ticks:{font:{size:9},callback:function(v){ return v>=1000?(v/1000)+' mil':v; }}},
+        y:{ticks:{font:{size:10},autoSkip:false}}}}});
 }
 /* ===== POUPANÇAS DA CAIXA ECONÔMICA (popup do Painel) ===== */
 var poupCharts={};
@@ -2925,9 +3201,11 @@ async function _loadPoupancas(){
         q("v_dash_poup_genero?select=*&order=ord"),
         q("v_dash_poup_categoria?select=*&order=n.desc"),
         q("v_dash_poup_ocupacao?select=*&order=n.desc"),
-        q("v_dash_poup_decada?select=*&order=decada")
+        q("v_dash_poup_decada?select=*&order=decada"),
+        q("v_dash_poup_uso?select=*&order=ord"),
+        q("v_dash_poup_amostra?select=*")
       ]);
-      cache=window._poupData={tot:res[0][0]||{},gen:res[1],cat:res[2],ocu:res[3],dec:res[4]};
+      cache=window._poupData={tot:res[0][0]||{},gen:res[1],cat:res[2],ocu:res[3],dec:res[4],uso:res[5],am:(res[6]||[])[0]||{}};
     }
     applyChartTheme();
     _renderPoup(cache);
@@ -2954,26 +3232,95 @@ function _renderPoup(c){
         +'</div></div>';
     } else dz.style.display='none';
   }
-  _poupChartGenero(c.gen); _poupChartCategoria(c.cat); _poupChartOcupacao(c.ocu); _poupChartDecada(c.dec);
+  _poupChartGenero(c.gen); _poupChartCategoria(c.cat); _poupChartOcupacao(c.ocu); _poupChartDecada(c.dec); _poupChartUso(c.uso); _poupAmostra(c.am);
 }
 function _poupChartGenero(rows){
   rows=rows||[]; var el=document.getElementById('grafPoupGenero'); if(!el) return; _poupDestroy('gen');
-  var pal={'Masculino':'#2f5496','Feminino':'#ba1c6b','Não identificado':'#8a9a92'};
+  var pal={'Masculino':'#2f5496','Feminino':'#ba1c6b','Sem registro de gênero':'#8a9a92','Instituição (sem gênero)':'#6e5db8'};
   var labels=rows.map(function(x){return x.genero;});
   poupCharts.gen=new Chart(el,{type:'doughnut',
     data:{labels:labels,datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:labels.map(function(l){return pal[l]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
       plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10,padding:6,usePointStyle:true}},tooltip:{callbacks:{label:function(cc){return cc.label+': '+_fmt(cc.parsed);}}}},
-      onClick:function(evt,els){ if(els&&els.length){ var g=labels[els[0].index]; buscarPoupadores('genero',g,'Poupadores · '+g); } }}});
+      onClick:function(evt,els){ if(els&&els.length){ var g=labels[els[0].index]; if(g.indexOf('Instituição')===0) return; buscarPoupadores('genero',g,'Poupadores · '+g); } }}});
 }
 function _poupChartCategoria(rows){
   rows=rows||[]; var el=document.getElementById('grafPoupCategoria'); if(!el) return; _poupDestroy('cat');
-  var labels=rows.map(function(x){return x.categoria;});
-  var cores=rows.map(function(x){return x.destaque?'#ba7517':(x.categoria==='Pessoa livre'?'#1d6e56':'#2f5496');});
-  poupCharts.cat=new Chart(el,{type:'bar',
-    data:{labels:labels,datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:cores,borderRadius:3}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.x)+' poupadores';}}}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:10}}}},
-      onClick:function(evt,els){ if(els&&els.length){ var v=labels[els[0].index]; buscarPoupadores('categoria',v,'Poupadores · '+v); } }}});
+  // anel interno = macro; anel externo = detalhe
+  var macros=[], mIdx={};
+  rows.forEach(function(r){ if(!(r.macro in mIdx)){ mIdx[r.macro]=macros.length; macros.push({nome:r.macro,n:0}); } macros[mIdx[r.macro]].n+=Number(r.n)||0; });
+  var palM={'Livres':'#1d6e56','Escravizados, libertos e ingênuos':'#ba7517','Não informada':'#8a9a92'};
+  var palD={'Pessoa livre':'#2e8b62','Menor':'#7fbf9c','Escravizado(a)':'#8a1c1c','Liberto(a)':'#ba7517',
+            'Preto(a) livre':'#d69a3f','Ingênuo(a)':'#e8c88a','Não informada':'#b9c2bd'};
+  var detLabels=rows.map(function(r){return r.categoria;});
+  poupCharts.cat=new Chart(el,{type:'doughnut',
+    data:{labels:detLabels,datasets:[
+      { label:'Grupo', data:macros.map(function(m){return m.n;}),
+        backgroundColor:macros.map(function(m){return palM[m.nome]||'#8a9a92';}),
+        borderWidth:1, borderColor:'rgba(255,255,255,.65)', weight:1,
+        _labels:macros.map(function(m){return m.nome;}) },
+      { label:'Detalhe', data:rows.map(function(r){return Number(r.n)||0;}),
+        backgroundColor:rows.map(function(r){return palD[r.categoria]||'#8a9a92';}),
+        borderWidth:1, borderColor:'rgba(255,255,255,.65)', weight:1.15 }
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'34%',
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(cc){
+          var ds=cc.chart.data.datasets[cc.datasetIndex];
+          var nome=(cc.datasetIndex===0 && ds._labels)?ds._labels[cc.dataIndex]:detLabels[cc.dataIndex];
+          return nome+': '+_fmt(cc.parsed);
+        }}}},
+      onClick:function(evt,els){ if(!els||!els.length) return;
+        var e=els[0];
+        if(e.datasetIndex===0){ var m=macros[e.index].nome; buscarPoupadores('macro',m,'Poupadores · '+m); }
+        else { var v=detLabels[e.index]; buscarPoupadores('categoria',v,'Poupadores · '+v); } }}});
+}
+function _poupAmostra(a){
+  var el=document.getElementById('poup-amostra'); if(!el) return;
+  a=a||{}; if(!a.poupadores){ el.innerHTML=''; return; }
+  var frac=a.cadernetas_caixa?(a.poupadores/a.cadernetas_caixa):null;
+  var pct=frac?(frac*100):null;
+  var fmtPct=function(v){ return v.toFixed(1).replace('.',','); };
+  var ext=function(v){ return frac?_fmt(Math.round(v/frac)):'—'; };
+  el.innerHTML=
+    '<div style="font-size:12.5px;font-weight:700;color:var(--ink2);margin-bottom:8px">Sobre a amostra</div>'
+   +'<div style="font-size:11.5px;color:var(--txt2);line-height:1.6">'
+     +'Os dados vêm de <b>'+_fmt(a.livros_amostra)+' livros</b> de contas correntes da Caixa Econômica da Corte '
+     +'(em '+_fmt(a.pastas)+' pastas de arquivo). A numeração dos livros preservados chega ao <b>nº '+_fmt(a.livro_maior_numero)+'</b>, '
+     +'de modo que a série original era pelo menos essa — a amostra cobre perto de <b>'+fmtPct(a.livros_amostra/a.livro_maior_numero*100)+'%</b> dos livros.'
+   +'</div>'
+   +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0">'
+     +'<div style="background:rgba(29,110,86,.09);border-radius:8px;padding:9px 11px">'
+       +'<div style="font-size:18px;font-weight:700;color:#1d6e56">'+_fmt(a.poupadores)+'</div>'
+       +'<div style="font-size:10.5px;color:var(--txt3)">poupadores na amostra</div></div>'
+     +'<div style="background:rgba(47,84,150,.09);border-radius:8px;padding:9px 11px">'
+       +'<div style="font-size:18px;font-weight:700;color:#2f5496">'+_fmt(a.cadernetas_caixa)+'</div>'
+       +'<div style="font-size:10.5px;color:var(--txt3)">cadernetas na Caixa até '+a.cadernetas_caixa_ano+'</div></div>'
+   +'</div>'
+   +'<div style="font-size:11.5px;color:var(--txt2);line-height:1.6">'
+     +'A amostra equivale a <b>'+(pct?fmtPct(pct):'—')+'%</b> das cadernetas que a Caixa da Corte acumulara até '+a.cadernetas_caixa_ano+'. '
+     +'Entre 1861 e 1889 a instituição registrou <b>'+_fmt(a.novos_1861_1889)+'</b> novos depositantes.'
+   +'</div>'
+   +'<div style="border-left:3px solid #ba7517;background:rgba(186,117,23,.08);border-radius:0 8px 8px 0;padding:9px 11px;margin-top:11px">'
+     +'<div style="font-size:11px;font-weight:700;color:#8a5511;margin-bottom:4px">Extrapolação — não é dado observado</div>'
+     +'<div style="font-size:11px;color:var(--txt2);line-height:1.6">'
+       +'Se as proporções da amostra valessem para toda a Caixa, os <b>'+_fmt(a.escravizados_libertos)+'</b> poupadores escravizados, libertos e ingênuos '
+       +'corresponderiam a cerca de <b>'+ext(a.escravizados_libertos)+'</b> pessoas, e as <b>'+_fmt(a.mulheres)+'</b> mulheres, a cerca de <b>'+ext(a.mulheres)+'</b>. '
+       +'<b>Trate esses números como ordem de grandeza, não como medida.</b> A amostra não é aleatória: reúne os livros que sobreviveram, '
+       +'e nada garante que reproduzam o perfil do conjunto.'
+     +'</div>'
+   +'</div>';
+}
+function _poupChartUso(rows){
+  rows=rows||[]; var el=document.getElementById('grafPoupUso'); if(!el) return; _poupDestroy('uso');
+  var pal={'Uso pontual (1 movimento)':'#ba7517','Uso esporádico (2–4)':'#d69a3f',
+           'Uso regular (5–12)':'#2f5496','Uso intenso (13 ou mais)':'#1d6e56','Sem movimento registrado':'#a8b2ac'};
+  var labels=rows.map(function(x){return x.perfil;});
+  poupCharts.uso=new Chart(el,{type:'bar',
+    data:{labels:labels,datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:labels.map(function(l){return pal[l]||'#8a9a92';}),borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.x)+' cadernetas';}}}},
+      scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:10},autoSkip:false}}}}});
 }
 function _poupChartOcupacao(rows){
   rows=rows||[]; var el=document.getElementById('grafPoupOcupacao'); if(!el) return; _poupDestroy('ocu');
@@ -2987,7 +3334,112 @@ function _poupChartDecada(rows){
   rows=rows||[]; var el=document.getElementById('grafPoupDecada'); if(!el) return; _poupDestroy('dec');
   poupCharts.dec=new Chart(el,{type:'bar',
     data:{labels:rows.map(function(x){return x.decada+'s';}),datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:'#1d6e56',borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.y)+' depósitos';}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:9}}}}}});
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.y)+' cadernetas abertas';}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:9}}}}}});
+}
+/* ===== Destaque Felipe Souza Melo (fonte 5) ===== */
+var fsmCharts={};
+function _fsmDestroy(k){ try{ if(fsmCharts[k]){ fsmCharts[k].destroy(); fsmCharts[k]=null; } }catch(e){} }
+async function _loadFSM(){
+  var box=document.getElementById('stat-fsm-body'), load=document.getElementById('stat-fsm-loading');
+  try{
+    var cache=window._fsmData;
+    if(!cache){
+      if(load){load.style.display='';load.textContent='Carregando…';} if(box)box.style.display='none';
+      var q=async(p)=>{ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn('FSM:',p,e); return []; } };
+      var res=await Promise.all([
+        q("v_dash_fsm_totais?select=*"),
+        q("v_dash_fsm_por_decada?select=*&order=decada"),
+        q("v_dash_fsm_produtos?select=*&order=n.desc"),
+        q("v_dash_fsm_proprietarios?select=*&order=n.desc"),
+        q("v_dash_fsm_capitaes?select=*&order=n.desc"),
+        q("v_dash_fsm_viagens_ano?select=*&order=ano"),
+        q("v_dash_fsm_tipos?select=*&order=n.desc")
+      ]);
+      cache=window._fsmData={tot:res[0][0]||{},dec:res[1],prod:res[2],prop:res[3],cap:res[4],via:res[5],tipos:res[6]};
+    }
+    applyChartTheme();
+    _renderFSM(cache);
+    if(load)load.style.display='none'; if(box)box.style.display='';
+  }catch(e){ console.error('_loadFSM',e); window._fsmData=null; if(load){load.style.display='';load.textContent='Não foi possível carregar agora.';} if(box)box.style.display='none'; }
+}
+function _renderFSM(c){
+  var t=c.tot||{};
+  var kpi=document.getElementById('fsm-kpis');
+  if(kpi){
+    var nVia=(c.via||[]).reduce(function(s,x){return s+(x.viagens||0);},0);
+    var cards=[['Viagens',_fmt(nVia)],['Embarcações',_fmt(t.n_embarcacoes)],['Proprietários',_fmt(t.n_proprietarios)],['Capitães',_fmt(t.n_capitaes)],['Registros de carga',_fmt(t.n_registros_carga)],['Período',(t.ano_min&&t.ano_max)?(t.ano_min+'–'+t.ano_max):'—']];
+    kpi.innerHTML=cards.map(function(k){return '<div style="background:rgba(14,116,144,.08);border-radius:10px;padding:12px 14px"><div style="font-size:22px;font-weight:700;color:#0e7490">'+k[1]+'</div><div style="font-size:11px;color:var(--txt3)">'+k[0]+'</div></div>';}).join('');
+  }
+  _fsmChartViagens(c.via); _fsmChartTipos(c.tipos); _fsmChartDecada(c.dec); _fsmChartProdutos(c.prod); _fsmChartAtores('prop','grafFsmProprietarios',c.prop,'#0e7490'); _fsmChartAtores('cap','grafFsmCapitaes',c.cap,'#8a5511');
+}
+function _fsmChartViagens(rows){
+  rows=rows||[]; var el=document.getElementById('grafFsmViagens'); if(!el) return; _fsmDestroy('via');
+  var anos=[]; rows.forEach(function(r){ if(anos.indexOf(r.ano)<0) anos.push(r.ano); });
+  anos.sort(function(a,b){ return a-b; });
+  var ordem=['Pernambuco–Lisboa','Pernambuco–Porto','Paraíba–Portugal','Ilhas atlânticas','Outras / não informada'];
+  var pal={'Pernambuco–Lisboa':'#0e7490','Pernambuco–Porto':'#1d7a56','Paraíba–Portugal':'#ba7517','Ilhas atlânticas':'#6e5db8','Outras / não informada':'#8a9a92'};
+  var idx={}; rows.forEach(function(r){ idx[r.rota+'|'+r.ano]=r.viagens; });
+  var rotas=ordem.filter(function(r){ return rows.some(function(x){ return x.rota===r; }); });
+  rows.forEach(function(r){ if(rotas.indexOf(r.rota)<0) rotas.push(r.rota); });
+  var ds=rotas.map(function(r){
+    return { label:r, backgroundColor:pal[r]||'#8a9a92', borderRadius:2,
+      data:anos.map(function(a){ return idx[r+'|'+a]||0; }) };
+  });
+  fsmCharts.via=new Chart(el,{type:'bar',data:{labels:anos,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10,padding:8,usePointStyle:true}},
+        tooltip:{mode:'index',intersect:false,callbacks:{label:function(cc){ return cc.parsed.y?(cc.dataset.label+': '+_fmt(cc.parsed.y)+' viagens'):null; }}}},
+      scales:{x:{stacked:true,ticks:{font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:16}},
+        y:{stacked:true,beginAtZero:true,ticks:{font:{size:9},precision:0}}}}});
+}
+function _fsmChartTipos(rows){
+  rows=rows||[]; var el=document.getElementById('grafFsmTipos'); if(!el) return; _fsmDestroy('tipos');
+  var pal={'Navio':'#0e7490','Corveta':'#1d7a56','Galera':'#ba7517','Bergantim':'#6e5db8','Sumaca':'#8a5511','Brigue':'#8a9a92'};
+  var labels=rows.map(function(x){return x.tipo;});
+  fsmCharts.tipos=new Chart(el,{type:'doughnut',
+    data:{labels:labels,datasets:[{data:rows.map(function(x){return x.n;}),
+      backgroundColor:labels.map(function(l){return pal[l]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'52%',
+      plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10,padding:6,usePointStyle:true}},
+        tooltip:{callbacks:{label:function(cc){return cc.label+': '+_fmt(cc.parsed)+' embarcações';}}}}}});
+}
+function _fsmChartDecada(rows){
+  rows=rows||[]; var el=document.getElementById('grafFsmDecada'); if(!el) return; _fsmDestroy('dec');
+  fsmCharts.dec=new Chart(el,{type:'bar',
+    data:{labels:rows.map(function(x){return x.decada+'s';}),datasets:[{data:rows.map(function(x){return x.embarcacoes;}),backgroundColor:'#0e7490',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.y)+' embarcações';}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:9}}}}}});
+}
+function _fsmChartProdutos(rows){
+  rows=rows||[]; var el=document.getElementById('grafFsmProdutos'); if(!el) return; _fsmDestroy('prod');
+  fsmCharts.prod=new Chart(el,{type:'bar',
+    data:{labels:rows.map(function(x){return x.produto;}),datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:'#1d7a56',borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.x)+' registros';}}}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:10}}}}}});
+}
+function _lblCurto(s,max){ s=String(s==null?'':s); return s.length>max ? s.slice(0,max-1).replace(/[\s,;.\-]+$/,'')+'…' : s; }
+/* abrevia razões sociais longas preservando a leitura (nome completo fica no tooltip) */
+function _abrevNome(s){
+  s=String(s==null?'':s);
+  s=s.replace(/\s+e\s+Companhia\b/gi,' & Cia.');
+  s=s.replace(/\s+e\s+Filhos\b/gi,' & Filhos');
+  s=s.replace(/\s+e\s+Irmãos?\b/gi,' & Irmãos');
+  s=s.replace(/\bCompanhia\b/gi,'Cia.');
+  s=s.replace(/\s{2,}/g,' ');
+  return s.trim();
+}
+function _fsmChartAtores(key,elId,rows,cor){
+  rows=rows||[]; var el=document.getElementById(elId); if(!el) return; _fsmDestroy(key);
+  var ids=rows.map(function(x){return x.actor_id;});
+  var nomes=rows.map(function(x){return x.nome;});
+  fsmCharts[key]=new Chart(el,{type:'bar',
+    data:{labels:nomes.map(function(n){return _lblCurto(_abrevNome(n),46);}),datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:cor,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      layout:{padding:{right:10}},
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{title:function(cc){ return nomes[cc[0].dataIndex]; },label:function(cc){return _fmt(cc.parsed.x)+' embarcações';}}}},
+      scales:{x:{ticks:{font:{size:9},precision:0}},
+        y:{ticks:{font:{size:10},autoSkip:false,crossAlign:'far',padding:2},
+           afterFit:function(sc){ sc.width=Math.max(sc.width,265); }}},
+      onClick:function(evt,els){ if(els&&els.length){ var id=ids[els[0].index]; if(id!=null){ _fecharStatPopup('popup-fsm'); try{abrirFicha(id);}catch(e){} } } }}});
 }
 async function buscarPoupadores(facet,value,label){
   _fecharStatPopup('popup-poupancas');
@@ -3002,6 +3454,12 @@ async function buscarPoupadores(facet,value,label){
   } else if(facet==='categoria'){
     if(value==='Não informada') p.push("categoria_social=is.null");
     else p.push("categoria_social=eq."+encodeURIComponent(value));
+  } else if(facet==='macro'){
+    if(value==='Não informada') p.push("categoria_social=is.null");
+    else{
+      var _lista=(value==='Livres')?['Pessoa livre','Menor']:['Escravizado(a)','Liberto(a)','Preto(a) livre','Ingênuo(a)'];
+      p.push("categoria_social=in.("+_lista.map(function(v){return '"'+v+'"';}).join(',')+")");
+    }
   } else if(facet==='ocupacao'){
     p.push("ocupacao=eq."+encodeURIComponent(value));
   }
@@ -3011,7 +3469,8 @@ async function buscarPoupadores(facet,value,label){
     var r=await getJSON("v_busca_poupadores?"+p.join('&'), true);
     ultimaBusca=r.dados||[];
     var ncols=(typeof _modoRede!=='undefined'&&_modoRede)?7:6;
-    if(!ultimaBusca.length){ if(tbody) tbody.innerHTML='<tr><td colspan="'+ncols+'" class="vazio">Nenhum poupador para este filtro.</td></tr>'; }
+    _pag.page=1;
+    if(!ultimaBusca.length){ if(tbody) tbody.innerHTML='<tr><td colspan="'+ncols+'" class="vazio">Nenhum poupador para este filtro.</td></tr>'; var _pb=document.getElementById('pagbar'); if(_pb)_pb.innerHTML=''; }
     else { _renderTbody(); }
     if(status) status.innerHTML='<span class="pill">'+ultimaBusca.length+'</span> de <b>'+r.total+'</b> — 💰 '+esc(label||'Poupadores da Caixa')+' <a onclick="limpar()" style="cursor:pointer;color:#1d6e56;margin-left:8px">✕ limpar</a>';
   }catch(e){ if(status) status.textContent='Erro: '+e.message; }
@@ -3390,56 +3849,100 @@ async function initFontes(){
   renderFontes();
 }
 function _fonteTxt(f){ return _fnorm(f.full_reference)+' '+_fnorm(f.author)+' '+_fnorm(f.contributor)+' '+_fnorm(f.archive)+' '+_fnorm(f.short_ref)+' '+_fnorm(f.year); }
+function _fonteNome(f){
+  if(f.external_database_name) return f.external_database_name;
+  if(f.short_ref && /[a-zçãéêíóôõúàâ ]/.test(f.short_ref) && String(f.short_ref).length>3) return f.short_ref;
+  var fr=(f.full_reference||'').trim(); if(!fr) return f.short_ref||'(sem título)';
+  var body=fr;
+  if(f.author && body.toLowerCase().indexOf(String(f.author).toLowerCase())===0) body=body.slice(String(f.author).length).replace(/^[.\s]+/,'');
+  var titulo=(body.split(/\.\s/)[0]||body).trim();
+  return titulo.length>4?titulo:fr;
+}
+function _autorLabel(a){
+  if(!a) return '';
+  var m=String(a).match(/^([A-Za-zÀ-ÿ'\- ]+),\s*([A-Za-zÀ-ÿ'\-. ]+)$/);
+  if(m){ var s=m[1].trim(); s=s.charAt(0).toUpperCase()+s.slice(1).toLowerCase(); return m[2].trim()+' '+s; }
+  return String(a);
+}
+function _slug(s){ return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+function _fonteFilho(ch,stripIn){
+  var nome=_fonteNome(ch);
+  var abnt=ch.full_reference||ch.short_ref||''; if(stripIn) abnt=(abnt||'').split(' In: ')[0];
+  var clink=ch.url?(' <a class="fonte-link sm" href="'+encodeURI(ch.url)+'" target="_blank" rel="noopener noreferrer">↗</a>'):'';
+  var creg=ch.n_registros?(' <span class="fonte-creg">'+Number(ch.n_registros).toLocaleString('pt-BR')+' reg.</span>'):'';
+  return '<li><b>'+esc(nome)+'</b>'+clink+creg+((abnt&&abnt!==nome)?('<div class="fonte-abnt" style="margin-top:2px">'+esc(abnt)+'</div>'):'')+'</li>';
+}
 function _fonteCard(f){
   var badge='<span class="fonte-badge">'+esc(_fonteTipoLabel(f.source_type))+'</span>';
   var yr=f.year?('<span class="fonte-ano">'+esc(f.year)+'</span>'):'';
+  var nome=_fonteNome(f); var abnt=f.full_reference||'';
+  var abntHtml=(abnt && abnt!==nome)?('<div class="fonte-abnt">'+esc(abnt)+'</div>'):'';
   var meta=[];
-  if(f.contributor) meta.push('Contribuidor: '+esc(f.contributor));
+  if(f.author) meta.push(esc(_autorLabel(f.author)));
+  if(f.contributor && f.contributor!==f.author) meta.push('Contribuidor: '+esc(f.contributor));
   if(f.archive) meta.push('Acervo: '+esc(f.archive));
-  if(f.external_database_name) meta.push('Base: '+esc(f.external_database_name));
   if(f.n_registros) meta.push('<b>'+Number(f.n_registros).toLocaleString('pt-BR')+'</b> registros no banco');
   var link=f.url?('<a class="fonte-link" href="'+encodeURI(f.url)+'" target="_blank" rel="noopener noreferrer">Acessar fonte ↗</a>'):'';
-  var ref=esc(f.full_reference||f.short_ref||'(sem referência)');
-  return '<div class="fonte-card"><div class="fonte-top">'+badge+yr+'</div><div class="fonte-ref">'+ref+'</div>'+(meta.length?'<div class="fonte-meta">'+meta.join(' · ')+'</div>':'')+(link?'<div class="fonte-acoes">'+link+'</div>':'')+'</div>';
+  return '<div class="fonte-card"><div class="fonte-top">'+badge+yr+'</div>'
+    +'<div class="fonte-nome">'+esc(nome)+'</div>'+abntHtml
+    +(meta.length?'<div class="fonte-meta">'+meta.join(' · ')+'</div>':'')
+    +(link?'<div class="fonte-acoes">'+link+'</div>':'')+'</div>';
+}
+function _autorCard(g,n){
+  var ys=g.items.map(function(x){return +x.year||0;}).filter(Boolean);
+  var faixa=ys.length?(Math.min.apply(null,ys)+(Math.max.apply(null,ys)!==Math.min.apply(null,ys)?('–'+Math.max.apply(null,ys)):'')):'';
+  var yr=faixa?('<span class="fonte-ano">'+esc(faixa)+'</span>'):'';
+  var meta=['<b>'+g.items.length+'</b> fontes']; if(n) meta.push('<b>'+Number(n).toLocaleString('pt-BR')+'</b> registros no banco');
+  var aid='aut-'+_slug(g.autor);
+  var filhos=g.items.slice().sort(function(a,b){return (+b.year||0)-(+a.year||0);}).map(function(ch){return _fonteFilho(ch,false);}).join('');
+  return '<div class="fonte-card fonte-aut"><div class="fonte-top"><span class="fonte-badge aut">Autor</span>'+yr+'</div>'
+    +'<div class="fonte-nome">'+esc(_autorLabel(g.autor))+'</div>'
+    +'<div class="fonte-meta">'+meta.join(' · ')+'</div>'
+    +'<button class="fonte-exp" onclick="_toggleCol(\''+aid+'\',this)"><span class="arw">▸</span> ver fontes</button>'
+    +'<ul class="fonte-filhos" id="'+aid+'" style="display:none">'+filhos+'</ul></div>';
 }
 function renderFontes(){
   var box=document.getElementById('fontes-lista'); if(!box) return;
   var data=_fontesData||[];
   var el=document.getElementById('fontes-busca'); var q=el?el.value:''; q=(q||'').trim().toLowerCase();
-  var cols={}, entries=[];
+  var autCount={};
+  data.forEach(function(f){ if(!f.collection_id && f.author){ var a=String(f.author).trim(); if(a && a.toLowerCase()!=='(sem autor)') autCount[a]=(autCount[a]||0)+1; } });
+  var cols={}, auts={}, entries=[];
   data.forEach(function(f){
     if(f.collection_id){
       var c=cols[f.collection_id];
       if(!c){ c=cols[f.collection_id]={id:f.collection_id,title:f.col_title,ref:f.col_ref,kind:f.col_kind,url:f.col_url,year:f.col_year,editors:f.col_editors,items:[]}; entries.push({kind:'col',c:c}); }
       c.items.push(f);
+    } else if(f.author && autCount[String(f.author).trim()]>1){
+      var ak=String(f.author).trim(); var g=auts[ak];
+      if(!g){ g=auts[ak]={autor:ak,items:[]}; entries.push({kind:'aut',g:g}); }
+      g.items.push(f);
     } else entries.push({kind:'single',f:f});
   });
   entries.forEach(function(e){
     if(e.kind==='col'){ var ys=e.c.items.map(function(x){return +x.year||0;}); e.year=e.c.year||Math.max.apply(null,ys.concat(0)); e.n=e.c.items.reduce(function(a,x){return a+(+x.n_registros||0);},0); }
+    else if(e.kind==='aut'){ var ys2=e.g.items.map(function(x){return +x.year||0;}); e.year=Math.max.apply(null,ys2.concat(0)); e.n=e.g.items.reduce(function(a,x){return a+(+x.n_registros||0);},0); }
     else e.year=+e.f.year||0;
   });
-  if(q){ entries=entries.filter(function(e){ if(e.kind==='single') return _fonteTxt(e.f).indexOf(q)>=0; return (_fnorm(e.c.title)+' '+_fnorm(e.c.ref)+' '+_fnorm(e.c.editors)+' '+e.c.items.map(_fonteTxt).join(' ')).indexOf(q)>=0; }); }
+  if(q){ entries=entries.filter(function(e){
+    if(e.kind==='single') return _fonteTxt(e.f).indexOf(q)>=0;
+    if(e.kind==='aut') return (_fnorm(e.g.autor)+' '+e.g.items.map(_fonteTxt).join(' ')).indexOf(q)>=0;
+    return (_fnorm(e.c.title)+' '+_fnorm(e.c.ref)+' '+_fnorm(e.c.editors)+' '+e.c.items.map(_fonteTxt).join(' ')).indexOf(q)>=0; }); }
   entries.sort(function(a,b){ return (b.year||0)-(a.year||0); });
   if(!entries.length){ box.innerHTML='<div class="fonte-vazio">Nenhuma fonte encontrada.</div>'; return; }
   box.innerHTML=entries.map(function(e){
     if(e.kind==='single') return _fonteCard(e.f);
+    if(e.kind==='aut') return _autorCard(e.g,e.n);
     var c=e.c, isBook=(c.kind==='book'), palavra=isBook?'capítulos':'artigos';
     var badge='<span class="fonte-badge col">'+esc(_FKIND[c.kind]||'Coleção')+'</span>';
     var yr=c.year?('<span class="fonte-ano">'+esc(c.year)+'</span>'):'';
-    var meta=[];
-    if(c.editors) meta.push(esc(c.editors));
-    meta.push('<b>'+c.items.length+'</b> '+palavra);
-    if(e.n) meta.push('<b>'+Number(e.n).toLocaleString('pt-BR')+'</b> registros no banco');
+    var meta=[]; if(c.editors) meta.push(esc(c.editors)); meta.push('<b>'+c.items.length+'</b> '+palavra); if(e.n) meta.push('<b>'+Number(e.n).toLocaleString('pt-BR')+'</b> registros no banco');
     var link=c.url?('<a class="fonte-link" href="'+encodeURI(c.url)+'" target="_blank" rel="noopener noreferrer">Acessar ↗</a>'):'';
     var cid='col-'+c.id;
-    var filhos=c.items.slice().sort(function(a,b){return (a.full_reference||'').localeCompare(b.full_reference||'','pt');}).map(function(ch){
-      var t=(ch.full_reference||ch.short_ref||'').split(' In: ')[0];
-      var clink=ch.url?(' <a class="fonte-link sm" href="'+encodeURI(ch.url)+'" target="_blank" rel="noopener noreferrer">↗</a>'):'';
-      var creg=ch.n_registros?(' <span class="fonte-creg">'+Number(ch.n_registros).toLocaleString('pt-BR')+' reg.</span>'):'';
-      return '<li>'+esc(t)+clink+creg+'</li>';
-    }).join('');
+    var filhos=c.items.slice().sort(function(a,b){return (a.full_reference||'').localeCompare(b.full_reference||'','pt');}).map(function(ch){return _fonteFilho(ch,true);}).join('');
     return '<div class="fonte-card fonte-col"><div class="fonte-top">'+badge+yr+'</div>'
-      +'<div class="fonte-ref">'+esc(c.ref||c.title)+'</div>'
+      +'<div class="fonte-nome">'+esc(c.title||c.ref||'Coleção')+'</div>'
+      +((c.ref&&c.ref!==c.title)?'<div class="fonte-abnt">'+esc(c.ref)+'</div>':'')
       +(meta.length?'<div class="fonte-meta">'+meta.join(' · ')+'</div>':'')
       +'<button class="fonte-exp" onclick="_toggleCol(\''+cid+'\',this)"><span class="arw">▸</span> ver '+palavra+'</button>'
       +(link?'<div class="fonte-acoes">'+link+'</div>':'')
