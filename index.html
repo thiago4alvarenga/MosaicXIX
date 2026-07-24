@@ -90,6 +90,24 @@
   .status{ font-size:12.5px; color:var(--txt2); }
   .pill{ display:inline-block; background:rgba(46,122,80,.12); border-radius:20px; padding:1px 10px; font-size:11.5px; color:var(--verde); font-weight:600; }
 
+  /* ─── Categorias de relações no dossiê (abas lado a lado) ─── */
+  .rel-tabs{ display:flex; flex-wrap:wrap; gap:2px; border-bottom:1px solid var(--borda); margin:2px 0 10px; }
+  .rel-tab{ padding:6px 13px; font-size:11.5px; font-family:inherit; font-weight:600; color:var(--txt2);
+    background:transparent; border:1px solid transparent; border-bottom:none; border-radius:7px 7px 0 0;
+    cursor:pointer; position:relative; top:1px; transition:background .13s ease,color .13s ease; white-space:nowrap; }
+  .rel-tab:hover{ background:var(--hover); color:var(--ink2); }
+  .rel-tab.on{ background:var(--card); border-color:var(--borda); color:var(--ink2);
+    box-shadow:inset 0 2px 0 var(--verde); }
+  .rel-tab span{ font-weight:500; color:var(--txt3); margin-left:3px; font-variant-numeric:tabular-nums; }
+
+  /* ─── Export PNG dos gráficos ─── */
+  .chart-wrap{ position:relative; }
+  .chart-png-btn{ position:absolute; top:4px; right:4px; z-index:5; font-size:10px; font-family:inherit; padding:3px 8px;
+    background:var(--card); color:var(--txt2); border:1px solid var(--borda); border-radius:7px; cursor:pointer;
+    opacity:0; transition:opacity .15s ease; }
+  .chart-wrap:hover .chart-png-btn{ opacity:.9; }
+  .chart-png-btn:hover{ color:var(--ink2); border-color:var(--verde); }
+
   /* ─── Paginação ─── */
   .pagbar{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin:10px 2px 4px; }
   .pag-info{ font-size:12px; color:var(--txt3); font-variant-numeric:tabular-nums; }
@@ -286,8 +304,9 @@
   .fonte-badge{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#fff; background:var(--verde); border-radius:20px; padding:2px 9px; }
   .fonte-ano{ font-size:12px; color:var(--txt3); font-weight:600; font-variant-numeric:tabular-nums; }
   .fonte-ref{ font-size:13px; line-height:1.5; color:var(--txt); overflow-wrap:anywhere; word-break:break-word; }
-  .fonte-nome{ font-size:14px; font-weight:700; line-height:1.35; color:var(--ink2,var(--txt)); overflow-wrap:anywhere; word-break:break-word; }
-  .fonte-abnt{ font-size:11.5px; line-height:1.5; color:var(--txt2); overflow-wrap:anywhere; word-break:break-word; }
+  .fonte-autor{ font-size:14.5px; font-weight:800; letter-spacing:-.01em; line-height:1.3; color:var(--ink2,var(--txt)); overflow-wrap:anywhere; }
+  .fonte-nome{ font-size:12.5px; font-weight:600; line-height:1.4; color:var(--txt); overflow-wrap:anywhere; word-break:break-word; }
+  .fonte-abnt{ font-size:11px; line-height:1.5; color:var(--txt3); overflow-wrap:anywhere; word-break:break-word; border-top:1px dashed var(--borda); padding-top:6px; margin-top:2px; }
   .fonte-badge.aut{ background:#5a6b8c; }
   .fonte-aut{ border-left:3px solid #5a6b8c; }
   .fonte-meta{ font-size:11px; color:var(--txt2); line-height:1.5; overflow-wrap:anywhere; word-break:break-word; }
@@ -415,6 +434,14 @@
           </span>
           <span class="dc-arrow">→</span>
         </button>
+        <button class="dcard mini" style="--dc:#1d6e56" onclick="_abrirStatPopup('popup-indigenas', _loadIndigenas)">
+          <span class="dc-ic">🪶</span>
+          <span class="dc-body">
+            <span class="dc-h">Povos indígenas do Brasil</span>
+            <span class="dc-p">1636–1940 · lideranças, aldeamentos e conflitos por terra em oito povos</span>
+          </span>
+          <span class="dc-arrow">→</span>
+        </button>
         <button class="dcard mini" style="--dc:#2f5496" onclick="_abrirStatPopup('popup-demografia-ibge', _loadDemografiaIBGE)">
           <span class="dc-ic">🌎</span>
           <span class="dc-body">
@@ -468,7 +495,7 @@
         <option value="Visconde">Visconde</option>
         <option value="Barão">Barão</option>
       </select></div>
-    <div class="campo"><label>Limite</label><select id="limite"><option>100</option><option selected>300</option><option>1000</option></select></div>
+    <div class="campo" style="display:none"><label>Limite</label><select id="limite"><option>100</option><option selected>300</option><option>1000</option></select></div>
     <div class="campo"><label>&nbsp;</label><div class="acoes">
       <button class="btn-buscar" onclick="buscar()">Buscar</button>
       <button class="btn-limpar" onclick="limpar()">Limpar</button></div></div>
@@ -477,7 +504,7 @@
     <div class="status" id="status">Carregando…</div>
     <div style="display:flex;gap:6px;align-items:center">
       <button class="modo-rede-btn" id="btn-modo-rede" onclick="toggleModoRede()">🕸 Modo rede</button>
-      <button class="btn-sm" onclick="exportBuscaCSV()">Exportar (CSV)</button>
+      <button class="btn-sm" onclick="exportBuscaCSV()" title="Exporta as linhas da página visível">Exportar página (CSV)</button>
     </div>
   </div>
   <div id="rede-sel-bar" style="display:none" class="rede-sel-bar">
@@ -743,9 +770,36 @@
             <div class="chart-wrap"><canvas id="grafPoupUso"></canvas></div>
             <div style="font-size:10.5px;color:var(--txt3);line-height:1.5;margin-top:6px">Quantos movimentos (entradas, retiradas e transportes) cada caderneta registrou. Distingue a poupança <b>pontual</b> — aberta, usada uma vez e abandonada — da poupança de <b>uso contínuo</b>. "Sem movimento registrado" são cadernetas de que só sobreviveu o saldo, sem o lançamento das operações.</div>
           </div>
+          <div>
+            <div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Sabe ler e escrever</div>
+            <div class="chart-wrap"><canvas id="grafPoupAlfa"></canvas></div>
+            <div style="font-size:10.5px;color:var(--txt3);line-height:1.5;margin-top:6px">Campo anotado pelo escriturário da Caixa na abertura da conta. Entre os poupadores com o dado registrado, <b>quase dois terços</b> sabiam escrever — proporção muito acima da média da população da época, o que sugere que a caderneta chegava sobretudo a trabalhadores já alfabetizados.</div>
+          </div>
           <div id="poup-amostra" style="border:1px solid var(--borda);border-radius:12px;padding:14px 16px;background:var(--card2)"></div>
         </div>
         <div style="margin-top:18px;text-align:center"><button class="btn-buscar" id="poup-vertodos" onclick="buscarPoupadores(null,null,'Todos os poupadores da Caixa')">Ver todos os poupadores →</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="popup-indigenas">
+  <div class="modal" style="width:min(1080px,96vw)">
+    <header>
+      <div style="color:#fff;font-size:16px;font-weight:600">🪶 Povos indígenas do Brasil <span style="font-weight:400;font-size:12px;opacity:.85">— agência, terra e trajetórias (1636–1940)</span></div>
+      <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-indigenas')" aria-label="Fechar">&times;</button></div>
+    </header>
+    <div class="ficha" style="height:74vh">
+      <div id="stat-ind-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
+      <div id="stat-ind-body" style="display:none">
+        <div id="ind-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:6px"></div>
+        <p style="font-size:12px;color:var(--txt3);margin:8px 0 14px">Uma camada nova do acervo: pessoas indígenas — lideranças, vereadores, um capitão da Guerra do Paraguai, o primeiro bacharel indígena do país — e os aldeamentos, autoridades e conflitos por terra à sua volta. Extraído de <b>dois dossiês acadêmicos</b> (Outros Tempos, 2022; Acervo/Arquivo Nacional, 2021). Clique numa pessoa para abrir o dossiê.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+          <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Pessoas por povo</div><div class="chart-wrap"><canvas id="grafIndPovos"></canvas></div></div>
+          <div><div style="font-size:12px;color:var(--txt3);margin-bottom:4px;font-weight:600">Acontecimentos por tipo</div><div class="chart-wrap"><canvas id="grafIndEventos"></canvas></div></div>
+        </div>
+        <div style="font-size:12px;color:var(--txt3);margin:18px 0 6px;font-weight:600">Pessoas indígenas no acervo <span style="font-weight:400">(clique para abrir o dossiê)</span></div>
+        <div id="ind-pessoas" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px"></div>
       </div>
     </div>
   </div>
@@ -873,6 +927,20 @@ async function getJSON(path,count){
   const dados=await r.json(); const cr=r.headers.get("content-range")||"";
   return { dados, total: cr.includes("/")?Number(cr.split("/")[1]):dados.length };
 }
+/* Busca completa respeitando o teto de linhas do servidor (Max Rows=200):
+   pagina por offset até trazer tudo. Usar nos conjuntos do dossiê que precisam estar íntegros. */
+async function getAllJSON(path,cap){
+  cap=cap||6000; var out=[], from=0, total=null;
+  for(var guard=0; guard<80; guard++){
+    var r=await getJSON(path+"&limit=200&offset="+from, from===0);
+    if(from===0) total=r.total;
+    if(!r.dados.length) break;
+    out=out.concat(r.dados); from+=r.dados.length;
+    if(total!=null && out.length>=total) break;
+    if(out.length>=cap) break;
+  }
+  return { dados:out, total:(total==null?out.length:total) };
+}
 function milreis(n,moeda){
   if(n==null) return "";
   if(!moeda || !/r[eé]is/i.test(moeda)) return Number(n).toLocaleString('pt-BR')+(moeda?(" "+moeda):"");
@@ -913,8 +981,7 @@ async function carregarSubtipos(){
   }catch(e){}
 }
 function montarURL(){
-  const p=["select=actor_id,nome,honorifico,tipo,origem,ano_min,ano_max,n_registros,n_relacoes,pontuacao,nome_incompleto","order="+(sortCol+(sortDir==="desc"?".desc":".asc")+",nome.asc"),
-           "limit="+encodeURIComponent(document.getElementById("limite").value)];
+  const p=["select=actor_id,nome,honorifico,tipo,origem,ano_min,ano_max,n_registros,n_relacoes,pontuacao,nome_incompleto","order="+(sortCol+(sortDir==="desc"?".desc":".asc")+",nome.asc")];
   const t=document.getElementById("texto").value.trim(); if(t){const tn=t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); p.push("nome_busca=ilike."+encodeURIComponent("*"+tn+"*"));}
   const tp=document.getElementById("tipo").value; if(tp)p.push("tipo=eq."+encodeURIComponent(tp));
   const cs=document.getElementById("catsoc").value;
@@ -935,20 +1002,34 @@ function montarURL(){
   if(rel){ base="v_busca_atores_rel"; p.push("relation_names=cs."+encodeURIComponent('{"'+rel.replace(/"/g,'\\"')+'"}')); }
   return base+"?"+p.join("&");
 }
-async function buscar(){
+async function buscar(manterPagina){
   const status=document.getElementById("status"),tbody=document.getElementById("tbody"); status.textContent="Buscando…";
   try{
-    const {dados,total}=await getJSON(montarURL(),true); ultimaBusca=dados;
+    _pag.server=true;
+    if(!manterPagina) _pag.page=1;
+    const size=_pagSize();
+    const off=(_pag.page-1)*size;
+    const {dados,total}=await getJSON(montarURL()+"&limit="+size+"&offset="+off,true); ultimaBusca=dados;
+    _pag.total=total;
     const cols=_modoRede?7:6;
-    _pag.page=1;
+    // se a página pedida ficou além do fim (após trocar filtro/tamanho), volta para a última válida
+    if(!dados.length && total>0 && _pag.page>1){ _pag.page=Math.max(1,Math.ceil(total/size)); return buscar(true); }
     if(!dados.length){ tbody.innerHTML='<tr><td colspan="'+cols+'" class="vazio">Nenhum registro para esses filtros.</td></tr>'; status.textContent="0 resultados."; const _pb=document.getElementById('pagbar'); if(_pb)_pb.innerHTML=''; return; }
     _renderTbody();
-    status.innerHTML='<span class="pill">'+dados.length+' registros</span> de <b>'+total+'</b> que atendem aos filtros'+(total>dados.length?' — aumente o limite para ver mais.':'.');
+    status.innerHTML='<span class="pill">'+_fmt(total)+'</span> '+(total===1?'registro atende':'registros atendem')+' aos filtros'+(_modoRede&&_selecao.size?(' · <b>'+_selecao.size+'</b> selecionados'):'');
   }catch(e){ status.textContent="Erro: "+e.message; }
 }
-var _pag={page:1,size:50};
-function _irPag(n){ _pag.page=n; _renderTbody(); var tb=document.querySelector('.tabela-box'); if(tb) tb.scrollTop=0; }
-function _setPagSize(v){ _pag.size=(v==='all')?'all':Number(v); _pag.page=1; _renderTbody(); }
+var _pag={page:1,size:50,server:true,total:0};
+function _pagSize(){ return (_pag.size==='all')?200:Number(_pag.size)||50; }
+function _irPag(n){
+  _pag.page=n;
+  var tb=document.querySelector('.tabela-box'); if(tb) tb.scrollTop=0;
+  if(_pag.server) buscar(true); else _renderTbody();
+}
+function _setPagSize(v){
+  _pag.size=(v==='all')?'all':Number(v); _pag.page=1;
+  if(_pag.server) buscar(true); else _renderTbody();
+}
 function _renderPagbar(tot,ini,mostrados,nPag){
   var bar=document.getElementById('pagbar'); if(!bar) return;
   if(!tot){ bar.innerHTML=''; return; }
@@ -968,9 +1049,9 @@ function _renderPagbar(tot,ini,mostrados,nPag){
     return '<button class="pag-b'+(n===p?' on':'')+'" onclick="_irPag('+n+')"'+(n===p?' aria-current="page"':'')+'>'+n+'</button>';
   }).join('');
   var opts=[25,50,100,200].map(function(s){ return '<option value="'+s+'"'+(_pag.size===s?' selected':'')+'>'+s+' por página</option>'; }).join('')
-    +'<option value="all"'+(_pag.size==='all'?' selected':'')+'>Todos</option>';
+    +(_pag.server?'':'<option value="all"'+(_pag.size==='all'?' selected':'')+'>Todos</option>');
   bar.innerHTML=
-    '<div class="pag-info"><b>'+_fmt(ini+1)+'–'+_fmt(ini+mostrados)+'</b> de '+_fmt(tot)+' carregados</div>'
+    '<div class="pag-info"><b>'+_fmt(ini+1)+'–'+_fmt(ini+mostrados)+'</b> de '+_fmt(tot)+(_pag.server?'':' carregados')+'</div>'
     +'<div class="pag-nav">'
       +'<button class="pag-b" onclick="_irPag('+(p-1)+')"'+(p<=1?' disabled':'')+' aria-label="Página anterior">‹</button>'
       +botoes
@@ -981,14 +1062,24 @@ function _renderPagbar(tot,ini,mostrados,nPag){
 function _renderTbody(){
   const tbody=document.getElementById("tbody"); if(!tbody) return;
   if(!ultimaBusca.length){ _renderPagbar(0,0,0,1); return; }
-  const _tot=ultimaBusca.length;
-  const _size=(_pag.size==='all')?_tot:_pag.size;
-  const _nPag=Math.max(1,Math.ceil(_tot/_size));
-  if(_pag.page>_nPag) _pag.page=_nPag;
-  if(_pag.page<1) _pag.page=1;
-  const _ini=(_pag.page-1)*_size;
-  const _fatia=ultimaBusca.slice(_ini,_ini+_size);
-  _renderPagbar(_tot,_ini,_fatia.length,_nPag);
+  let _fatia;
+  if(_pag.server){
+    // a consulta já devolveu exatamente a página; o total vem do servidor
+    const _size=_pagSize();
+    const _tot=_pag.total||ultimaBusca.length;
+    const _nPag=Math.max(1,Math.ceil(_tot/_size));
+    _fatia=ultimaBusca;
+    _renderPagbar(_tot,(_pag.page-1)*_size,_fatia.length,_nPag);
+  }else{
+    const _tot=ultimaBusca.length;
+    const _size=(_pag.size==='all')?_tot:_pag.size;
+    const _nPag=Math.max(1,Math.ceil(_tot/_size));
+    if(_pag.page>_nPag) _pag.page=_nPag;
+    if(_pag.page<1) _pag.page=1;
+    const _ini=(_pag.page-1)*_size;
+    _fatia=ultimaBusca.slice(_ini,_ini+_size);
+    _renderPagbar(_tot,_ini,_fatia.length,_nPag);
+  }
   tbody.innerHTML=_fatia.map(d=>{
     const per=d.ano_min==null?"—":(d.ano_min===d.ano_max?d.ano_min:d.ano_min+"–"+d.ano_max);
     if(_modoRede){
@@ -1021,8 +1112,22 @@ function limpar(){ ["texto","ano"].forEach(i=>document.getElementById(i).value="
 function _renderFlagIdentidade(){
   try{
     var box=document.getElementById('ficha'); if(!box) return;
-    var antigo=document.getElementById('flag-identidade'); if(antigo) antigo.remove();
+    ['flag-identidade','flag-indigena'].forEach(function(id){var e=document.getElementById(id); if(e)e.remove();});
     var fs=(F&&F.flags)||[]; if(!fs.length) return;
+    // ── banner de identidade indígena (flag_type='indigena') ──
+    var ind=fs.filter(function(f){return f.flag_type==='indigena';})[0];
+    if(ind){
+      var povo=(ind.etnia&&!/^(Não declarada|Indígena)/.test(ind.etnia))?ind.etnia:null;
+      var ei=document.createElement('div'); ei.id='flag-indigena';
+      ei.style.cssText='border:1px solid #1d6e56;background:rgba(29,110,86,.10);border-radius:10px;padding:11px 14px;margin:0 0 14px;display:flex;gap:10px;align-items:flex-start';
+      ei.innerHTML='<span style="font-size:18px;line-height:1">🪶</span><div>'
+        +'<div style="font-size:12.5px;font-weight:700;color:var(--ink2)">Pessoa indígena'
+        +(povo?(' · <span style="color:#1d6e56">povo '+esc(povo)+'</span>'):'')+'</div>'
+        +'<div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-top:3px">'+esc(ind.flag_reason)+'</div></div>';
+      box.insertBefore(ei, box.firstChild);
+    }
+    // ── banner de identidade a confirmar (possivel_mesma_pessoa) ──
+    fs=fs.filter(function(f){return f.flag_type==='possivel_mesma_pessoa';}); if(!fs.length) return;
     var itens=fs.map(function(f){
       if(f.ref_actor_id==null) return '<li style="margin:3px 0">'+esc(f.flag_reason)+'</li>';
       return '<li style="margin:3px 0">Pode ser a mesma pessoa que '
@@ -1039,6 +1144,7 @@ function _renderFlagIdentidade(){
     box.insertBefore(el, box.firstChild);
   }catch(e){ console.warn('flag identidade',e); }
 }
+window._renderFlags=_renderFlagIdentidade;
 async function abrirFicha(id){
   window._fichaId=id;
   document.getElementById("overlay").classList.add("on");
@@ -1059,7 +1165,7 @@ async function abrirFicha(id){
       bolsaSetor=(await getJSON("v_bolsa_por_setor?select=setor,emissores,ativos&order=ativos.desc")).dados;
       bolsaFonte=(await getJSON("v_bolsa_fonte?select=fonte,base_dados,autor,contribuidor")).dados[0]||null;
     }
-    const flg=await getJSON("v_actor_flags?actor_id=eq."+id+"&flag_type=eq.possivel_mesma_pessoa&select=flag_reason,ref_actor_id,ref_nome,ref_tipo&limit=50");
+    const flg=await getJSON("v_actor_flags?actor_id=eq."+id+"&flag_type=in.(possivel_mesma_pessoa,indigena)&select=flag_type,flag_reason,ref_actor_id,ref_nome,ref_tipo,etnia&limit=50");
     const eveIds=(await getJSON("v_evento_atores?actor_id=eq."+id+"&select=event_id")).dados.map(x=>x.event_id);
     let eventos=[]; if(eveIds.length){ eventos=(await getJSON("v_eventos?event_id=in.("+eveIds.join(",")+")&select=event_id,event_type,event_type_pt,title,description,ano,mes,dia,ano_fim,local,fonte,participantes,referencias&order=ano.asc.nullslast&limit=500")).dados; }
     F={ idAtual:id, info:det, mv:mv, rels:rel.dados, relsTotal:rel.total, cargas:car.dados.filter(c=>!/Bolsa do RJ/i.test(c.produto||"")), bens:ben.dados, cotacoes:cot.dados, stats:sta.dados, caderneta:cad.dados, bolsaAno:bolsaAno, bolsaSetor:bolsaSetor, bolsaFonte:bolsaFonte, eventos:eventos, flags:flg.dados, expand:{}, fAno:"", fTipo:"", moeda:"reis", taxa:"c", cargaProds:new Set(), cargaUnid:"", cargaAnoDe:"", cargaAnoAte:"", cargaSel:null, cotAtivoSel:null, redePeso:((det.institution_type||"")==="Bolsa de valores"?"negociacao":"count"), redeAgg:null, redeAggOk:false, redeAggTotal:0, _aggKey:null };
@@ -1941,8 +2047,9 @@ function filtrosFichaHTML(){
   }
   return "<div class='ffiltros'>"+chips+ano+carregar+legTabs+"</div>";
 }
-function setFTipoIdx(idx){ F.fTipo = idx<0 ? "" : ((F._relTipos||[])[idx]||""); F.fLeg=""; renderRelacoes(); atualizarRede(); }
-function setFLeg(leg){ F.fLeg=leg; renderRelacoes(); atualizarRede(); }
+function _redesenhaFiltrosFicha(){ const el=document.querySelector(".ffiltros"); if(el) el.outerHTML=filtrosFichaHTML(); }
+function setFTipoIdx(idx){ F.fTipo = idx<0 ? "" : ((F._relTipos||[])[idx]||""); F.fLeg=""; F._relCat=null; _redesenhaFiltrosFicha(); renderRelacoes(); atualizarRede(); }
+function setFLeg(leg){ F.fLeg=leg; _redesenhaFiltrosFicha(); renderRelacoes(); atualizarRede(); }
 function extrairLegislatura(nota){
   const m=(nota||"").match(/^(\d+ª\s*legislatura)/i);
   return m ? m[1].replace(/\s+/g," ") : null;
@@ -1985,8 +2092,30 @@ function renderRelacoes(){
   const dados=relFiltradas(); const porTipo={};
   for(const r of dados){ const k=relGrupo(r); (porTipo[k]=porTipo[k]||[]).push(r); }
   const chaves=ordenaGruposRel(Object.keys(porTipo), k=>porTipo[k].length);
+  // agrupamento de 2º nível: categoria da relação
+  const _catRelPt={Administrative:'Administração e política',Geographic:'Território',Financial:'Finanças e negócios',Financeira:'Finanças e negócios',Trabalho:'Trabalho',Parentesco:'Família'};
+  const catDe=function(k){ if(k==='Família') return 'Família'; const r=(porTipo[k]||[])[0]||{}; return _catRelPt[r.relation_category]||r.relation_category||'Outras relações'; };
+  const cats=[]; const porCat={};
+  chaves.forEach(function(k){ const c=catDe(k); if(!porCat[c]){ porCat[c]=[]; cats.push(c); } porCat[c].push(k); });
+  cats.sort(function(a,b){ if(a==='Família')return -1; if(b==='Família')return 1;
+    const t=function(c){ return porCat[c].reduce(function(s,k){return s+porTipo[k].length;},0); }; return t(b)-t(a); });
+  const mostraCat=cats.length>1;
+  // categoria ativa (abas lado a lado)
+  if(!F._relCat || cats.indexOf(F._relCat)<0) F._relCat=cats[0];
+  const catAtiva=mostraCat?F._relCat:null;
   let h="";
-  for(const k of chaves){ const arr=porTipo[k]; const ehFam=(k==='Família'); const aberto=F.expand[k]; const LIM=aberto?arr.length:25;
+  if(mostraCat){
+    h+="<div class='rel-tabs'>";
+    for(const _c of cats){
+      const _tot=porCat[_c].reduce(function(s,k){return s+porTipo[k].length;},0);
+      h+="<button class='rel-tab"+(_c===catAtiva?" on":"")+"' onclick=\"F._relCat='"+esc(_c).replace(/'/g,"")+"';renderRelacoes()\">"
+        +esc(_c)+" <span>"+_tot.toLocaleString('pt-BR')+"</span></button>";
+    }
+    h+="</div>";
+  }
+  for(const _c of cats){
+  if(mostraCat && _c!==catAtiva) continue;
+  for(const k of porCat[_c]){ const arr=porTipo[k]; const ehFam=(k==='Família'); const aberto=F.expand[k]; const LIM=aberto?arr.length:25;
     let soma=0, temV=false;
     for(const r of arr){ if(r.valor!=null && (!r.moeda||/r[eé]is/i.test(r.moeda))){ soma+=Number(r.valor)||0; temV=true; } }
     const somaH = temV ? " <span class='soma'>Σ "+esc(milreis(soma,"réis"))+"</span>" : "";
@@ -2006,7 +2135,7 @@ function renderRelacoes(){
     const ind=podeToggle?(" <span class='ano'>["+(aberto?"−":"+")+"]</span>"):"";
     const hdBg=ehFam?"#7f5bd0":(COR[arr[0].rel_tipo]||"#888"); const hdLbl=ehFam?"Família":relpt(k);
     h+="<div class='grp'><h4"+(podeToggle?(" style='cursor:pointer' onclick=\""+tog+"\""):"")+"><span class='badge' style='background:"+hdBg+"'>"+esc(hdLbl)+"</span> <span class='cnt'>"+arr.length+"</span>"+somaH+ind+"</h4>"+its+"</div>";
-  }
+  }}
   if(!chaves.length) h="<p style='color:var(--ink-muted);font-size:12.5px'>Sem relações para o filtro atual.</p>";
   if(F.rels.length<F.relsTotal) h+="<p class='mais' style='cursor:default;color:var(--ink-muted)'>Carregadas "+F.rels.length+" de "+F.relsTotal+" relações.</p>";
   wrap.innerHTML=h;
@@ -2135,6 +2264,7 @@ function barraFiltroCargas(){
     let _catAtiva=(F._catAtiva&&_catsFull.includes(F._catAtiva))?F._catAtiva:(F._activeGrupo?_catDe(F._activeGrupo):_catsFull[0]);
     if(!_catsFull.includes(_catAtiva))_catAtiva=_catsFull[0];
     const _ogCat=_og.filter(g=>_catDe(g)===_catAtiva);
+    const _gAtivoTab=(F._activeGrupo&&_ogCat.includes(F._activeGrupo))?F._activeGrupo:grupoAtivo;
     const tabSt=(act)=>"padding:5px 14px;border:1px solid "+(act?"#2f5496 #2f5496 transparent":"#d9e0ea")+";border-bottom:"+(act?"none":"1px solid #d9e0ea")+";border-radius:6px 6px 0 0;cursor:pointer;font-size:12px;background:"+(act?"#fff":"#f0f3f8")+";color:"+(act?_ink():"#41526b")+";margin-right:2px;position:relative;top:1px;font-weight:"+(act?"600":"400");
     if(_catsFull.length>1){
       h+="<div style='display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:9px'>";
@@ -2147,16 +2277,20 @@ function barraFiltroCargas(){
       h+="<div style='display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid #d9e0ea;margin-bottom:8px'>";
       if(_cats.length>1)h+="<span style='font-size:11px;color:var(--ink-muted);font-weight:600;margin-right:6px'>Visões:</span>";
       for(const _g of _ogCat){
-        h+="<button onclick='selecionarGrupo(\""+esc1(_g)+"\")' style='"+tabSt(_g===grupoAtivo)+"'>"+esc(_g)+"</button>";
+        h+="<button onclick='selecionarGrupo(\""+esc1(_g)+"\")' style='"+tabSt(_g===_gAtivoTab)+"'>"+esc(_g)+"</button>";
       }
       h+="</div>";
     }
-    const _customGrps=["Censo 1872","Raças 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Óbitos","Imigração","Censo 1890","População livre e escrava (1838)","População, casas e fogos por paróquia","Cortiços por paróquia","População, prédios e domicílios (1906 e 1920)"];if(grupoAtivo&&!_customGrps.includes(grupoAtivo)&&!_grpLobo[grupoAtivo]){
-      const _prods=[...new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===grupoAtivo).map(k=>baseDe(k)))];
+    const _customGrps=["Censo 1872","Raças 1872","Religião 1872","Estado civil 1872","Instrução 1872","Instrução escolar 1872","Presença 1872","Defeitos físicos 1872","Faixa etária 1872","Origem brasileiros 1872","Origem estrangeiros 1872","Profissões 1872","Óbitos","Imigração","Censo 1890","População livre e escrava (1838)","População, casas e fogos por paróquia","Cortiços por paróquia","População, prédios e domicílios (1906 e 1920)"];
+    // usa o grupo ATIVO persistido (não o derivado da seleção), senão os chips somem ao desmarcar um item
+    const _gProds=(F._activeGrupo&&_ogCat.includes(F._activeGrupo))?F._activeGrupo:grupoAtivo;
+    if(_gProds&&!_customGrps.includes(_gProds)&&!_grpLobo[_gProds]&&!F._semSerieAtual){
+      const _prods=[...new Set((A.ks||[]).filter(k=>A.porProd[k].grupo===_gProds).map(k=>baseDe(k)))];
       if(_prods.length>1){
         h+="<div style='margin-bottom:6px'>";
-        const _allSel=_prods.every(b=>F.cargaProds.has(b));
-        h+="<button onclick='selecionarGrupo(\""+esc1(grupoAtivo)+"\")' style='padding:2px 8px;margin:0 4px 3px 0;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:"+(_allSel?"#2f5496":"#fff")+";color:"+(_allSel?"#fff":"#41526b")+"'>Todos</button>";
+        const _nSel=_prods.filter(b=>F.cargaProds.has(b)).length;
+        const _allSel=(_nSel===_prods.length)||_nSel===0;
+        h+="<button onclick='selecionarGrupo(\""+esc1(_gProds)+"\")' style='padding:2px 8px;margin:0 4px 3px 0;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:"+(_allSel?"#2f5496":"#fff")+";color:"+(_allSel?"#fff":"#41526b")+";font-weight:600'>Todos</button>";
         for(const b of _prods){
           const act=F.cargaProds.has(b);
           h+="<button onclick='toggleProd(\""+esc1(b)+"\")' style='padding:2px 8px;margin:0 4px 3px 0;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #d9e0ea;background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+"'>"+esc(b)+"</button>";
@@ -2173,10 +2307,40 @@ function barraFiltroCargas(){
     h+="</div>";
   } else {
     const bases=[...new Set(F.cargas.map(c=>baseDe(c.produto)))].sort();
-    const chip=(act,onc,lab)=>"<button onclick=\""+onc+"\" style='padding:3px 8px;margin:0 4px 4px 0;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid #d9e0ea;background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b")+"'>"+lab+"</button>";
-    h+="<div style='margin-bottom:4px'><b style='color:var(--ink-muted)'>Produtos:</b> ";
-    for(const b of bases)h+=chip(F.cargaProds.has(b),"toggleProd('"+esc1(b)+"')",esc(b));
+    // sem marcador grupo= na fonte: deriva 2 camadas (por fonte, senão por natureza do valor)
+    const fonteDe={}, natDe={};
+    F.cargas.forEach(c=>{ const b=baseDe(c.produto);
+      if(!fonteDe[b]) fonteDe[b]=(c.fonte||'').trim();
+      if(!natDe[b]) natDe[b]= isMonet(c.produto,c.moeda) ? 'Valores monetários' : (/%/.test(c.produto)?'Percentuais':'Quantidades');
+    });
+    const _fs=[...new Set(bases.map(b=>fonteDe[b]).filter(Boolean))];
+    const _usarFonte=_fs.length>1 && _fs.length<bases.length;
+    const _catOf=b=>_usarFonte?(fonteDe[b]||'Sem fonte declarada'):natDe[b];
+    const _cats=[...new Set(bases.map(_catOf))].sort();
+    F._autoMap={}; _cats.forEach(c=>{ F._autoMap[c]=bases.filter(b=>_catOf(b)===c); });
+    const chipSt=(act)=>"padding:3px 9px;margin:0 4px 4px 0;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid #d9e0ea;background:"+(act?"#2f5496":"#fff")+";color:"+(act?"#fff":"#41526b");
+    let _lista=bases;
+    if(_cats.length>1){
+      let _ca=(F._autoCat&&_cats.includes(F._autoCat))?F._autoCat:_cats[0];
+      F._autoCat=_ca;
+      h+="<div style='display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:9px'>";
+      h+="<span style='font-size:11px;color:var(--ink-muted);font-weight:600;margin-right:4px'>Conjunto:</span>";
+      for(const _c of _cats){ const act=_c===_ca;
+        h+="<button onclick='_setAutoCat(\""+esc1(_c)+"\")' title=\""+esc(_c).replace(/"/g,'&quot;')+"\" style='padding:5px 14px;border-radius:16px;font-size:11.5px;cursor:pointer;border:1px solid "+(act?_ink():"#cdd6e2")+";background:"+(act?_ink():"#eef2f7")+";color:"+(act?"#fff":"#41526b")+";font-weight:"+(act?"600":"500")+"'>"+esc(_lblCurto(_c,32))+" <span style='opacity:.7'>"+F._autoMap[_c].length+"</span></button>"; }
+      h+="</div>";
+      _lista=F._autoMap[_ca];
+    }
+    if(!F._semSerieAtual){
+    h+="<div style='margin-bottom:4px'>";
+    h+="<span style='font-size:11px;color:var(--ink-muted);font-weight:600;margin-right:6px'>Visões:</span>";
+    const _nSel=_lista.filter(b=>F.cargaProds.has(b)).length;
+    const _allSel=(_nSel===_lista.length)||_nSel===0;
+    h+="<button onclick='_selAutoTodos()' style='"+chipSt(_allSel)+";font-weight:600'>Todos</button>";
+    for(const b of _lista){
+      h+="<button onclick=\"toggleProd('"+esc1(b)+"')\" title=\""+esc(b).replace(/"/g,'&quot;')+"\" style='"+chipSt(F.cargaProds.has(b))+"'>"+esc(_lblCurto(b,42))+"</button>";
+    }
     h+="</div>";
+    }
   }
   h+="<div style='margin-top:4px'><b style='color:var(--ink-muted)'>Anos:</b> <input type='number' value='"+esc(F.cargaAnoDe)+"' placeholder='de' onchange='F.cargaAnoDe=this.value;renderCargas()' style='width:72px;padding:3px 6px;border:1px solid #d9e0ea;border-radius:6px'> <input type='number' value='"+esc(F.cargaAnoAte)+"' placeholder='até' onchange='F.cargaAnoAte=this.value;renderCargas()' style='width:72px;padding:3px 6px;border:1px solid #d9e0ea;border-radius:6px'></div>";
   h+="</div>";
@@ -2184,6 +2348,8 @@ function barraFiltroCargas(){
 }
 
 function toggleProd(b){ if(F.cargaProds.has(b))F.cargaProds.delete(b); else F.cargaProds.add(b); renderCargas(); }
+function _setAutoCat(c){ F._autoCat=c; F.cargaProds=new Set((F._autoMap&&F._autoMap[c])||[]); renderCargas(); }
+function _selAutoTodos(){ const l=(F._autoMap&&F._autoCat)?F._autoMap[F._autoCat]:null; F.cargaProds=l?new Set(l):new Set(); renderCargas(); }
 function _selAutoGrp(g){F._activeAutoGrp=g;F._activeGrupo=g;F.cargaProds=new Set();renderCargas();}
 function selecionarGrupo(g){const A=F._agg||{};F.cargaProds=new Set((A.ks||[]).filter(k=>(A.porProd||{})[k]?.grupo===g).map(k=>baseDe(k)));F._activeGrupo=g;F._catAtiva=_catDe(g);F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null;F._loboMed=null;F._loboAno=null;renderCargas();}function todosProd(){F._activeGrupo=null;F._censo1872Sex=null;F._obitosBreak=null;F._censo1890Sex=null;F._racasSex=null;F._compSex=null;F._loboMed=null;F._loboAno=null; F.cargaProds.clear(); renderCargas(); }
 function setUnid(u){ F.cargaUnid=u; renderCargas(); }
@@ -2668,7 +2834,11 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   for(const c of cargasFiltradas()){ const k=c.produto||"(s/ produto)"; const o=porProd[k]=porProd[k]||{anos:new Set(),soma:0,moeda:c.moeda,monet:isMonet(k,c.moeda),conv:0,aprox:false,grupo:grpDe(c.notes),flag:"",ultimoAno:null,ultimoVal:null}; if(c.ano)o.anos.add(c.ano); { const _f=flagDe(c.notes); if(_f)o.flag=_f; } if(c.valor!=null){ o.soma+=Number(c.valor); if(c.ano!=null&&(o.ultimoAno==null||c.ano>=o.ultimoAno)){o.ultimoAno=c.ano;o.ultimoVal=Number(c.valor);} if(o.monet&&F.moeda!=="reis"){ const rr=convAno(Number(c.valor),c.ano); o.conv+=rr.val; if(rr.aprox)o.aprox=true; } } }
   const ks=Object.keys(porProd).sort((a,b)=>porProd[b].anos.size-porProd[a].anos.size);
   const _anosTodos=new Set(); ks.forEach(k=>porProd[k].anos.forEach(y=>_anosTodos.add(y)));
-  const _semSerie=(_anosTodos.size<=1 && ks.length>0);
+  // Não há cronologia quando NENHUM indicador tem série própria (>=2 anos).
+  // O conjunto pode abranger vários anos e ainda assim não haver série alguma
+  // (ex.: capital social em 1859, ações em 1864) — nesse caso o gráfico plotaria
+  // pontos soltos de grandezas incomparáveis.
+  const _semSerie=(ks.length>0 && ks.every(k=>porProd[k].anos.size<2));
   const grupos=[...new Set(ks.map(k=>porProd[k].grupo))]; let usarGrupo=!(grupos.length===1&&grupos[0]==="Outros"); const ordemG=["Dívida Externa","Dívida Interna","Depósitos","Papel-Moeda","Outros"]; grupos.sort((a,b)=>(ordemG.indexOf(a)<0?99:ordemG.indexOf(a))-(ordemG.indexOf(b)<0?99:ordemG.indexOf(b)));
   const _isEmbAutoGrp=!usarGrupo&&F.mv&&F.mv.tipo==="Embarcação";
   if(_isEmbAutoGrp){for(const k in porProd)porProd[k].grupo=_autoGrpEmb(baseDe(k));grupos.length=0;[...new Set(Object.keys(porProd).map(k=>porProd[k].grupo))].forEach(g=>grupos.push(g));const _emOrd=["Açúcar","Coloniais","Madeiras","Couros","Outros","Totais"];grupos.sort((a,b)=>(_emOrd.indexOf(a)<0?99:_emOrd.indexOf(a))-(_emOrd.indexOf(b)<0?99:_emOrd.indexOf(b)));usarGrupo=!(grupos.length===1&&grupos[0]==="Outros");}
@@ -2676,6 +2846,7 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   if(usarGrupo&&!F._activeGrupo){const _prio=["Censo 1872","Raças 1872","Censo 1890"];const _firstG=_prio.find(g=>grupos.includes(g))||grupos.find(g=>g!=="Outros")||grupos[0];if(_firstG){F._activeGrupo=_firstG;if(_isEmbAutoGrp){F._activeAutoGrp=_firstG;F.cargaProds=new Set();}else{F.cargaProds=new Set(ks.filter(k=>porProd[k].grupo===_firstG).map(k=>baseDe(k)));}}}
   if(!usarGrupo&&!F._initialized){const _fBases=[...new Set(ks.map(k=>baseDe(k)))];const _fDef=_fBases.find(b=>/total acumulado/i.test(b))||_fBases.find(b=>/acumul/i.test(b));if(_fDef)F.cargaProds.add(_fDef);}F._initialized=true;
   const ehInventario=false; // inventário (bens) agora tem aba própria; não muda o render de Dados
+  F._semSerieAtual=_semSerie;
   let h="<div class='sech'>"+(F.cargas.length?("Dados <span class='cnt'>"+cargasFiltradas().length+" de "+F.cargas.length+" lançamentos</span>"):"Valores por ano")+"</div>"; if(F.cargas.length && !ehInventario) h+=barraFiltroCargas();
   if(ehInventario) h+="<p style='font-size:11.5px;color:var(--ink-muted);margin:2px 0 0'>Totais do inventário (retrato de "+(F.bens[0].ano||"")+", sem série temporal). Veja a distribuição no gráfico de “Bens do inventário” abaixo.</p>";
   else h+="<canvas id='graf' height='150'></canvas>";
@@ -2702,6 +2873,9 @@ function renderCargas(){ const cw=document.getElementById("cargasWrap"); if(!cw)
   if(F._activeGrupo==="Imigração"){renderImigracao();return;}
   if(F._activeGrupo==="Censo 1890"){renderCenso1890();return;}
   if(_semSerie){ const _g=document.getElementById('graf'); if(_g)_g.style.display='none'; renderSnapshot(_anosTodos); return; }
+  // métricas percentuais (juros, participações) não ganham nada com curva: só tabela
+  const _soPct=ks.length>0 && ks.every(k=>/%/.test(k));
+  if(_soPct){ const _g=document.getElementById('graf'); if(_g)_g.style.display='none'; renderTabelaSerie(); return; }
   renderGrafico(); renderTabelaSerie();
 }
 /* Quadro-resumo para dados sem progressão cronológica (um único ano) */
@@ -2709,22 +2883,42 @@ function renderSnapshot(anosSet){
   const ct=document.getElementById("cargaTabela"); if(!ct) return;
   const A=F._agg||{porProd:{},ks:[]}; const porProd=A.porProd||{}; const ks=(A.ks||[]);
   if(!ks.length){ ct.innerHTML=""; return; }
-  const anos=[...(anosSet||[])];
+  const anos=[...(anosSet||[])].sort();
   const ano=anos.length?anos[0]:null;
+  const _um=anos.length<=1;
   let h="<p style='font-size:11.5px;color:var(--ink-muted);margin:8px 0 10px'>"
-       +"Retrato de um único momento"+(ano?(" (<b>"+ano+"</b>)"):"")
-       +" — como não há progressão ao longo do tempo, os valores aparecem como quadro-resumo em vez de gráfico.</p>";
-  h+="<div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px'>";
-  for(const k of ks){
-    const o=porProd[k]; if(!o) continue;
-    const ys=[...o.anos].sort();
-    h+="<div style='border:1px solid var(--borda);border-radius:10px;padding:11px 13px;background:var(--card)'>"
-      +"<div style='font-size:11.5px;color:var(--txt3);line-height:1.35'>"+esc(k)+"</div>"
-      +"<div style='font-size:17px;font-weight:700;color:var(--ink2);margin-top:6px;word-break:break-word'>"+fmtSomaCargo(o)+"</div>"
-      +(ys.length&&ys[0]!=ano?("<div style='font-size:10.5px;color:var(--txt3);margin-top:3px'>"+ys.join(", ")+"</div>"):"")
-      +"</div>";
+       +(_um
+          ? ("Retrato de um único momento"+(ano?(" (<b>"+ano+"</b>)"):"")+" — como não há progressão ao longo do tempo, os valores aparecem como quadro-resumo em vez de gráfico.")
+          : ("Valores pontuais entre <b>"+anos[0]+"</b> e <b>"+anos[anos.length-1]+"</b> — cada indicador foi registrado uma única vez, em ano próprio, de modo que não formam séries comparáveis. O ano de cada um aparece ao lado do valor."))
+       +"</p>";
+  if(ks.length<=8){
+    // poucos indicadores: cartões
+    h+="<div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px'>";
+    for(const k of ks){
+      const o=porProd[k]; if(!o) continue;
+      const ys=[...o.anos].sort();
+      h+="<div style='border:1px solid var(--borda);border-radius:10px;padding:11px 13px;background:var(--card)'>"
+        +"<div style='font-size:11.5px;color:var(--txt3);line-height:1.35'>"+esc(k)+"</div>"
+        +"<div style='font-size:17px;font-weight:700;color:var(--ink2);margin-top:6px;word-break:break-word'>"+fmtSomaCargo(o)+"</div>"
+        +(ys.length&&(!_um||ys[0]!=ano)?("<div style='font-size:10.5px;color:var(--txt3);margin-top:3px'>"+ys.join(", ")+"</div>"):"")
+        +"</div>";
+    }
+    h+="</div>";
+  }else{
+    // muitos indicadores: tabela (mesmo padrão das demais visões do banco)
+    h+="<div style='overflow-x:auto;margin:0 0 16px;display:flex;justify-content:center'><table style='width:100%;max-width:760px;font-size:12.2px;border-collapse:collapse'>"
+      +"<thead><tr><th style='text-align:left;color:#fff;border-bottom:1px solid #e3e8ef;padding:5px 10px'>Indicador</th>"
+      +"<th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:5px 10px'>Ano</th>"
+      +"<th style='text-align:right;color:#fff;border-bottom:1px solid #e3e8ef;padding:5px 10px'>Valor</th></tr></thead><tbody>";
+    for(const k of ks){
+      const o=porProd[k]; if(!o) continue;
+      const ys=[...o.anos].sort();
+      h+="<tr><td style='padding:4px 10px;border-top:1px solid #f0f3f7'>"+esc(k)+"</td>"
+        +"<td style='padding:4px 10px;text-align:right;border-top:1px solid #f0f3f7;color:var(--txt3)'>"+esc(ys.join(", "))+"</td>"
+        +"<td style='padding:4px 10px;text-align:right;border-top:1px solid #f0f3f7;font-weight:600'>"+fmtSomaCargo(o)+"</td></tr>";
+    }
+    h+="</tbody></table></div>";
   }
-  h+="</div>";
   ct.innerHTML=h;
 }
 function autoModo(){
@@ -2947,10 +3141,45 @@ function baixarCSV(nome,linhas){
 function URL_OBJ(b){ return (window.URL||window.webkitURL).createObjectURL(b); }
 function exportBuscaCSV(){
   if(!ultimaBusca.length){ alert("Faça uma busca primeiro."); return; }
+  // exporta somente a página visível (teto de 200 linhas por exportação)
+  var page=Math.max(_pag.page,1), fatia, tot;
+  if(_pag.server){ fatia=ultimaBusca.slice(0,200); tot=_pag.total||ultimaBusca.length; }
+  else{
+    tot=ultimaBusca.length;
+    var size=(_pag.size==='all')?tot:_pag.size;
+    page=Math.min(page,Math.max(1,Math.ceil(tot/size)));
+    fatia=ultimaBusca.slice((page-1)*size,(page-1)*size+size).slice(0,200);
+  }
   const L=[["nome","tipo","acervo","ano_min","ano_max","estatisticas","relacoes"]];
-  ultimaBusca.forEach(d=>L.push([d.nome,d.tipo,d.origem,d.ano_min,d.ano_max,d.n_registros,d.n_relacoes]));
-  baixarCSV("busca.csv",L);
+  fatia.forEach(d=>L.push([d.nome,d.tipo,d.origem,d.ano_min,d.ano_max,d.n_registros,d.n_relacoes]));
+  baixarCSV("busca_p"+page+".csv",L);
+  var st=document.getElementById("status");
+  if(st && tot>fatia.length) st.innerHTML='<span class="pill">'+fatia.length+' linhas exportadas</span> (página '+page+'). Navegue pelas páginas para exportar outros trechos.';
 }
+/* ===== Exportar gráficos como PNG (botão aparece ao passar o mouse) ===== */
+document.addEventListener('pointerover',function(e){
+  var w=e.target && e.target.closest ? e.target.closest('.chart-wrap') : null;
+  if(!w || w.querySelector('.chart-png-btn')) return;
+  var cv=w.querySelector('canvas'); if(!cv) return;
+  if(!(window.Chart&&Chart.getChart&&Chart.getChart(cv))) return;
+  var b=document.createElement('button');
+  b.className='chart-png-btn'; b.type='button'; b.textContent='⤓ PNG'; b.title='Baixar este gráfico como imagem';
+  b.addEventListener('click',function(ev){
+    ev.stopPropagation(); ev.preventDefault();
+    try{
+      var ch=Chart.getChart(cv); if(!ch) return;
+      var tmp=document.createElement('canvas'); tmp.width=cv.width; tmp.height=cv.height;
+      var cx=tmp.getContext('2d');
+      cx.fillStyle=_isDark()?'#152019':'#ffffff'; cx.fillRect(0,0,tmp.width,tmp.height);
+      cx.drawImage(cv,0,0);
+      var a=document.createElement('a');
+      var tit=(w.parentElement&&w.parentElement.querySelector('h3, div'))?(w.parentElement.querySelector('h3, div').textContent||'grafico'):'grafico';
+      a.download='ogum_'+tit.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,50)+'.png';
+      a.href=tmp.toDataURL('image/png'); a.click();
+    }catch(err){ console.warn('export png',err); }
+  });
+  w.appendChild(b);
+});
 function exportFichaCSV(){
   if(!F.info){ return; } const L=[["bloco","tipo","relacionado/produto","ano","ano_fim","valor","moeda","papel/nota"]];
   F.rels.forEach(r=>L.push(["relacao",relpt(r.relation_name),r.rel_nome,r.ano,r.ano_fim,r.valor,r.moeda,r.role_name||r.notes||""]));
@@ -2994,13 +3223,13 @@ carregarHeaderCounts();
 carregarCategorias();
 document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
-["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm"].forEach(function(pid){
+["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas"].forEach(function(pid){
   var el=document.getElementById(pid);
   if(el) el.addEventListener("click",function(e){ if(e.target.id===pid) _fecharStatPopup(pid); });
 });
 document.addEventListener("keydown",function(e){
   if(e.key!=="Escape") return;
-  ["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm"].forEach(function(pid){ _fecharStatPopup(pid); });
+  ["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas"].forEach(function(pid){ _fecharStatPopup(pid); });
 });
 buscar();carregarSubtipos();setTimeout(()=>_updSortArrows(),100);
 
@@ -3203,9 +3432,10 @@ async function _loadPoupancas(){
         q("v_dash_poup_ocupacao?select=*&order=n.desc"),
         q("v_dash_poup_decada?select=*&order=decada"),
         q("v_dash_poup_uso?select=*&order=ord"),
-        q("v_dash_poup_amostra?select=*")
+        q("v_dash_poup_amostra?select=*"),
+        q("v_dash_poup_alfabetizacao?select=*&order=ord")
       ]);
-      cache=window._poupData={tot:res[0][0]||{},gen:res[1],cat:res[2],ocu:res[3],dec:res[4],uso:res[5],am:(res[6]||[])[0]||{}};
+      cache=window._poupData={tot:res[0][0]||{},gen:res[1],cat:res[2],ocu:res[3],dec:res[4],uso:res[5],am:(res[6]||[])[0]||{},alfa:res[7]};
     }
     applyChartTheme();
     _renderPoup(cache);
@@ -3232,7 +3462,7 @@ function _renderPoup(c){
         +'</div></div>';
     } else dz.style.display='none';
   }
-  _poupChartGenero(c.gen); _poupChartCategoria(c.cat); _poupChartOcupacao(c.ocu); _poupChartDecada(c.dec); _poupChartUso(c.uso); _poupAmostra(c.am);
+  _poupChartGenero(c.gen); _poupChartCategoria(c.cat); _poupChartOcupacao(c.ocu); _poupChartDecada(c.dec); _poupChartUso(c.uso); _poupChartAlfa(c.alfa); _poupAmostra(c.am);
 }
 function _poupChartGenero(rows){
   rows=rows||[]; var el=document.getElementById('grafPoupGenero'); if(!el) return; _poupDestroy('gen');
@@ -3274,6 +3504,21 @@ function _poupChartCategoria(rows){
         var e=els[0];
         if(e.datasetIndex===0){ var m=macros[e.index].nome; buscarPoupadores('macro',m,'Poupadores · '+m); }
         else { var v=detLabels[e.index]; buscarPoupadores('categoria',v,'Poupadores · '+v); } }}});
+}
+function _poupChartAlfa(rows){
+  rows=rows||[]; var el=document.getElementById('grafPoupAlfa'); if(!el) return; _poupDestroy('alfa');
+  var pal={'Sabe escrever':'#1d6e56','Não sabe escrever':'#ba7517','Sem registro':'#a8b2ac'};
+  var labels=rows.map(function(x){return x.categoria;});
+  poupCharts.alfa=new Chart(el,{type:'doughnut',
+    data:{labels:labels,datasets:[{data:rows.map(function(x){return x.n;}),
+      backgroundColor:labels.map(function(l){return pal[l]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'56%',
+      plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10,padding:6,usePointStyle:true}},
+        tooltip:{callbacks:{label:function(cc){
+          var com=rows.filter(function(r){return r.categoria!=='Sem registro';}).reduce(function(s,r){return s+Number(r.n)||0;},0);
+          var pc=(cc.label!=='Sem registro'&&com)?(' · '+((cc.parsed/com)*100).toFixed(1).replace('.',',')+'% dos que têm o dado'):'';
+          return cc.label+': '+_fmt(cc.parsed)+pc;
+        }}}}}});
 }
 function _poupAmostra(a){
   var el=document.getElementById('poup-amostra'); if(!el) return;
@@ -3335,6 +3580,62 @@ function _poupChartDecada(rows){
   poupCharts.dec=new Chart(el,{type:'bar',
     data:{labels:rows.map(function(x){return x.decada+'s';}),datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:'#1d6e56',borderRadius:4}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.y)+' cadernetas abertas';}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:9}}}}}});
+}
+/* ===== Destaque Povos Indígenas (fontes 93-112) ===== */
+var indCharts={};
+function _indDestroy(k){ try{ if(indCharts[k]){ indCharts[k].destroy(); indCharts[k]=null; } }catch(e){} }
+async function _loadIndigenas(){
+  var box=document.getElementById('stat-ind-body'), load=document.getElementById('stat-ind-loading');
+  try{
+    var cache=window._indData;
+    if(!cache){
+      if(load){load.style.display='';load.textContent='Carregando…';} if(box)box.style.display='none';
+      var q=async(p)=>{ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn('IND:',p,e); return []; } };
+      var res=await Promise.all([
+        q("v_dash_ind_totais?select=*"),
+        q("v_dash_ind_povos?select=*&order=n.desc"),
+        q("v_dash_ind_eventos?select=*&order=n.desc"),
+        q("v_dash_ind_pessoas?select=*&limit=60")
+      ]);
+      cache=window._indData={tot:res[0][0]||{},povos:res[1],eventos:res[2],pessoas:res[3]};
+    }
+    applyChartTheme();
+    _renderIndigenas(cache);
+    if(load)load.style.display='none'; if(box)box.style.display='';
+  }catch(e){ console.error('_loadIndigenas',e); window._indData=null; if(load){load.style.display='';load.textContent='Não foi possível carregar agora.';} if(box)box.style.display='none'; }
+}
+function _renderIndigenas(c){
+  var t=c.tot||{};
+  var kpi=document.getElementById('ind-kpis');
+  if(kpi){
+    var cards=[['Pessoas indígenas',_fmt(t.pessoas_indigenas)],['Povos',_fmt(t.povos)],['Atores no total',_fmt(t.atores_total)],
+      ['Relações',_fmt(t.relacoes)],['Acontecimentos',_fmt(t.eventos)],['Período',(t.ano_min&&t.ano_max)?(t.ano_min+'–'+t.ano_max):'—']];
+    kpi.innerHTML=cards.map(function(k){return '<div style="background:rgba(29,110,86,.08);border-radius:10px;padding:12px 14px"><div style="font-size:22px;font-weight:700;color:#1d6e56">'+k[1]+'</div><div style="font-size:11px;color:var(--txt3)">'+k[0]+'</div></div>';}).join('');
+  }
+  _indChartPovos(c.povos); _indChartEventos(c.eventos); _indPessoas(c.pessoas);
+}
+function _indChartPovos(rows){
+  rows=rows||[]; var el=document.getElementById('grafIndPovos'); if(!el) return; _indDestroy('povos');
+  indCharts.povos=new Chart(el,{type:'bar',
+    data:{labels:rows.map(function(x){return x.povo;}),datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:'#1d6e56',borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.x)+' pessoas';}}}},scales:{x:{ticks:{font:{size:9},precision:0}},y:{ticks:{font:{size:11}}}}}});
+}
+function _indChartEventos(rows){
+  rows=rows||[]; var el=document.getElementById('grafIndEventos'); if(!el) return; _indDestroy('ev');
+  indCharts.ev=new Chart(el,{type:'bar',
+    data:{labels:rows.map(function(x){return x.tipo_pt;}),datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:'#ba7517',borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:function(cc){return cc[0].label;},label:function(cc){var r=rows[cc.dataIndex]; return _fmt(cc.parsed.x)+' · '+(r.y0===r.y1?r.y0:(r.y0+'–'+r.y1));}}}},scales:{x:{ticks:{font:{size:9},precision:0}},y:{ticks:{font:{size:10}}}}}});
+}
+function _indPessoas(rows){
+  rows=rows||[]; var box=document.getElementById('ind-pessoas'); if(!box) return;
+  box.innerHTML=rows.map(function(p){
+    var per=(p.birth_year||p.death_year)?('<span style="color:var(--txt3)"> · '+(p.birth_year||'?')+'–'+(p.death_year||'?')+'</span>'):'';
+    var povo=(p.etnia&&!/^(Não declarada|Indígena)/.test(p.etnia))?('<span style="color:#1d6e56;font-weight:600">'+esc(p.etnia)+'</span>'):'<span style="color:var(--txt3)">povo não declarado</span>';
+    return '<button onclick="_fecharStatPopup(\'popup-indigenas\');abrirFicha('+p.actor_id+')" style="text-align:left;border:1px solid var(--borda);background:var(--card);border-radius:9px;padding:9px 11px;cursor:pointer;font-family:inherit">'
+      +'<div style="font-size:12.5px;font-weight:600;color:var(--ink2);line-height:1.3">'+(p.prefix?(esc(p.prefix)+' '):'')+esc(p.nome)+per+'</div>'
+      +'<div style="font-size:10.5px;margin-top:3px">'+povo+(p.n_relacoes?(' <span style="color:var(--txt3)">· '+p.n_relacoes+' relações</span>'):'')+'</div>'
+      +'</button>';
+  }).join('');
 }
 /* ===== Destaque Felipe Souza Melo (fonte 5) ===== */
 var fsmCharts={};
@@ -3469,7 +3770,7 @@ async function buscarPoupadores(facet,value,label){
     var r=await getJSON("v_busca_poupadores?"+p.join('&'), true);
     ultimaBusca=r.dados||[];
     var ncols=(typeof _modoRede!=='undefined'&&_modoRede)?7:6;
-    _pag.page=1;
+    _pag.page=1; _pag.server=false;
     if(!ultimaBusca.length){ if(tbody) tbody.innerHTML='<tr><td colspan="'+ncols+'" class="vazio">Nenhum poupador para este filtro.</td></tr>'; var _pb=document.getElementById('pagbar'); if(_pb)_pb.innerHTML=''; }
     else { _renderTbody(); }
     if(status) status.innerHTML='<span class="pill">'+ultimaBusca.length+'</span> de <b>'+r.total+'</b> — 💰 '+esc(label||'Poupadores da Caixa')+' <a onclick="limpar()" style="cursor:pointer;color:#1d6e56;margin-left:8px">✕ limpar</a>';
@@ -3876,16 +4177,19 @@ function _fonteCard(f){
   var badge='<span class="fonte-badge">'+esc(_fonteTipoLabel(f.source_type))+'</span>';
   var yr=f.year?('<span class="fonte-ano">'+esc(f.year)+'</span>'):'';
   var nome=_fonteNome(f); var abnt=f.full_reference||'';
+  var autor=f.author?_autorLabel(f.author):'';
   var abntHtml=(abnt && abnt!==nome)?('<div class="fonte-abnt">'+esc(abnt)+'</div>'):'';
   var meta=[];
-  if(f.author) meta.push(esc(_autorLabel(f.author)));
   if(f.contributor && f.contributor!==f.author) meta.push('Contribuidor: '+esc(f.contributor));
   if(f.archive) meta.push('Acervo: '+esc(f.archive));
   if(f.n_registros) meta.push('<b>'+Number(f.n_registros).toLocaleString('pt-BR')+'</b> registros no banco');
   var link=f.url?('<a class="fonte-link" href="'+encodeURI(f.url)+'" target="_blank" rel="noopener noreferrer">Acessar fonte ↗</a>'):'';
-  return '<div class="fonte-card"><div class="fonte-top">'+badge+yr+'</div>'
-    +'<div class="fonte-nome">'+esc(nome)+'</div>'+abntHtml
+  return '<div class="fonte-card">'
+    +(autor?'<div class="fonte-autor">'+esc(autor)+'</div>':'')
+    +'<div class="fonte-top">'+badge+yr+'</div>'
+    +((nome&&nome!==autor)?'<div class="fonte-nome">'+esc(nome)+'</div>':'')
     +(meta.length?'<div class="fonte-meta">'+meta.join(' · ')+'</div>':'')
+    +abntHtml
     +(link?'<div class="fonte-acoes">'+link+'</div>':'')+'</div>';
 }
 function _autorCard(g,n){
@@ -3895,8 +4199,8 @@ function _autorCard(g,n){
   var meta=['<b>'+g.items.length+'</b> fontes']; if(n) meta.push('<b>'+Number(n).toLocaleString('pt-BR')+'</b> registros no banco');
   var aid='aut-'+_slug(g.autor);
   var filhos=g.items.slice().sort(function(a,b){return (+b.year||0)-(+a.year||0);}).map(function(ch){return _fonteFilho(ch,false);}).join('');
-  return '<div class="fonte-card fonte-aut"><div class="fonte-top"><span class="fonte-badge aut">Autor</span>'+yr+'</div>'
-    +'<div class="fonte-nome">'+esc(_autorLabel(g.autor))+'</div>'
+  return '<div class="fonte-card fonte-aut"><div class="fonte-autor">'+esc(_autorLabel(g.autor))+'</div>'
+    +'<div class="fonte-top"><span class="fonte-badge aut">Autor</span>'+yr+'</div>'
     +'<div class="fonte-meta">'+meta.join(' · ')+'</div>'
     +'<button class="fonte-exp" onclick="_toggleCol(\''+aid+'\',this)"><span class="arw">▸</span> ver fontes</button>'
     +'<ul class="fonte-filhos" id="'+aid+'" style="display:none">'+filhos+'</ul></div>';
