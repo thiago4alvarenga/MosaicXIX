@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ogum — Banco de Dados Prosopográfico</title>
+<title>Anansi — Banco de Dados Prosopográfico</title>
+<link rel="icon" href="favicon.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  /* ── Ogum — Banco de Dados Prosopográfico ── */
+  /* ── Anansi — Banco de Dados Prosopográfico ── */
   :root{
     color-scheme:light;
-    --ferro:#1b3a2c; --verde:#2e7a50; --verde-d:#26663e; --cobre:#9a5c15;
+    --ferro:#0e2c1e; --verde:#2e7a50; --verde-d:#26663e; --cobre:#ab5f18;
     --fundo:#f3f5f3; --card:#ffffff; --card2:#f5f8f5; --borda:#d6ddd6; --linha:#ebefeb;
     --txt:#1a221d; --txt2:#56635c; --txt3:#87938c; --hover:#edf5ef; --alt:#f6faf7;
     --ring:rgba(46,122,80,.22); --shadow:0 1px 3px rgba(20,40,28,.07);
@@ -20,7 +21,7 @@
   }
   html[data-theme="dark"]{
     color-scheme:dark;
-    --ferro:#0f1f19; --verde:#46b377; --verde-d:#3a9a64; --cobre:#d39142;
+    --ferro:#0a2015; --verde:#46b377; --verde-d:#3a9a64; --cobre:#d39142;
     --fundo:#0f1417; --card:#171e22; --card2:#1d262b; --borda:#303d44; --linha:#28333a;
     --txt:#e7ece9; --txt2:#a3b1ab; --txt3:#7c8a84; --hover:#222e34; --alt:#1b242a;
     --ring:rgba(70,179,119,.30); --shadow:0 1px 3px rgba(0,0,0,.45);
@@ -34,13 +35,13 @@
   .theme-toggle{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); color:#fff; border-radius:9px; width:34px; height:34px; font-size:16px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .15s; }
   .theme-toggle:hover{ background:rgba(255,255,255,.22); }
   .header-inner{ display:flex; align-items:center; gap:18px; padding:14px 24px; }
-  .ogum-mark{
+  .anansi-mark{
     font-size:28px; font-weight:800; letter-spacing:0.18em; color:#fff;
     text-transform:uppercase; line-height:1;
     border-right:2px solid rgba(255,255,255,.25); padding-right:18px;
     font-family:Georgia,'Times New Roman',serif;
   }
-  .ogum-mark span{ display:block; font-size:9px; font-weight:400; letter-spacing:.35em; opacity:.7; margin-top:3px; font-family:-apple-system,Segoe UI,sans-serif; text-transform:uppercase; }
+  .anansi-mark span{ display:block; font-size:9px; font-weight:400; letter-spacing:.35em; opacity:.7; margin-top:3px; font-family:-apple-system,Segoe UI,sans-serif; text-transform:uppercase; }
   .header-text h1{ margin:0; font-size:15px; font-weight:600; color:#fff; letter-spacing:.01em; }
   .header-text p{ margin:3px 0 0; font-size:11.5px; opacity:.75; }
   .header-chips{ margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
@@ -362,12 +363,13 @@
   .rede-grau-btn.on{ background:var(--ferro); color:#fff; border-color:var(--ferro); font-weight:700; }
   tbody tr.rede-selecionado{ background:var(--hover); }
 </style>
-<script>(function(){try{var t=localStorage.getItem('ogum-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('anansi-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <div class="ogum-mark">OGUM<span>Histórias &amp; Redes</span></div>
+    <img src="logo.png" alt="Anansi" title="Anansi, a aranha-contadora de histórias da mitologia Ashanti: tecelã de teias, guardiã da memória e das narrativas transmitidas entre gerações" style="height:46px;width:46px;object-fit:contain;border-radius:50%;flex-shrink:0">
+    <div class="anansi-mark" title="Anansi, a aranha-contadora de histórias da mitologia Ashanti: tecelã de teias, guardiã da memória e das narrativas transmitidas entre gerações">ANANSI<span>História e Teias</span></div>
     <div class="header-text">
       <h1>Pessoas, trajetórias e redes do Brasil oitocentista</h1>
       <p>Busca, rede de relações e dossiê completo · clique num resultado para explorar</p>
@@ -393,7 +395,7 @@
 <div class="wrap" id="painel-section">
   <div class="painel-hero">
     <h2>Panorama do acervo</h2>
-    <p>Banco de dados prosopográfico do Brasil do Longo Século XIX — pessoas, instituições, embarcações e companhias, suas trajetórias e redes de relações.</p>
+    <p>Banco de dados prosopográfico do Brasil do Longo Século XIX — pessoas, instituições, embarcações e companhias, suas trajetórias e redes de relações. O nome do projeto é uma homenagem a Anansi, a aranha-contadora de histórias da mitologia Ashanti, que tece teias para unir e preservar as narrativas de um povo — como estas teias de relações unem os fios de vidas e trajetórias do passado.</p>
   </div>
   <div class="stat-cards" id="stat-cards"></div>
   <div class="painel-grid">
@@ -565,8 +567,8 @@
           <div style="font-size:10px;color:var(--txt2);margin-top:4px">Tamanho ∝ nº de atores. Clique para detalhes.</div>
         </div>
         <div id="frotas-ctrl" style="display:none;margin-top:8px;border-top:1px solid var(--borda);padding-top:6px">
-          <div class="leg-item"><span style="display:inline-block;width:18px;height:2px;background:#9a5c15;opacity:.85;margin-right:6px;vertical-align:middle"></span>Rota estimada (ida)</div>
-          <div class="leg-item"><span style="display:inline-block;width:18px;height:2px;background:#9a5c15;opacity:.4;border-bottom:2px dashed #9a5c15;margin-right:6px;vertical-align:middle"></span>Rota estimada (volta)</div>
+          <div class="leg-item"><span style="display:inline-block;width:18px;height:2px;background:#ab5f18;opacity:.85;margin-right:6px;vertical-align:middle"></span>Rota estimada (ida)</div>
+          <div class="leg-item"><span style="display:inline-block;width:18px;height:2px;background:#ab5f18;opacity:.4;border-bottom:2px dashed #ab5f18;margin-right:6px;vertical-align:middle"></span>Rota estimada (volta)</div>
           <div style="font-size:10px;color:var(--txt2);margin-top:4px">Correntes e ventos do Atlântico Sul (séc. XVIII). Clique na rota para detalhes.</div>
         </div>
       </div>
@@ -847,7 +849,7 @@ function _ink(){ return _isDark()?'#e7ece9':'#1f3a5f'; }
 function _muted(){ return _isDark()?'#9fb0aa':'#7a8aa0'; }
 function _grid(){ return _isDark()?'rgba(255,255,255,.10)':'rgba(0,0,0,.08)'; }
 function applyChartTheme(){ try{ if(window.Chart){ Chart.defaults.color=_ink(); Chart.defaults.borderColor=_grid(); } }catch(e){} }
-function toggleTheme(){ var d=document.documentElement, dark=d.getAttribute('data-theme')==='dark'; if(dark){ d.removeAttribute('data-theme'); try{localStorage.setItem('ogum-theme','light');}catch(e){} } else { d.setAttribute('data-theme','dark'); try{localStorage.setItem('ogum-theme','dark');}catch(e){} } syncThemeIcon(); applyChartTheme(); var ov=document.getElementById('overlay'); if(ov&&ov.classList.contains('on')&&window._fichaId!=null){ try{abrirFicha(window._fichaId);}catch(e){} } var ps=document.getElementById('painel-section'); if(ps&&ps.style.display!=='none'){ try{initPainel();}catch(e){} } }
+function toggleTheme(){ var d=document.documentElement, dark=d.getAttribute('data-theme')==='dark'; if(dark){ d.removeAttribute('data-theme'); try{localStorage.setItem('anansi-theme','light');}catch(e){} } else { d.setAttribute('data-theme','dark'); try{localStorage.setItem('anansi-theme','dark');}catch(e){} } syncThemeIcon(); applyChartTheme(); var ov=document.getElementById('overlay'); if(ov&&ov.classList.contains('on')&&window._fichaId!=null){ try{abrirFicha(window._fichaId);}catch(e){} } var ps=document.getElementById('painel-section'); if(ps&&ps.style.display!=='none'){ try{initPainel();}catch(e){} } }
 function syncThemeIcon(){ var b=document.getElementById('themeToggle'); if(b) b.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'☀️':'🌙'; }
 window.addEventListener('DOMContentLoaded',function(){ syncThemeIcon(); applyChartTheme(); });
 const COR={ "Pessoa":"#2d6fa3","Embarcação":"#1d7a56","Companhia":"#6e5db8","Instituição":"#8a5511","Desconhecido":"#6a7a6e" };
@@ -1822,7 +1824,7 @@ function renderCaderneta(){
   for(const k of ks){
     const linhas=contas[k].slice().sort((a,b)=> (a.ano-b.ano) || ((a.mes||0)-(b.mes||0)));
     h+="<div class='grp'>";
-    if(ks.length>1) h+="<h4><span class='badge' style='background:#9a5c15'>Caderneta · Caixa Econômica da Corte (registro nº "+esc(k)+")</span> <span class='cnt'>"+linhas.length+" lançamentos</span></h4>";
+    if(ks.length>1) h+="<h4><span class='badge' style='background:#ab5f18'>Caderneta · Caixa Econômica da Corte (registro nº "+esc(k)+")</span> <span class='cnt'>"+linhas.length+" lançamentos</span></h4>";
     const _pasta=(contas[k][0]||{}).pasta;
     if(_pasta) h+="<div style='font-size:11px;color:var(--txt3);margin:2px 0 8px'>📖 Localização na fonte: <b>"+esc(_pasta)+"</b>"+(ks.length>1?"":" <span style='opacity:.7'>· registro nº "+esc(k)+"</span>")+"</div>";
     h+="<table style='width:100%;font-size:12px;border-collapse:collapse;margin:4px 0 8px'><thead><tr>"
@@ -3174,7 +3176,7 @@ document.addEventListener('pointerover',function(e){
       cx.drawImage(cv,0,0);
       var a=document.createElement('a');
       var tit=(w.parentElement&&w.parentElement.querySelector('h3, div'))?(w.parentElement.querySelector('h3, div').textContent||'grafico'):'grafico';
-      a.download='ogum_'+tit.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,50)+'.png';
+      a.download='anansi_'+tit.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,50)+'.png';
       a.href=tmp.toDataURL('image/png'); a.click();
     }catch(err){ console.warn('export png',err); }
   });
@@ -4026,7 +4028,7 @@ async function initPainel(){
       data:{labels:ordem,datasets:[{data:ordem.map(function(t){return mt[t];}),backgroundColor:ordem.map(function(t){return CORD[t];}),borderWidth:0,hoverOffset:8}]},
       options:{responsive:true,maintainAspectRatio:false,cutout:'62%',animation:{animateScale:true},plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
     _initBar('dashPeriodo', d.per.map(function(x){return {label:x.decada,value:x.n};}), '#2e9e63','#1f7d4a','atores', true);
-    _initBar('dashRelacoes', d.rel.map(function(x){return {label:x.relation_name,value:x.n_atores};}), '#c9832a','#9a5c15','atores', false);
+    _initBar('dashRelacoes', d.rel.map(function(x){return {label:x.relation_name,value:x.n_atores};}), '#c9832a','#ab5f18','atores', false);
     _initBar('dashSubtipos', d.sub.map(function(x){return {label:x.subtipo,value:x.n};}), '#8b7bd8','#6e5db8','instituições', false);
     var CORC={'Livre':'#2f5496','Liberto(a)':'#e08a2b','Liberto/a':'#e08a2b','Escravizado(a)':'#8b1e1e','Escravizado':'#8b1e1e','Menor':'#8e44ad'};
     var condData=d.cond||[];
@@ -4085,7 +4087,7 @@ function _renderPopBrasil(rows, rowsEsc){
   var mode=window._popBrasilMode||'ambas';
   var datasets=[];
   if(mode!=='escrava'){
-    datasets.push({label:'Estimativa histórica (total)',data:dEst,backgroundColor:'#c9832a',borderColor:'#9a5c15',pointRadius:5,pointHoverRadius:7});
+    datasets.push({label:'Estimativa histórica (total)',data:dEst,backgroundColor:'#c9832a',borderColor:'#ab5f18',pointRadius:5,pointHoverRadius:7});
     datasets.push({label:'Censo/contagem oficial (total)',data:dCen,backgroundColor:'#2f5496',borderColor:'#1f3a6b',pointRadius:5,pointHoverRadius:7});
   }
   if(mode!=='total'){
@@ -4471,7 +4473,7 @@ async function renderRedeMulti(){
   nodeMap.forEach(function(nd){
     var color,size,bw;
     if(nd.isSelected&&isolados.indexOf(nd.id)>=0){ color='#ba7517'; size=22; bw=3; }
-    else if(nd.isSelected){ color=_isDark()?'#46b377':'#1b3a2c'; size=26; bw=3; }
+    else if(nd.isSelected){ color=_isDark()?'#46b377':'#0e2c1e'; size=26; bw=3; }
     else if((nd.sharedBy||0)>=2){ color='#2e7a50'; size=18; bw=2; }
     else { color=COR[nd.tipo]||'#888'; size=12; bw=1; }
     var tipLabel=nd.tipo&&nd.tipo!=='Desconhecido'?(' ['+nd.tipo+']'):'';
@@ -4928,7 +4930,7 @@ const ROTAS = {
       [-8.05, -34.88]
     ],
     label: "Frota Pernambuco–Lisboa (1755–1807)",
-    cor: "#9a5c15",
+    cor: "#ab5f18",
     fonte: "Frota do Açúcar de Pernambuco — rota estimada com base nos ventos alísios e registros históricos da navegação atlântica portuguesa (séc. XVIII)"
   }
 };
