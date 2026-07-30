@@ -4212,16 +4212,16 @@ function renderFontes(){
   var data=_fontesData||[];
   var el=document.getElementById('fontes-busca'); var q=el?el.value:''; q=(q||'').trim().toLowerCase();
   var autCount={};
-  data.forEach(function(f){ if(!f.collection_id && f.author){ var a=String(f.author).trim(); if(a && a.toLowerCase()!=='(sem autor)') autCount[a]=(autCount[a]||0)+1; } });
+  data.forEach(function(f){ if(!f.collection_id && f.author){ var a=_fnorm(f.author).trim(); if(a && a!=='(sem autor)') autCount[a]=(autCount[a]||0)+1; } });
   var cols={}, auts={}, entries=[];
   data.forEach(function(f){
     if(f.collection_id){
       var c=cols[f.collection_id];
       if(!c){ c=cols[f.collection_id]={id:f.collection_id,title:f.col_title,ref:f.col_ref,kind:f.col_kind,url:f.col_url,year:f.col_year,editors:f.col_editors,items:[]}; entries.push({kind:'col',c:c}); }
       c.items.push(f);
-    } else if(f.author && autCount[String(f.author).trim()]>1){
-      var ak=String(f.author).trim(); var g=auts[ak];
-      if(!g){ g=auts[ak]={autor:ak,items:[]}; entries.push({kind:'aut',g:g}); }
+    } else if(f.author && autCount[_fnorm(f.author).trim()]>1){
+      var ak=_fnorm(f.author).trim(); var g=auts[ak];
+      if(!g){ g=auts[ak]={autor:String(f.author).trim(),items:[]}; entries.push({kind:'aut',g:g}); }
       g.items.push(f);
     } else entries.push({kind:'single',f:f});
   });
