@@ -251,6 +251,9 @@
   .dash-pill:hover{ border-color:var(--verde); color:var(--verde); }
   .dash-pill.on{ background:var(--verde); border-color:var(--verde); color:#fff; }
   .dash-hint{ font-size:10.5px; color:var(--txt3); font-style:italic; }
+  .vas-tab{ font-family:inherit; font-size:12px; font-weight:600; padding:6px 14px; border-radius:20px; border:1px solid var(--borda); background:var(--card2); color:var(--txt2); cursor:pointer; transition:all .12s; }
+  .vas-tab:hover{ border-color:#8b1e1e; color:#8b1e1e; }
+  .vas-tab.on{ background:#8b1e1e; border-color:#8b1e1e; color:#fff; }
   .dash-chip{ font-family:inherit; font-size:10.5px; padding:2px 8px; border-radius:20px; border:1px solid var(--borda); background:var(--card); color:var(--txt2); cursor:pointer; transition:all .12s; }
   .dash-chip:hover{ border-color:var(--cobre); color:var(--cobre); }
   .dash-chip.reset{ border-style:dashed; color:var(--verde); }
@@ -518,6 +521,14 @@
           <span class="dc-body">
             <span class="dc-h">Cinco séculos de população</span>
             <span class="dc-p">Brasil, 1550–1991 · o Censo de 1872 em detalhe e a escravidão província a província</span>
+          </span>
+          <span class="dc-arrow">→</span>
+        </button>
+        <button class="dcard mini" style="--dc:#8b1e1e" onclick="_abrirStatPopup('popup-vassouras', _loadVassouras)">
+          <span class="dc-ic">⚖️</span>
+          <span class="dc-body">
+            <span class="dc-h">“Ouvi dizer de um vizinho”</span>
+            <span class="dc-p">Vassouras, 1821–1881 · 552 pessoas em 120 processos-crime do Vale do Paraíba</span>
           </span>
           <span class="dc-arrow">→</span>
         </button>
@@ -798,6 +809,61 @@
           <h3 style="font-size:13px">População escravizada por província <span style="font-weight:400;color:var(--txt3)">(1864–1887)</span></h3>
           <div class="chart-wrap" style="height:520px"><canvas id="grafEscravosProv"></canvas></div>
           <div style="font-size:11px;color:var(--txt3);margin-top:8px">Quatro levantamentos entre a Lei do Ventre Livre e a Abolição. A queda é desigual: as províncias do Norte e Nordeste esvaziam-se muito antes do Sudeste cafeeiro, para onde parte dessas pessoas foi vendida no tráfico interprovincial.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="popup-vassouras">
+  <div class="modal" style="width:min(1080px,96vw)">
+    <header>
+      <div style="color:#fff;font-size:16px;font-weight:600">⚖️ “Ouvi dizer de um vizinho” — Vassouras, 1821–1881 <span style="font-weight:400;font-size:12px;opacity:.85">— processos-crime da antiga Comarca de Vassouras</span></div>
+      <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-vassouras')" aria-label="Fechar">&times;</button></div>
+    </header>
+    <div class="ficha" style="height:76vh">
+      <div id="stat-vas-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
+      <div id="stat-vas-body" style="display:none">
+        <div id="vas-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:6px"></div>
+        <p style="font-size:12px;color:var(--txt3);margin:10px 0 14px;line-height:1.6">Camilla Agostini percorreu, entre janeiro e junho de 2000, todos os processos-crime do século XIX guardados no arquivo de Vassouras. Deles saíram <b>552 pessoas nomeadas</b> — escravizados, libertos, feitores, tropeiros e senhores — reunidas a partir dos autos de qualificação e dos “ouvir dizeres” registrados nos depoimentos.</p>
+
+        <div class="dash-tabs" style="display:flex;gap:6px;margin:6px 0 16px;flex-wrap:wrap">
+          <button class="vas-tab" data-vt="graf" onclick="_vasTab('graf')">Perfil da amostra</button>
+          <button class="vas-tab" data-vt="proc" onclick="_vasTab('proc')">Os processos, um a um</button>
+        </div>
+
+        <div id="vas-pane-graf">
+          <div class="card-chart" style="box-shadow:none;border:none;padding:0">
+            <h3 style="font-size:13px">Africanos e crioulos por década <span style="font-weight:400;color:var(--txt3)">(pessoas com origem identificada no processo)</span></h3>
+            <div class="chart-wrap" style="height:300px"><canvas id="grafVasOrigem"></canvas></div>
+            <div style="font-size:11px;color:var(--txt3);margin-top:8px">A virada dos anos 1870 é o achado central da autora: pela primeira vez os nascidos no Brasil superam os africanos entre as pessoas escravizadas de Vassouras — o fim do tráfico transatlântico chegando às fazendas de café, uma geração depois.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px;margin-top:22px">
+            <div class="card-chart" style="box-shadow:none;border:none;padding:0">
+              <h3 style="font-size:13px">Nações e portos africanos nomeados</h3>
+              <div class="chart-wrap" style="height:320px"><canvas id="grafVasNacoes"></canvas></div>
+              <div style="font-size:11px;color:var(--txt3);margin-top:8px">Como as próprias pessoas se declaravam ao escrivão. A fonte mistura porto de embarque, reino e região — a autora avisa que isso é característica do documento, não ruído.</div>
+            </div>
+            <div class="card-chart" style="box-shadow:none;border:none;padding:0">
+              <h3 style="font-size:13px">Condição jurídica por década</h3>
+              <div class="chart-wrap" style="height:320px"><canvas id="grafVasCondicao"></canvas></div>
+              <div style="font-size:11px;color:var(--txt3);margin-top:8px">“Não declarada” são sobretudo feitores e administradores, cuja coluna de condição vem em branco na tabela original — mantida vazia em vez de presumida.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="vas-pane-proc" style="display:none">
+          <input id="vas-busca" type="search" placeholder="Buscar por número do processo, ano, tipo de crime ou nome das partes…" oninput="_vasFiltrar(this.value)"
+                 style="width:100%;padding:9px 12px;border:1px solid var(--borda);border-radius:9px;font-family:inherit;font-size:13px;background:var(--card);color:var(--ink2)">
+          <div id="vas-proc-count" style="font-size:11px;color:var(--txt3);margin:8px 0 10px"></div>
+          <div id="vas-proc-lista" style="display:grid;gap:8px"></div>
+        </div>
+
+        <div style="margin-top:26px;padding:14px 16px;background:rgba(139,30,30,.06);border-radius:10px;font-size:11.5px;color:var(--txt2);line-height:1.65">
+          <b>Fonte primária:</b> processos-crime da antiga Comarca de Vassouras, 1820–1880 — Centro de Documentação Histórica (CDH/FESS), Universidade Severino Sombra, Vassouras/RJ. A cota de ofício e caixa está registrada em cada processo.<br>
+          <b>Levantamento e organização:</b> Camilla Agostini, pesquisa de 2000, base da dissertação de mestrado (Unicamp, 2002, FAPESP).<br>
+          <b>Publicação e difusão:</b> LABHOI/UFF — Laboratório de História Oral e Imagem. AGOSTINI, Camilla. <i>“Ouvi dizer de um vizinho”: assim também se faz história</i>. Niterói: LABHOI/UFF, 2019. <a href="http://www.labhoi.uff.br/sites/default/files/arquivos/ouvi_dizer_de_um_vizinho_ii.pdf" target="_blank" rel="noopener" style="color:#8b1e1e;font-weight:600">Livro completo em PDF ↗</a><br>
+          <span style="color:var(--txt3)">A numeração “PC nnn” é o sistema de referência da autora, não a notação do arquivo.</span>
         </div>
       </div>
     </div>
@@ -3356,13 +3422,13 @@ carregarHeaderCounts();
 carregarCategorias();
 document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
-["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas"].forEach(function(pid){
+["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas","popup-vassouras"].forEach(function(pid){
   var el=document.getElementById(pid);
   if(el) el.addEventListener("click",function(e){ if(e.target.id===pid) _fecharStatPopup(pid); });
 });
 document.addEventListener("keydown",function(e){
   if(e.key!=="Escape") return;
-  ["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas"].forEach(function(pid){ _fecharStatPopup(pid); });
+  ["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas","popup-vassouras"].forEach(function(pid){ _fecharStatPopup(pid); });
 });
 buscar();carregarSubtipos();setTimeout(()=>_updSortArrows(),100);
 
@@ -3770,6 +3836,117 @@ function _indPessoas(rows){
       +'</button>';
   }).join('');
 }
+/* ===== Destaque Agostini / Vassouras (source_id 113) ===== */
+var vasCharts={};
+function _vasDestroy(k){ try{ if(vasCharts[k]){ vasCharts[k].destroy(); vasCharts[k]=null; } }catch(e){} }
+async function _loadVassouras(){
+  var box=document.getElementById('stat-vas-body'), load=document.getElementById('stat-vas-loading');
+  try{
+    var cache=window._vasData;
+    if(!cache){
+      if(load){load.style.display='';load.textContent='Carregando…';} if(box)box.style.display='none';
+      var q=async(p)=>{ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn('VAS:',p,e); return []; } };
+      var res=await Promise.all([
+        q("v_dash_vassouras_origens?select=*&order=decada.asc"),
+        q("v_dash_vassouras_nacoes?select=*&order=n.desc&limit=14"),
+        q("v_dash_vassouras_perfil?select=*&order=decada.asc"),
+        q("v_dash_vassouras_processos?select=*&order=pc.asc"),
+        q("v_dash_vassouras_participantes?select=*")
+      ]);
+      cache=window._vasData={origens:res[0],nacoes:res[1],perfil:res[2],procs:res[3],parts:res[4]};
+    }
+    applyChartTheme();
+    _renderVassouras(cache);
+    if(load)load.style.display='none'; if(box)box.style.display='';
+  }catch(e){ console.error('_loadVassouras',e); window._vasData=null; if(load){load.style.display='';load.textContent='Não foi possível carregar agora.';} if(box)box.style.display='none'; }
+}
+function _vasTab(k){
+  document.querySelectorAll('.vas-tab').forEach(function(b){ b.classList.toggle('on', b.dataset.vt===k); });
+  var g=document.getElementById('vas-pane-graf'), p=document.getElementById('vas-pane-proc');
+  if(g) g.style.display=(k==='graf')?'':'none';
+  if(p) p.style.display=(k==='proc')?'':'none';
+}
+function _renderVassouras(c){
+  var procs=c.procs||[], parts=c.parts||[];
+  var anos=procs.map(function(p){return p.ano;}).filter(Boolean);
+  var kpi=document.getElementById('vas-kpis');
+  if(kpi){
+    var cards=[['Pessoas nomeadas','552'],['Processos-crime',_fmt(procs.length)],
+      ['Laços de parentesco','81'],['Participações',_fmt(parts.length)],
+      ['Período',anos.length?(Math.min.apply(null,anos)+'–'+Math.max.apply(null,anos)):'—']];
+    kpi.innerHTML=cards.map(function(k){return '<div style="background:rgba(139,30,30,.08);border-radius:10px;padding:12px 14px"><div style="font-size:22px;font-weight:700;color:#8b1e1e">'+k[1]+'</div><div style="font-size:11px;color:var(--txt3)">'+k[0]+'</div></div>';}).join('');
+  }
+  _vasChartOrigem(c.origens); _vasChartNacoes(c.nacoes); _vasChartCondicao(c.perfil);
+  window._vasProcs=procs; window._vasParts=parts;
+  _vasTab('graf'); _vasFiltrar('');
+}
+function _vasChartOrigem(rows){
+  rows=rows||[]; var el=document.getElementById('grafVasOrigem'); if(!el) return; _vasDestroy('org');
+  var decs=[...new Set(rows.map(function(x){return x.decada;}))].sort(function(a,b){return a-b;});
+  var pick=function(o){ return decs.map(function(d){ var r=rows.find(function(x){return x.decada===d&&x.origem===o;}); return r?r.n:0; }); };
+  vasCharts.org=new Chart(el,{type:'bar',
+    data:{labels:decs.map(function(d){return d+'s';}),datasets:[
+      {label:'Africano',data:pick('Africano'),backgroundColor:'#8b1e1e',borderRadius:3},
+      {label:'Crioulo/brasileiro',data:pick('Crioulo/brasileiro'),backgroundColor:'#2f5496',borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}},
+      tooltip:{callbacks:{label:function(cc){return cc.dataset.label+': '+_fmt(cc.parsed.y)+' pessoas';}}}},
+      scales:{x:{ticks:{font:{size:11}}},y:{beginAtZero:true,ticks:{precision:0,font:{size:10}}}}}});
+}
+function _vasChartNacoes(rows){
+  rows=rows||[]; var el=document.getElementById('grafVasNacoes'); if(!el) return; _vasDestroy('nac');
+  vasCharts.nac=new Chart(el,{type:'bar',
+    data:{labels:rows.map(function(x){return x.nacao;}),datasets:[{data:rows.map(function(x){return x.n;}),backgroundColor:'#ba7517',borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:function(cc){return _fmt(cc.parsed.x)+' pessoa'+(cc.parsed.x===1?'':'s');}}}},
+      scales:{x:{ticks:{font:{size:9},precision:0}},y:{ticks:{font:{size:11}}}}}});
+}
+function _vasChartCondicao(rows){
+  rows=rows||[]; var el=document.getElementById('grafVasCondicao'); if(!el) return; _vasDestroy('cond');
+  var decs=[...new Set(rows.map(function(x){return x.decada;}))].sort(function(a,b){return a-b;});
+  var conds=[...new Set(rows.map(function(x){return x.condicao;}))];
+  var cor={'Escravizado(a)':'#8b1e1e','Liberto(a)':'#e08a2b','Pessoa livre':'#2f5496','Livre':'#2f5496','Menor':'#8e44ad','Não declarada':'#9aa3ad'};
+  vasCharts.cond=new Chart(el,{type:'bar',
+    data:{labels:decs.map(function(d){return d+'s';}),
+      datasets:conds.map(function(cd){ return {label:cd,backgroundColor:cor[cd]||'#9aa3ad',borderRadius:2,
+        data:decs.map(function(d){ var r=rows.find(function(x){return x.decada===d&&x.condicao===cd;}); return r?r.n:0; })}; })},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}},
+      scales:{x:{stacked:true,ticks:{font:{size:11}}},y:{stacked:true,beginAtZero:true,ticks:{precision:0,font:{size:10}}}}}});
+}
+function _vasFiltrar(f){
+  var procs=window._vasProcs||[], parts=window._vasParts||[];
+  var t=(f||'').trim().toLowerCase();
+  var norm=function(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); };
+  t=norm(t);
+  var lista=procs.filter(function(p){
+    if(!t) return true;
+    return norm([p.pc,p.ano,p.ano_fim,p.titulo,p.partes,p.numeracao_autora,p.cota_cdh].join(' ')).indexOf(t)>=0;
+  });
+  var cnt=document.getElementById('vas-proc-count');
+  if(cnt) cnt.textContent=lista.length+' de '+procs.length+' processos'+(t?(' para “'+f+'”'):'');
+  var box=document.getElementById('vas-proc-lista'); if(!box) return;
+  box.innerHTML=lista.map(function(p){
+    var per=p.ano_fim&&p.ano_fim!==p.ano?(p.ano+'–'+p.ano_fim):(p.ano||'s.d.');
+    var pp=parts.filter(function(x){return x.event_id===p.event_id;});
+    var chips=pp.map(function(x){
+      var c=x.papel==='réu'?'#8b1e1e':'#2f5496';
+      return '<button onclick="_fecharStatPopup(\'popup-vassouras\');abrirFicha('+x.actor_id+')" style="border:1px solid var(--borda);background:var(--card);border-radius:20px;padding:3px 10px;cursor:pointer;font-family:inherit;font-size:10.5px;color:var(--ink2)">'
+        +'<span style="color:'+c+';font-weight:700">'+esc(x.papel)+'</span> · '+esc(x.nome)
+        +(x.etnia?('<span style="color:var(--txt3)"> ('+esc(x.etnia)+')</span>'):'')+'</button>';
+    }).join(' ');
+    return '<div style="border:1px solid var(--borda);border-radius:10px;padding:11px 13px;background:var(--card)">'
+      +'<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">'
+        +'<b style="font-size:13px;color:#8b1e1e">'+esc(p.pc)+'</b>'
+        +'<span style="font-size:12.5px;color:var(--ink2);font-weight:600">'+esc(p.titulo||'')+'</span>'
+        +'<span style="font-size:11px;color:var(--txt3)">'+per+'</span>'
+        +(p.transcrito==='sim'?'':'<span style="font-size:10px;color:var(--txt3);border:1px solid var(--borda);border-radius:5px;padding:1px 5px">só no Cadastro Geral</span>')
+      +'</div>'
+      +(p.partes?('<div style="font-size:11.5px;color:var(--txt2);margin-top:5px;line-height:1.5">'+esc(p.partes)+'</div>'):'')
+      +(chips?('<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px">'+chips+'</div>'):'')
+      +(p.cota_cdh?('<div style="font-size:10.5px;color:var(--txt3);margin-top:7px">CDH/FESS — '+esc(p.cota_cdh.trim())+'</div>'):'')
+      +'</div>';
+  }).join('');
+}
+
 /* ===== Destaque Felipe Souza Melo (fonte 5) ===== */
 var fsmCharts={};
 function _fsmDestroy(k){ try{ if(fsmCharts[k]){ fsmCharts[k].destroy(); fsmCharts[k]=null; } }catch(e){} }
