@@ -252,38 +252,53 @@
   .dash-pill.on{ background:var(--verde); border-color:var(--verde); color:#fff; }
   .dash-hint{ font-size:10.5px; color:var(--txt3); font-style:italic; }
   /* --- carrossel de destaques --- */
-  .carrossel{ position:relative; margin:22px 0 8px; border:1px solid var(--borda); border-radius:14px; background:var(--card); overflow:hidden; }
+  .carrossel{ margin:22px 0 10px; border:1px solid var(--borda); border-radius:14px; background:var(--card); overflow:hidden; }
+  .car-viewport{ overflow:hidden; }
   .car-track{ display:flex; transition:transform .45s cubic-bezier(.4,0,.2,1); }
-  .car-slide{ min-width:100%; padding:26px 30px 22px; display:flex; flex-direction:column; gap:7px; box-sizing:border-box; }
-  .car-eixo{ font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--dc); display:flex; align-items:center; gap:6px; }
-  .car-eixo b{ font-weight:700; }
-  .car-kicker{ font-size:12px; color:var(--txt3); font-weight:600; }
-  .car-h{ font-size:23px; font-weight:700; color:var(--ink2); line-height:1.2; margin:0; }
-  .car-p{ font-size:13px; color:var(--txt2); line-height:1.6; max-width:70ch; margin:0; }
-  .car-cta{ align-self:flex-start; margin-top:6px; font-family:inherit; font-size:12.5px; font-weight:700; color:#fff; background:var(--dc); border:none; border-radius:8px; padding:8px 16px; cursor:pointer; transition:filter .15s; }
+  .car-slide{ min-width:100%; box-sizing:border-box; display:grid; grid-template-columns:1.6fr .85fr; gap:0; align-items:stretch; }
+  .car-txt{ padding:22px 26px; display:flex; flex-direction:column; gap:6px; min-height:196px; }
+  .car-eixo{ font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--dc); }
+  .car-kicker{ font-size:11.5px; color:var(--txt3); font-weight:600; }
+  .car-h{ font-size:20px; font-weight:700; color:var(--ink2); line-height:1.22; margin:1px 0 0; }
+  .car-p{ font-size:12.5px; color:var(--txt2); line-height:1.6; margin:0; }
+  .car-cta{ align-self:flex-start; margin-top:auto; font-family:inherit; font-size:12px; font-weight:700; color:#fff; background:var(--dc); border:none; border-radius:8px; padding:7px 15px; cursor:pointer; transition:filter .15s; }
   .car-cta:hover{ filter:brightness(1.12); }
-  .car-nav{ position:absolute; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; border:1px solid var(--borda); background:var(--card2); color:var(--txt2); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; z-index:2; }
+  .car-ficha{ background:var(--card2); border-left:1px solid var(--borda); padding:18px 20px; font-size:11px; line-height:1.55; color:var(--txt2); display:flex; flex-direction:column; gap:8px; }
+  .car-ficha dt{ font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--txt3); font-weight:700; margin-bottom:1px; }
+  .car-ficha dd{ margin:0; color:var(--txt2); }
+  .car-ficha .lic{ display:inline-block; border:1px solid var(--borda); border-radius:5px; padding:1px 7px; font-size:10px; background:var(--card); }
+  .car-bar{ display:flex; align-items:center; justify-content:center; gap:10px; padding:9px 0 11px; border-top:1px solid var(--borda); }
+  .car-nav{ width:26px; height:26px; border-radius:50%; border:1px solid var(--borda); background:var(--card2); color:var(--txt2); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
   .car-nav:hover{ background:var(--card); color:var(--ink2); border-color:var(--txt3); }
-  .car-nav.prev{ left:9px; } .car-nav.next{ right:9px; }
-  .car-dots{ display:flex; gap:6px; justify-content:center; padding:0 0 13px; }
+  .car-dots{ display:flex; gap:6px; }
   .car-dot{ width:7px; height:7px; border-radius:50%; border:none; background:var(--borda); cursor:pointer; padding:0; transition:all .2s; }
   .car-dot.on{ background:var(--txt2); width:20px; border-radius:4px; }
-  /* --- lista de eixos --- */
-  .temas-titulo{ font-size:15px; color:var(--ink2); margin:26px 0 10px; }
-  .temas-titulo span{ font-weight:400; font-size:12px; color:var(--txt3); }
-  .tema{ border:1px solid var(--borda); border-left:3px solid var(--dc); border-radius:10px; background:var(--card); padding:13px 16px; margin:9px 0; }
-  .tema-head{ display:flex; gap:11px; align-items:baseline; flex-wrap:wrap; }
-  .tema-ic{ font-size:17px; line-height:1; }
-  .tema-head h4{ margin:0; font-size:14px; color:var(--ink2); font-weight:700; }
-  .tema-head p{ margin:3px 0 0; font-size:11.5px; color:var(--txt3); line-height:1.55; max-width:78ch; flex-basis:100%; }
-  .tema-num{ margin-left:auto; font-size:12px; font-weight:700; color:var(--txt2); white-space:nowrap; }
-  .tema-num small{ font-size:10.5px; font-weight:400; color:var(--txt3); }
-  .tema-outras{ margin-top:9px; font-size:11px; color:var(--txt3); line-height:1.9; }
-  .tema-outras .tf{ display:inline-block; border:1px solid var(--borda); border-radius:20px; padding:1px 9px; margin:0 3px 3px 0; color:var(--txt2); background:var(--card2); }
-  .tema-outras .tf i{ font-style:normal; color:var(--txt3); font-size:10px; }
-  .tema-outras .tf u{ text-decoration:none; color:var(--dc); font-weight:700; font-size:10px; }
-  .tema-outras .tf.mais{ cursor:pointer; border-style:dashed; color:var(--dc); font-weight:600; }
-  .tema-outras .tf.mais:hover{ background:var(--card); }
+  /* --- funcionalidades --- */
+  .func-titulo{ font-size:15px; color:var(--ink2); margin:24px 0 3px; }
+  .func-titulo span{ font-weight:400; font-size:12px; color:var(--txt3); }
+  .func-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:11px; margin-top:12px; }
+  .fcard{ text-align:left; font-family:inherit; border:1px solid var(--borda); border-radius:11px; background:var(--card); padding:14px 16px; cursor:pointer; display:flex; flex-direction:column; gap:5px; transition:all .13s; }
+  .fcard:hover{ border-color:var(--dc); transform:translateY(-2px); box-shadow:0 4px 14px rgba(0,0,0,.08); }
+  .fc-top{ display:flex; align-items:center; gap:8px; }
+  .fc-ic{ font-size:17px; line-height:1; }
+  .fc-h{ font-size:13.5px; font-weight:700; color:var(--ink2); }
+  .fc-p{ font-size:11.5px; color:var(--txt2); line-height:1.55; }
+  .fc-ex{ margin-top:5px; padding-top:8px; border-top:1px dashed var(--borda); font-size:11px; color:var(--txt3); line-height:1.7; }
+  .fc-ex b{ color:var(--txt3); font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:.04em; display:block; margin-bottom:3px; }
+  .fc-chip{ display:inline-block; border:1px solid var(--borda); background:var(--card2); border-radius:20px; padding:2px 10px; margin:0 3px 3px 0; color:var(--ink2); font-size:11px; cursor:pointer; transition:all .12s; }
+  .fc-chip:hover{ border-color:var(--dc); color:var(--dc); }
+  .fc-chip small{ color:var(--txt3); font-size:10px; }
+  /* --- eixos na aba Fontes --- */
+  .ftemas-wrap{ margin:2px 0 16px; }
+  .ftemas-tit{ font-size:12px; font-weight:700; color:var(--ink2); margin-bottom:8px; }
+  .ftemas-tit span{ font-weight:400; color:var(--txt3); }
+  .ftemas-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:8px; }
+  .ftema{ font-family:inherit; text-align:left; display:flex; align-items:center; gap:9px; border:1px solid var(--borda); border-left:3px solid var(--dc); border-radius:9px; background:var(--card); padding:9px 12px; cursor:pointer; transition:all .13s; }
+  .ftema:hover{ border-color:var(--dc); background:var(--card2); }
+  .ftema.on{ background:var(--card2); border-color:var(--dc); box-shadow:inset 0 0 0 1px var(--dc); }
+  .ft-ic{ font-size:15px; }
+  .ft-nome{ font-size:12px; font-weight:700; color:var(--ink2); }
+  .ft-n{ margin-left:auto; font-size:10.5px; color:var(--txt3); white-space:nowrap; }
   /* --- Sobre: texto corrido --- */
   .sobre-texto{ max-width:78ch; margin-top:6px; }
   .sobre-texto h3{ font-size:14px; color:var(--ink2); margin:22px 0 8px; }
@@ -652,6 +667,7 @@ Consultado em [data].</pre>
     <h2>Fontes &amp; referências</h2>
     <p>Fontes primárias, bases de dados e bibliografia que sustentam o acervo — com referência completa (ABNT), contribuidor e link de acesso quando disponível.</p>
   </div>
+  <div id="fontes-temas"></div>
   <div class="fontes-bar">
     <input id="fontes-busca" type="text" placeholder="Filtrar por autor, título, acervo, ano…" oninput="filtrarFontes()" />
     <span class="fontes-count" id="fontes-count">—</span>
@@ -4465,32 +4481,59 @@ var TEMAS = [
   { nome:'Escravidão e liberdade', ic:'⛓️', cor:'#8b1e1e',
     frase:'Quem foi escravizado, quem comprou ou recebeu a liberdade, quem traficou. Cartas de alforria, processos-crime e trajetórias reconstituídas documento a documento.',
     cards:[
-      {kicker:'Salvador, 1831–1840', h:'Cartas de alforria na Bahia', p:'5.133 pessoas compraram ou receberam a liberdade — a que preço, de quais nações, em que condições.', pop:'popup-alforrias-mpb', fn:'_loadAlforriasMPB'},
-      {kicker:'Vassouras, 1821–1881', h:'“Ouvi dizer de um vizinho”', p:'552 pessoas em 120 processos-crime do Vale do Paraíba cafeeiro, dos autos de qualificação aos “ouvir dizeres” dos depoimentos.', pop:'popup-vassouras', fn:'_loadVassouras'}
+      {kicker:'Salvador, 1831–1840', h:'Cartas de alforria na Bahia', p:'5.133 pessoas compraram ou receberam a liberdade — a que preço, de quais nações, em que condições.',
+       pop:'popup-alforrias-mpb', fn:'_loadAlforriasMPB',
+       fonte:{autoria:'Kristin Mann e Urano de Cerqueira Andrade, 2023', acervo:'Livros de Notas 233-271, Arquivo Público do Estado da Bahia', via:'Harvard Dataverse · Journal of Slavery and Data Preservation', lic:'CC BY-NC-SA 4.0'}},
+      {kicker:'Vassouras, 1821–1881', h:'“Ouvi dizer de um vizinho”', p:'552 pessoas em 120 processos-crime do Vale do Paraíba cafeeiro, dos autos de qualificação aos “ouvir dizeres” dos depoimentos.',
+       pop:'popup-vassouras', fn:'_loadVassouras',
+       fonte:{autoria:'Camilla Agostini, 2019', acervo:'Processos-crime da Comarca de Vassouras — CDH/FESS, Universidade Severino Sombra', via:'LABHOI/UFF'}}
     ]},
   { nome:'Comércio, crédito e finanças', ic:'💰', cor:'#1d6e56',
     frase:'A praça mercantil do Rio e suas conexões: negociantes, caixeiros, casas bancárias, credores, poupadores e devedores.',
     cards:[
-      {kicker:'Corte do Rio, 1866–1931', h:'Quem guardava dinheiro no Império', p:'2.401 cadernetas da Caixa Econômica — mascates, costureiras, marinheiros, e também pessoas escravizadas e libertas que pouparam antes de serem livres.', pop:'popup-poupancas', fn:'_loadPoupancas', hero:true}
+      {kicker:'Corte do Rio, 1866–1931', h:'Quem guardava dinheiro no Império', p:'2.401 cadernetas da Caixa Econômica — mascates, costureiras, marinheiros, e também pessoas escravizadas e libertas que pouparam antes de serem livres.',
+       pop:'popup-poupancas', fn:'_loadPoupancas',
+       fonte:{autoria:'Thiago Alvarenga', acervo:'Livros de contas correntes da Caixa Econômica da Corte', via:'Arquivo da Caixa Econômica Federal'}}
     ]},
   { nome:'Mar e Atlântico', ic:'⛵', cor:'#0e7490',
     frase:'Embarcações, capitães, cargas e rotas que ligavam os portos brasileiros ao mundo atlântico.',
     cards:[
-      {kicker:'Pernambuco–Portugal, 1756–1807', h:'Cargas e embarcações do Atlântico', p:'1.287 viagens e 577 embarcações, com capitão, proprietário e mercadoria a bordo.', pop:'popup-fsm', fn:'_loadFSM'}
+      {kicker:'Pernambuco–Portugal, 1756–1807', h:'Cargas e embarcações do Atlântico', p:'1.287 viagens e 577 embarcações, com capitão, proprietário e mercadoria a bordo.',
+       pop:'popup-fsm', fn:'_loadFSM',
+       fonte:{autoria:'Felipe Souza Melo', acervo:'Registros de entrada e saída de embarcações, Pernambuco e Portugal'}}
     ]},
   { nome:'Povos indígenas', ic:'🪶', cor:'#1d6e56', semCauda:true,
     frase:'Lideranças, aldeamentos e disputas por terra, do período colonial à República. Reunido de vinte estudos recentes de história indígena.',
     cards:[
-      {kicker:'Brasil, 1636–1940', h:'Povos indígenas do Brasil', p:'Lideranças, aldeamentos e conflitos por terra em oito povos — Potiguara, Guarani, Terena, Pataxó, Kariri, Macuxi e outros.', pop:'popup-indigenas', fn:'_loadIndigenas'}
+      {kicker:'Brasil, 1636–1940', h:'Povos indígenas do Brasil', p:'Lideranças, aldeamentos e conflitos por terra em oito povos — Potiguara, Guarani, Terena, Pataxó, Kariri, Macuxi e outros.',
+       pop:'popup-indigenas', fn:'_loadIndigenas',
+       fonte:{autoria:'Vinte estudos de diversos autores (2021-2022)', acervo:'Dossiês de história indígena, revista Outros Tempos e afins'}}
     ]},
   { nome:'Território e demografia', ic:'🌎', cor:'#2f5496',
     frase:'Quanta gente havia, onde, e como isso mudou. Censos, séries de população e a geografia histórica das cidades.',
     cards:[
-      {kicker:'Brasil, 1550–1991', h:'Cinco séculos de população', p:'O Censo de 1872 em detalhe, a população escrava província a província e a composição por cor ao longo de quatro séculos.', pop:'popup-demografia-ibge', fn:'_loadDemografiaIBGE'}
+      {kicker:'Brasil, 1550–1991', h:'Cinco séculos de população', p:'O Censo de 1872 em detalhe, a população escrava província a província e a composição por cor ao longo de quatro séculos.',
+       pop:'popup-demografia-ibge', fn:'_loadDemografiaIBGE',
+       fonte:{autoria:'IBGE · João José Reis (população escrava)', acervo:'Brasil: 500 anos de povoamento (2000) e Recenseamento de 1872'}}
     ]},
   { nome:'Estado, política e elites', ic:'🏛️', cor:'#8b7bd8',
     frase:'Senadores, deputados, magistrados e proprietários — quem ocupava os cargos e como as famílias de elite se entrelaçavam.',
     cards:[]}
+];
+
+var FUNCS = [
+  {ic:'🔍', cor:'#2f5496', h:'Buscar uma pessoa', tab:'busca',
+   p:'Por nome, ocupação, naturalidade, condição jurídica ou título. Filtros combinam entre si.', perfil:'oficio'},
+  {ic:'📄', cor:'#1d6e56', h:'Abrir um dossiê', tab:null,
+   p:'Cada ator tem ficha própria: identidade, relações, eventos, estatísticas, fontes e mapa de presença.', perfil:'escravizado'},
+  {ic:'🕸', cor:'#8b7bd8', h:'Explorar a rede', tab:'rede',
+   p:'Veja com quem alguém se relacionava e navegue de nó em nó — a teia inteira a partir de um nome.', perfil:'rede'},
+  {ic:'🗺', cor:'#0e7490', h:'Percorrer o Atlas', tab:'mapa',
+   p:'Onde as pessoas nasceram, moraram e negociaram, e como isso se distribui pelo território.', perfil:'origem'},
+  {ic:'📅', cor:'#8b1e1e', h:'Seguir um acontecimento', tab:null,
+   p:'Processos-crime, alforrias, viagens e transações são eventos datados, com todos os participantes.', perfil:'evento'},
+  {ic:'📈', cor:'#c9832a', h:'Ver os números do acervo', tab:'dados',
+   p:'Condição jurídica, gênero, ocupação por setor, década e tipo de relação — o conjunto inteiro em gráficos.', perfil:'estatistica'}
 ];
 
 var _carIdx=0, _carTimer=null, _carSlides=[];
@@ -4510,76 +4553,88 @@ function _carAuto(){
   }, 7000);
 }
 
+function _sorteia(arr,n){
+  var c=arr.slice();
+  for(var i=c.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=c[i]; c[i]=c[j]; c[j]=t; }
+  return c.slice(0,n);
+}
+function _exDesc(x, perfil){
+  var bits=[];
+  if(perfil==='origem' && x.origem) bits.push(x.origem);
+  if(perfil==='rede') bits.push(x.nrel+' relações');
+  if(perfil==='evento') bits.push(x.nev+(x.nev===1?' acontecimento':' acontecimentos'));
+  if(perfil==='estatistica') bits.push(_fmt(x.nst)+' estatísticas');
+  if(bits.length<2 && x.condicao) bits.push(x.condicao);
+  if(bits.length<2 && x.ocupacao) bits.push(x.ocupacao);
+  if(bits.length<2 && x.etnia) bits.push(x.etnia);
+  if(!bits.length && x.origem) bits.push(x.origem);
+  return bits.slice(0,2).join(' · ');
+}
+
 async function _renderTemas(){
   var box=document.getElementById('temas-container'); if(!box) return;
-  var fontes=window._fontesTemaData;
-  if(!fontes){
-    try{ fontes=(await getJSON("v_dash_fontes_por_tema?select=*&n_registros=gt.0&order=n_registros.desc")).dados||[]; }
-    catch(e){ console.warn('temas:',e); fontes=[]; }
-    if(fontes.length) window._fontesTemaData=fontes;
+
+  var exemplos=window._exemplosData;
+  if(!exemplos){
+    try{ exemplos=(await getJSON("mv_dash_exemplos?select=*")).dados||[]; }
+    catch(e){ console.warn('exemplos:',e); exemplos=[]; }
+    if(exemplos.length) window._exemplosData=exemplos;
   }
-  var porTema={}; fontes.forEach(function(f){ (porTema[f.tema]=porTema[f.tema]||[]).push(f); });
-  var usadas=['Caixa Econômica','Manumission','Embarcações e cargas','Agostini','500 anos'];
+  var porPerfil={}; exemplos.forEach(function(x){ (porPerfil[x.perfil]=porPerfil[x.perfil]||[]).push(x); });
 
   _carSlides=[];
   TEMAS.forEach(function(t){ (t.cards||[]).forEach(function(c){ _carSlides.push({t:t,c:c}); }); });
 
   var car = _carSlides.length ? (
     '<div class="carrossel">'
-    + '<div class="car-track" id="car-track">'
+    + '<div class="car-viewport"><div class="car-track" id="car-track">'
     + _carSlides.map(function(s){
+        var f=s.c.fonte||{};
         return '<div class="car-slide" style="--dc:'+s.t.cor+'">'
-          +'<div class="car-eixo">'+s.t.ic+' <b>'+esc(s.t.nome)+'</b></div>'
-          +'<div class="car-kicker">'+esc(s.c.kicker)+'</div>'
-          +'<h3 class="car-h">'+s.c.h+'</h3>'
-          +'<p class="car-p">'+s.c.p+'</p>'
-          +'<button class="car-cta" onclick="_abrirStatPopup(\''+s.c.pop+'\', '+s.c.fn+')">Explorar este conjunto →</button>'
+          +'<div class="car-txt">'
+            +'<div class="car-eixo">'+s.t.ic+' '+esc(s.t.nome)+'</div>'
+            +'<div class="car-kicker">'+esc(s.c.kicker)+'</div>'
+            +'<h3 class="car-h">'+s.c.h+'</h3>'
+            +'<p class="car-p">'+s.c.p+'</p>'
+            +'<button class="car-cta" onclick="_abrirStatPopup(\''+s.c.pop+'\', '+s.c.fn+')">Explorar este conjunto →</button>'
+          +'</div>'
+          +'<dl class="car-ficha">'
+            +(f.autoria?'<div><dt>Levantamento</dt><dd>'+esc(f.autoria)+'</dd></div>':'')
+            +(f.acervo?'<div><dt>Fonte primária</dt><dd>'+esc(f.acervo)+'</dd></div>':'')
+            +(f.via?'<div><dt>Publicado por</dt><dd>'+esc(f.via)+'</dd></div>':'')
+            +(f.lic?'<div><dt>Licença</dt><dd><span class="lic">'+esc(f.lic)+'</span></dd></div>':'')
+          +'</dl>'
           +'</div>';
       }).join('')
-    + '</div>'
-    + '<button class="car-nav prev" onclick="_carStep(-1)" aria-label="Anterior">‹</button>'
-    + '<button class="car-nav next" onclick="_carStep(1)" aria-label="Próximo">›</button>'
-    + '<div class="car-dots">'+_carSlides.map(function(s,i){
-        return '<button class="car-dot'+(i===0?' on':'')+'" onclick="_carGo('+i+');_carAuto()" aria-label="Slide '+(i+1)+'"></button>';
-      }).join('')+'</div>'
-    + '</div>') : '';
+    + '</div></div>'
+    + '<div class="car-bar">'
+      + '<button class="car-nav" onclick="_carStep(-1)" aria-label="Anterior">‹</button>'
+      + '<div class="car-dots">'+_carSlides.map(function(s,i){
+          return '<button class="car-dot'+(i===0?' on':'')+'" onclick="_carGo('+i+');_carAuto()" aria-label="Destaque '+(i+1)+'"></button>';
+        }).join('')+'</div>'
+      + '<button class="car-nav" onclick="_carStep(1)" aria-label="Próximo">›</button>'
+    + '</div></div>') : '';
 
-  var eixos = TEMAS.map(function(t){
-    var lista=(porTema[t.nome]||[]);
-    var tot=lista.reduce(function(a,b){return a+(+b.n_registros||0);},0);
-    var tail='';
-    if(!t.semCauda){
-      var fam={};
-      lista.forEach(function(f){
-        var r=(f.short_ref||f.full_reference||'');
-        if(usadas.some(function(u){ return r.indexOf(u)>=0; })) return;
-        var k=r.split(/\s+—\s+cap\.|\s+—\s+|:\s/)[0].trim().slice(0,58) || r.slice(0,58);
-        if(!fam[k]) fam[k]={nome:k, n:0, q:0, ref:f.full_reference||r};
-        fam[k].n += (+f.n_registros||0); fam[k].q++;
-      });
-      var resto=Object.values(fam).sort(function(a,b){return b.n-a.n;});
-      var mais=resto.length>10 ? resto.length-10 : 0;
-      if(resto.length){
-        tail='<div class="tema-outras">'
-          + resto.slice(0,10).map(function(f){
-              return '<span class="tf" title="'+esc(f.ref)+'">'+esc(f.nome)
-                + (f.q>1?' <u>×'+f.q+'</u>':'') + ' <i>'+_fmt(f.n)+'</i></span>';
-            }).join(' ')
-          + (mais? ' <span class="tf mais" onclick="switchTab(\'fontes\')">+'+mais+' outras →</span>':'')
-          + '</div>';
-      }
-    }
-    return '<div class="tema" style="--dc:'+t.cor+'">'
-      +'<div class="tema-head"><span class="tema-ic">'+t.ic+'</span>'
-        +'<h4>'+t.nome+'</h4>'
-        +'<span class="tema-num">'+_fmt(tot)+' <small>registros · '+lista.length+' fontes</small></span>'
-        +'<p>'+t.frase+'</p></div>'
-      +tail+'</div>';
+  var cards = FUNCS.map(function(f){
+    var pool=porPerfil[f.perfil]||[];
+    var ex=_sorteia(pool, f.perfil==='estatistica'?2:3);
+    var chips=ex.map(function(x){
+      var d=_exDesc(x, f.perfil);
+      return '<span class="fc-chip" onclick="event.stopPropagation();abrirFicha('+x.actor_id+')">'
+        + esc(x.nome) + (d?' <small>'+esc(d)+'</small>':'') + '</span>';
+    }).join(' ');
+    var acao = f.tab ? 'switchTab(\''+f.tab+'\')'
+             : (ex.length ? 'abrirFicha('+ex[0].actor_id+')' : 'switchTab(\'busca\')');
+    return '<div class="fcard" style="--dc:'+f.cor+'" onclick="'+acao+'">'
+      +'<div class="fc-top"><span class="fc-ic">'+f.ic+'</span><span class="fc-h">'+f.h+'</span></div>'
+      +'<div class="fc-p">'+f.p+'</div>'
+      +(chips?'<div class="fc-ex"><b>no acervo agora</b>'+chips+'</div>':'')
+      +'</div>';
   }).join('');
 
   box.innerHTML = car
-    + '<h3 class="temas-titulo">O que existe neste acervo <span>— seis eixos, '+_fmt(fontes.length)+' conjuntos documentais</span></h3>'
-    + eixos;
+    + '<h3 class="func-titulo">O que dá para fazer aqui <span>— e alguns exemplos tirados do acervo, que mudam a cada visita</span></h3>'
+    + '<div class="func-grid">'+cards+'</div>';
   _carIdx=0; _carAuto();
 }
 
@@ -4681,6 +4736,38 @@ async function initFontes(){
   var data=await loadFontes();
   var cnt=document.getElementById('fontes-count'); if(cnt) cnt.textContent=data.length+' fontes';
   renderFontes();
+  _renderFontesTemas();
+}
+
+async function _renderFontesTemas(){
+  var box=document.getElementById('fontes-temas'); if(!box) return;
+  var fontes=window._fontesTemaData;
+  if(!fontes){
+    try{ fontes=(await getJSON("v_dash_fontes_por_tema?select=*&n_registros=gt.0&order=n_registros.desc")).dados||[]; }
+    catch(e){ console.warn('temas:',e); return; }
+    if(fontes.length) window._fontesTemaData=fontes; else return;
+  }
+  var porTema={}; fontes.forEach(function(f){ (porTema[f.tema]=porTema[f.tema]||[]).push(f); });
+  var linhas = TEMAS.map(function(t){
+    var lista=porTema[t.nome]||[]; if(!lista.length) return '';
+    var tot=lista.reduce(function(a,b){return a+(+b.n_registros||0);},0);
+    return '<button class="ftema" style="--dc:'+t.cor+'" onclick="_filtrarPorTema(\''+t.nome.replace(/'/g,"\\'")+'\')">'
+      +'<span class="ft-ic">'+t.ic+'</span>'
+      +'<span class="ft-nome">'+t.nome+'</span>'
+      +'<span class="ft-n">'+lista.length+' fontes · '+_fmt(tot)+' registros</span></button>';
+  }).join('');
+  box.innerHTML='<div class="ftemas-wrap"><div class="ftemas-tit">Por eixo temático <span>— clique para filtrar a lista abaixo</span></div>'
+    +'<div class="ftemas-grid">'+linhas+'</div></div>';
+}
+function _filtrarPorTema(tema){
+  var fontes=window._fontesTemaData||[];
+  var ids=fontes.filter(function(f){return f.tema===tema;}).map(function(f){return f.source_id;});
+  window._fontesTemaFiltro = (window._fontesTemaFiltro===tema) ? null : tema;
+  window._fontesTemaIds = window._fontesTemaFiltro ? ids : null;
+  document.querySelectorAll('.ftema').forEach(function(b){
+    b.classList.toggle('on', window._fontesTemaFiltro && b.querySelector('.ft-nome').textContent===tema);
+  });
+  renderFontes();
 }
 function _fonteTxt(f){ return _fnorm(f.full_reference)+' '+_fnorm(f.author)+' '+_fnorm(f.contributor)+' '+_fnorm(f.archive)+' '+_fnorm(f.short_ref)+' '+_fnorm(f.year); }
 function _fonteNome(f){
@@ -4741,6 +4828,10 @@ function _autorCard(g,n){
 function renderFontes(){
   var box=document.getElementById('fontes-lista'); if(!box) return;
   var data=_fontesData||[];
+  if(window._fontesTemaIds && window._fontesTemaIds.length){
+    var setIds=new Set(window._fontesTemaIds);
+    data=data.filter(function(f){ return setIds.has(f.source_id); });
+  }
   var el=document.getElementById('fontes-busca'); var q=el?el.value:''; q=(q||'').trim().toLowerCase();
   var autCount={};
   data.forEach(function(f){ if(!f.collection_id && f.author){ var a=_fnorm(f.author).trim(); if(a && a!=='(sem autor)') autCount[a]=(autCount[a]||0)+1; } });
