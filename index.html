@@ -251,6 +251,37 @@
   .dash-pill:hover{ border-color:var(--verde); color:var(--verde); }
   .dash-pill.on{ background:var(--verde); border-color:var(--verde); color:#fff; }
   .dash-hint{ font-size:10.5px; color:var(--txt3); font-style:italic; }
+  .temas-titulo{ font-size:15px; color:var(--ink2); margin:26px 0 4px; }
+  .temas-titulo span{ font-weight:400; font-size:12px; color:var(--txt3); }
+  .tema{ border:1px solid var(--borda); border-left:4px solid var(--dc); border-radius:12px; background:var(--card); padding:16px 18px; margin:14px 0; }
+  .tema-head{ display:flex; gap:13px; align-items:flex-start; }
+  .tema-ic{ font-size:24px; line-height:1; flex-shrink:0; }
+  .tema-head h4{ margin:0 0 3px; font-size:15px; color:var(--ink2); }
+  .tema-head p{ margin:0; font-size:12px; color:var(--txt2); line-height:1.55; max-width:74ch; }
+  .tema-num{ margin-left:auto; text-align:right; font-size:20px; font-weight:700; color:var(--dc); line-height:1.1; flex-shrink:0; }
+  .tema-num small{ display:block; font-size:10px; font-weight:400; color:var(--txt3); }
+  .tema-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:11px; margin-top:13px; }
+  .tcard{ text-align:left; font-family:inherit; border:1px solid var(--borda); background:var(--card2); border-radius:10px; padding:12px 14px; cursor:pointer; display:flex; flex-direction:column; gap:4px; transition:all .13s; }
+  .tcard:hover{ border-color:var(--dc); transform:translateY(-2px); box-shadow:0 4px 14px rgba(0,0,0,.09); }
+  .tcard.hero{ grid-column:1/-1; background:linear-gradient(135deg, color-mix(in srgb, var(--dc) 9%, var(--card2)), var(--card2)); }
+  .tc-kicker{ font-size:10.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:var(--dc); }
+  .tc-h{ font-size:14px; font-weight:700; color:var(--ink2); line-height:1.25; }
+  .tcard.hero .tc-h{ font-size:16px; }
+  .tc-p{ font-size:11.5px; color:var(--txt2); line-height:1.55; }
+  .tc-cta{ font-size:11px; font-weight:700; color:var(--dc); margin-top:2px; }
+  .tema-outras{ margin-top:12px; padding-top:10px; border-top:1px dashed var(--borda); font-size:11px; color:var(--txt3); line-height:2; }
+  .tema-outras b{ color:var(--txt2); font-size:11px; }
+  .tema-outras .tf{ display:inline-block; border:1px solid var(--borda); border-radius:20px; padding:1px 9px; margin:0 3px 3px 0; color:var(--txt2); }
+  .tema-outras .tf i{ font-style:normal; color:var(--txt3); font-size:10px; }
+  .tema-outras .tf u{ text-decoration:none; color:var(--dc); font-weight:700; font-size:10px; }
+  .tema-outras .tf.mais{ cursor:pointer; border-style:dashed; color:var(--dc); font-weight:600; }
+  .tema-outras .tf.mais:hover{ background:var(--card2); }
+  .sobre-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:16px; margin-top:14px; }
+  .sobre-bloco{ border:1px solid var(--borda); border-radius:12px; background:var(--card); padding:17px 19px; }
+  .sobre-bloco h3{ margin:0 0 9px; font-size:14px; color:var(--ink2); }
+  .sobre-bloco p{ font-size:12px; line-height:1.68; color:var(--txt2); margin:0 0 10px; }
+  .sobre-bloco p b{ color:var(--ink2); }
+  .sobre-cite{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:10.5px; line-height:1.6; background:var(--card2); border:1px solid var(--borda); border-radius:8px; padding:10px 12px; white-space:pre-wrap; color:var(--txt2); margin:0 0 10px; }
   .rodape-legal{ margin-top:34px; padding:26px 0 34px; border-top:1px solid var(--borda); background:var(--card2); }
   .rodape-legal .rl-wrap{ max-width:1180px; margin:0 auto; padding:0 18px; }
   .rodape-legal .rl-marca{ font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:12px; }
@@ -469,10 +500,12 @@
 </header>
 <div class="tabs">
   <div class="tab on" id="tab-painel" onclick="switchTab('painel')">📊 Painel</div>
+  <div class="tab" id="tab-dados" onclick="switchTab('dados')">📈 Dados gerais</div>
   <div class="tab" id="tab-busca" onclick="switchTab('busca')">🔍 Busca</div>
   <div class="tab" id="tab-fontes" onclick="switchTab('fontes')">📚 Fontes</div>
   <div class="tab" id="tab-mapa" onclick="switchTab('mapa')">🗺 Atlas</div>
   <div class="tab" id="tab-rede" onclick="switchTab('rede')">🕸 Rede</div>
+  <div class="tab" id="tab-sobre" onclick="switchTab('sobre')">ℹ️ Sobre</div>
 </div>
 <div class="aviso">⚠️ Protótipo de pesquisa — acesso público temporário, somente leitura.</div>
 
@@ -482,6 +515,26 @@
     <p>Banco de dados prosopográfico do Brasil do Longo Século XIX — pessoas, instituições, embarcações e companhias, suas trajetórias e redes de relações. O nome do projeto é uma homenagem a Anansi, a aranha-contadora de histórias da mitologia Ashanti, que tece teias para unir e preservar as narrativas de um povo — como estas teias de relações unem os fios de vidas e trajetórias do passado.</p>
   </div>
   <div class="stat-cards" id="stat-cards"></div>
+
+  <div id="temas-container"></div>
+
+  <div class="painel-guia">
+    <h3>Comece por aqui</h3>
+    <div class="guia-cards">
+      <button class="guia-card" onclick="irParaBusca({tipo:'Pessoa'})"><span class="gc-ic">👤</span><b>Pessoas</b><small id="gc-pessoa">—</small></button>
+      <button class="guia-card" onclick="irParaBusca({tipo:'Instituição'})"><span class="gc-ic">🏛️</span><b>Instituições</b><small id="gc-inst">—</small></button>
+      <button class="guia-card" onclick="irParaBusca({tipo:'Embarcação'})"><span class="gc-ic">⛵</span><b>Embarcações</b><small id="gc-emb">—</small></button>
+      <button class="guia-card" onclick="irParaBusca({tipo:'Pessoa',nobreza:'__any__'})"><span class="gc-ic">👑</span><b>Com título de nobreza</b><small>nobreza titulada</small></button>
+      <button class="guia-card" onclick="irParaBusca({texto:'',foco:true})"><span class="gc-ic">🔍</span><b>Busca livre</b><small>nome, título, ocupação…</small></button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="dados-section" style="display:none">
+  <div class="painel-hero">
+    <h2>Dados gerais</h2>
+    <p>Como o acervo se distribui: tipos de ator, décadas cobertas, tipos de relação, condição jurídica, gênero e ocupação. São contagens de <b>tudo o que está no banco</b>, somando todas as fontes — por isso refletem a composição do acervo, e não a estrutura da sociedade oitocentista. Para saber o que cada conjunto documental cobre, veja o <a href="#" onclick="switchTab('painel');return false;">Painel</a>.</p>
+  </div>
   <div class="painel-grid">
     <div class="card-chart"><h3>Atores por tipo</h3><div class="chart-wrap"><canvas id="dashTipos"></canvas></div></div>
     <div class="card-chart"><h3>Atores por década <span style="font-weight:400;color:var(--txt3)">(período em que aparecem)</span></h3><div class="chart-wrap"><canvas id="dashPeriodo"></canvas></div><div class="dash-tools" id="chips-dashPeriodo"></div></div>
@@ -492,70 +545,43 @@
     <div class="card-chart"><h3>Gênero <span style="font-weight:400;color:var(--txt3)">(pessoas c/ gênero registrado)</span></h3><div class="chart-wrap"><canvas id="dashGenero"></canvas></div></div>
     <div class="card-chart" style="grid-column:1/-1"><h3>Ocupação por setor <span style="font-weight:400;color:var(--txt3)">(5.022 pessoas com ofício declarado nas fontes)</span></h3><div class="chart-wrap" style="height:340px"><canvas id="dashOcupacao"></canvas></div><div style="font-size:11px;color:var(--txt3);margin-top:8px">O peso do comércio reflete a composição do acervo — livros de contas correntes, credores de casas bancárias e cartórios de Lisboa —, não a estrutura ocupacional do Império. Clique numa barra para buscar as pessoas do setor.</div></div>
   </div>
-  <div class="painel-guia" style="margin-top:22px">
-    <h3>Destaques do acervo <span style="font-weight:400;color:var(--txt3)">— conjuntos de fontes específicas, prontos para explorar</span></h3>
-    <div class="destaque-grid">
-      <button class="dcard hero" style="--dc:#1d6e56" onclick="_abrirStatPopup('popup-poupancas', _loadPoupancas)">
-        <span class="dc-tag">Caixa Econômica da Corte · 1866–1931</span>
-        <span class="dc-body">
-          <span class="dc-num">2.401<small>poupadores</small></span>
-          <span class="dc-h">Quem guardava dinheiro no Império</span>
-          <span class="dc-p">Cadernetas de mascates, costureiras e marinheiros — e também de pessoas <b>escravizadas</b> e <b>libertas</b>, que pouparam antes mesmo de serem livres. Perfil por profissão, condição social e gênero.</span>
-        </span>
-        <span class="dc-cta">Explorar poupanças →</span>
-      </button>
-      <div class="destaque-sec">
-        <button class="dcard mini" style="--dc:#ba7517" onclick="_abrirStatPopup('popup-alforrias-mpb', _loadAlforriasMPB)">
-          <span class="dc-ic">🕊️</span>
-          <span class="dc-body">
-            <span class="dc-h">Cartas de alforria na Bahia</span>
-            <span class="dc-p">Salvador, 1831–1840 · a que preço e de quais nações se comprava a liberdade</span>
-          </span>
-          <span class="dc-arrow">→</span>
-        </button>
-        <button class="dcard mini" style="--dc:#0e7490" onclick="_abrirStatPopup('popup-fsm', _loadFSM)">
-          <span class="dc-ic">⛵</span>
-          <span class="dc-body">
-            <span class="dc-h">Cargas e embarcações do Atlântico</span>
-            <span class="dc-p">Pernambuco–Portugal, 1756–1807 · 1.287 viagens, 577 embarcações</span>
-          </span>
-          <span class="dc-arrow">→</span>
-        </button>
-        <button class="dcard mini" style="--dc:#1d6e56" onclick="_abrirStatPopup('popup-indigenas', _loadIndigenas)">
-          <span class="dc-ic">🪶</span>
-          <span class="dc-body">
-            <span class="dc-h">Povos indígenas do Brasil</span>
-            <span class="dc-p">1636–1940 · lideranças, aldeamentos e conflitos por terra em oito povos</span>
-          </span>
-          <span class="dc-arrow">→</span>
-        </button>
-        <button class="dcard mini" style="--dc:#2f5496" onclick="_abrirStatPopup('popup-demografia-ibge', _loadDemografiaIBGE)">
-          <span class="dc-ic">🌎</span>
-          <span class="dc-body">
-            <span class="dc-h">Cinco séculos de população</span>
-            <span class="dc-p">Brasil, 1550–1991 · o Censo de 1872 em detalhe e a escravidão província a província</span>
-          </span>
-          <span class="dc-arrow">→</span>
-        </button>
-        <button class="dcard mini" style="--dc:#8b1e1e" onclick="_abrirStatPopup('popup-vassouras', _loadVassouras)">
-          <span class="dc-ic">⚖️</span>
-          <span class="dc-body">
-            <span class="dc-h">“Ouvi dizer de um vizinho”</span>
-            <span class="dc-p">Vassouras, 1821–1881 · 552 pessoas em 120 processos-crime do Vale do Paraíba</span>
-          </span>
-          <span class="dc-arrow">→</span>
-        </button>
-      </div>
-    </div>
+</div>
+
+<div class="wrap" id="sobre-section" style="display:none">
+  <div class="painel-hero">
+    <h2>Sobre o Mosaico XIX</h2>
+    <p>Um banco de dados prosopográfico do Brasil do longo século XIX: pessoas, instituições, embarcações e companhias, com suas trajetórias e as relações que mantiveram entre si.</p>
   </div>
-  <div class="painel-guia">
-    <h3>Comece por aqui</h3>
-    <div class="guia-cards">
-      <button class="guia-card" onclick="irParaBusca({tipo:'Pessoa'})"><span class="gc-ic">👤</span><b>Pessoas</b><small id="gc-pessoa">—</small></button>
-      <button class="guia-card" onclick="irParaBusca({tipo:'Instituição'})"><span class="gc-ic">🏛️</span><b>Instituições</b><small id="gc-inst">—</small></button>
-      <button class="guia-card" onclick="irParaBusca({tipo:'Embarcação'})"><span class="gc-ic">⛵</span><b>Embarcações</b><small id="gc-emb">—</small></button>
-      <button class="guia-card" onclick="irParaBusca({tipo:'Pessoa',nobreza:'__any__'})"><span class="gc-ic">👑</span><b>Com título de nobreza</b><small>nobreza titulada</small></button>
-      <button class="guia-card" onclick="irParaBusca({texto:'',foco:true})"><span class="gc-ic">🔍</span><b>Busca livre</b><small>nome, título, ocupação…</small></button>
+
+  <div class="sobre-grid">
+    <div class="sobre-bloco">
+      <h3>O que é</h3>
+      <p>A pesquisa histórica produz, o tempo todo, listas de gente. Um levantamento de alforrias, uma relação de credores, o índice de um processo-crime, o apêndice de uma tese. Cada um desses conjuntos responde à pergunta de quem o montou e depois costuma parar por aí — num anexo, num PDF, numa planilha que ninguém mais abre.</p>
+      <p>O Mosaico XIX reúne esses conjuntos num modelo comum: cada pessoa vira um <b>ator</b>, cada vínculo documentado vira uma <b>relação</b> datada, cada acontecimento vira um <b>evento</b>, e tudo carrega de volta a fonte de onde veio. O ganho não está em ter muitos nomes, está em poder perguntar coisas que nenhuma das fontes responderia sozinha.</p>
+      <p>O nome é uma homenagem a <b>Anansi</b>, a aranha-contadora de histórias da mitologia Ashanti, que tece teias para unir e preservar as narrativas de um povo.</p>
+    </div>
+
+    <div class="sobre-bloco">
+      <h3>Como o dado é tratado</h3>
+      <p><b>A grafia da fonte é preservada.</b> Ocupação, naturalidade, nação e idade ficam gravadas como o documento registra — "Nação Rebolo", "20 e tantos", "vive de seus negócios". A padronização vive em camadas separadas, para que a agregação seja possível sem apagar o original.</p>
+      <p><b>O que é inferência aparece marcado.</b> Gênero deduzido do prenome, condição jurídica presumida pelo contexto do lote — tudo leva sinalização própria e o método fica registrado.</p>
+      <p><b>Homônimo não vira fusão.</b> Duas pessoas com o mesmo nome em fontes diferentes recebem uma marca de "possível mesma pessoa" apontando uma para a outra, e continuam separadas. Pessoas escravizadas e gente identificada só pelo nome de batismo nunca são fundidas: a documentação não sustenta a afirmação de identidade.</p>
+      <p><b>Ausência de informação é ausência</b>, não uma categoria chamada "não identificado".</p>
+    </div>
+
+    <div class="sobre-bloco">
+      <h3>Como citar</h3>
+      <p>Ao usar dados daqui, cite <b>duas coisas</b>: este banco e a fonte original do registro, que aparece em cada ficha e na aba <a href="#" onclick="switchTab('fontes');return false;">Fontes</a>.</p>
+      <pre class="sobre-cite">ALVARENGA, Thiago. Mosaico XIX: banco de dados prosopográfico
+do Brasil oitocentista. Universidade Federal Fluminense, 2026.
+Consultado em [data].</pre>
+      <p style="font-size:11px;color:var(--txt3)">Os conjuntos reutilizados permanecem sob a autoria e a licença de quem os produziu — citá-los não é cortesia, é o que sustenta a cadeia de crédito que torna esse tipo de reúso possível.</p>
+    </div>
+
+    <div class="sobre-bloco">
+      <h3>Limites que valem saber</h3>
+      <p>O acervo <b>não é uma amostra do Brasil oitocentista</b>. É a soma das fontes que foram digitadas até agora, e elas puxam para onde a pesquisa que as gerou olhava: praça mercantil do Rio, crédito, Atlântico português. Se o comércio pesa 30% das ocupações, isso diz respeito aos livros de contas correntes, não à estrutura ocupacional do Império.</p>
+      <p>O recorte também é desigual no tempo e no espaço: há muito mais Rio de Janeiro que Norte, muito mais 1850-1880 que 1800-1830. Toda contagem agregada da aba <a href="#" onclick="switchTab('dados');return false;">Dados gerais</a> deve ser lida com isso em mente.</p>
     </div>
   </div>
 </div>
@@ -4359,6 +4385,14 @@ async function initPainel(){
     _animCounters();
     var setS=function(id,v,suf){var el=document.getElementById(id); if(el) el.textContent=_fmt(v)+' '+suf;};
     setS('gc-pessoa',mt['Pessoa'],'indivíduos'); setS('gc-inst',mt['Instituição'],'instituições'); setS('gc-emb',mt['Embarcação'],'embarcações');
+    _renderTemas();
+  }catch(e){ console.error('initPainel',e); }
+}
+
+async function initDadosGerais(){
+  try{
+    var d=await loadPainelData();
+    var mt={}; d.tipos.forEach(function(x){mt[x.tipo]=x.n;});
     Object.keys(dashCharts).forEach(function(k){ try{dashCharts[k].destroy();}catch(e){} }); dashCharts={};
     applyChartTheme();
     if(!window.Chart) return;
@@ -4409,8 +4443,94 @@ async function initPainel(){
             return _fmt(c.parsed.x)+' pessoas · '+(100*c.parsed.x/tot).toFixed(1)+'%';}}}},
           scales:{x:{ticks:{font:{size:10},precision:0}},y:{ticks:{font:{size:11}}}}}});
     }
-  }catch(e){ console.error('initPainel',e); }
+  }catch(e){ console.error('initDadosGerais',e); }
 }
+
+/* ===== Painel: cardápio temático do acervo ===== */
+var TEMAS = [
+  { nome:'Escravidão e liberdade', ic:'⛓️', cor:'#8b1e1e',
+    frase:'Quem foi escravizado, quem comprou ou recebeu a liberdade, quem traficou. Cartas de alforria, processos-crime e trajetórias reconstituídas documento a documento.',
+    cards:[
+      {kicker:'Salvador, 1831–1840', h:'Cartas de alforria na Bahia', p:'5.133 pessoas compraram ou receberam a liberdade — a que preço, de quais nações, em que condições.', pop:'popup-alforrias-mpb', fn:'_loadAlforriasMPB'},
+      {kicker:'Vassouras, 1821–1881', h:'“Ouvi dizer de um vizinho”', p:'552 pessoas em 120 processos-crime do Vale do Paraíba cafeeiro, dos autos de qualificação aos “ouvir dizeres” dos depoimentos.', pop:'popup-vassouras', fn:'_loadVassouras'}
+    ]},
+  { nome:'Comércio, crédito e finanças', ic:'💰', cor:'#1d6e56',
+    frase:'A praça mercantil do Rio e suas conexões: negociantes, caixeiros, casas bancárias, credores, poupadores e devedores.',
+    cards:[
+      {kicker:'Corte do Rio, 1866–1931', h:'Quem guardava dinheiro no Império', p:'2.401 cadernetas da Caixa Econômica — mascates, costureiras, marinheiros, e também pessoas escravizadas e libertas que pouparam antes de serem livres.', pop:'popup-poupancas', fn:'_loadPoupancas', hero:true}
+    ]},
+  { nome:'Mar e Atlântico', ic:'⛵', cor:'#0e7490',
+    frase:'Embarcações, capitães, cargas e rotas que ligavam os portos brasileiros ao mundo atlântico.',
+    cards:[
+      {kicker:'Pernambuco–Portugal, 1756–1807', h:'Cargas e embarcações do Atlântico', p:'1.287 viagens e 577 embarcações, com capitão, proprietário e mercadoria a bordo.', pop:'popup-fsm', fn:'_loadFSM'}
+    ]},
+  { nome:'Povos indígenas', ic:'🪶', cor:'#1d6e56', semCauda:true,
+    frase:'Lideranças, aldeamentos e disputas por terra, do período colonial à República. Reunido de vinte estudos recentes de história indígena.',
+    cards:[
+      {kicker:'Brasil, 1636–1940', h:'Povos indígenas do Brasil', p:'Lideranças, aldeamentos e conflitos por terra em oito povos — Potiguara, Guarani, Terena, Pataxó, Kariri, Macuxi e outros.', pop:'popup-indigenas', fn:'_loadIndigenas'}
+    ]},
+  { nome:'Território e demografia', ic:'🌎', cor:'#2f5496',
+    frase:'Quanta gente havia, onde, e como isso mudou. Censos, séries de população e a geografia histórica das cidades.',
+    cards:[
+      {kicker:'Brasil, 1550–1991', h:'Cinco séculos de população', p:'O Censo de 1872 em detalhe, a população escrava província a província e a composição por cor ao longo de quatro séculos.', pop:'popup-demografia-ibge', fn:'_loadDemografiaIBGE'}
+    ]},
+  { nome:'Estado, política e elites', ic:'🏛️', cor:'#8b7bd8',
+    frase:'Senadores, deputados, magistrados e proprietários — quem ocupava os cargos e como as famílias de elite se entrelaçavam.',
+    cards:[]}
+];
+
+async function _renderTemas(){
+  var box=document.getElementById('temas-container'); if(!box) return;
+  var fontes=window._fontesTemaData;
+  if(!fontes){
+    try{ fontes=(await getJSON("v_dash_fontes_por_tema?select=*&n_registros=gt.0&order=n_registros.desc")).dados||[]; }
+    catch(e){ console.warn('temas:',e); fontes=[]; }
+    window._fontesTemaData=fontes;
+  }
+  var porTema={}; fontes.forEach(function(f){ (porTema[f.tema]=porTema[f.tema]||[]).push(f); });
+  var usadas=['Caixa Econômica','Manumission','Embarcações e cargas','Agostini','500 anos'];
+  box.innerHTML='<h3 class="temas-titulo">O que existe neste acervo <span>— seis eixos, '+_fmt(fontes.length)+' conjuntos documentais</span></h3>'
+    + TEMAS.map(function(t){
+    var lista=(porTema[t.nome]||[]);
+    var tot=lista.reduce(function(a,b){return a+(b.n_registros||0);},0);
+    var cards=(t.cards||[]).map(function(c){
+      return '<button class="tcard'+(c.hero?' hero':'')+'" style="--dc:'+t.cor+'" onclick="_abrirStatPopup(\''+c.pop+'\', '+c.fn+')">'
+        +'<span class="tc-kicker">'+esc(c.kicker)+'</span>'
+        +'<span class="tc-h">'+c.h+'</span>'
+        +'<span class="tc-p">'+c.p+'</span>'
+        +'<span class="tc-cta">Explorar →</span></button>';
+    }).join('');
+    var tail='';
+    if(!t.semCauda){
+      var fam={};
+      lista.forEach(function(f){
+        var r=(f.short_ref||f.full_reference||'');
+        if(usadas.some(function(u){ return r.indexOf(u)>=0; })) return;
+        var k=r.split(/\s+—\s+cap\.|\s+—\s+|:\s/)[0].trim().slice(0,60) || r.slice(0,60);
+        if(!fam[k]) fam[k]={nome:k, n:0, q:0, ref:f.full_reference||r};
+        fam[k].n += (f.n_registros||0); fam[k].q++;
+      });
+      var resto=Object.values(fam).sort(function(a,b){return b.n-a.n;});
+      var mais=resto.length>12 ? resto.length-12 : 0;
+      if(resto.length){
+        tail='<div class="tema-outras"><b>Também neste eixo:</b> '
+          + resto.slice(0,12).map(function(f){
+              return '<span class="tf" title="'+esc(f.ref)+'">'+esc(f.nome)
+                + (f.q>1?' <u>×'+f.q+'</u>':'') + ' <i>'+_fmt(f.n)+'</i></span>';
+            }).join(' ')
+          + (mais? ' <span class="tf mais" onclick="switchTab(\'fontes\')">+'+mais+' outras →</span>':'')
+          + '</div>';
+      }
+    }
+    return '<section class="tema" style="--dc:'+t.cor+'">'
+      +'<header class="tema-head"><span class="tema-ic">'+t.ic+'</span>'
+        +'<div><h4>'+t.nome+'</h4><p>'+t.frase+'</p></div>'
+        +'<span class="tema-num">'+_fmt(tot)+'<small>registros · '+lista.length+' fontes</small></span></header>'
+      +(cards?'<div class="tema-cards">'+cards+'</div>':'')
+      +tail+'</section>';
+  }).join('');
+}
+
 function _renderPopCor(rows){
   if(!rows.length||!document.getElementById('dashPopCor')) return;
   var anos=[]; rows.forEach(function(r){ if(anos.indexOf(String(r.ano))<0) anos.push(String(r.ano)); });
@@ -4909,23 +5029,23 @@ let _frotasLyr=null, _frotasLoaded=false, _frotasVisible=false;
 let _fichaMapa=null, _fichaMapaActorId=null;
 
 function switchTab(tab){
-  document.getElementById("painel-section").style.display = tab==="painel" ? "" : "none";
-  document.getElementById("busca-section").style.display  = tab==="busca"  ? "" : "none";
-  var fs=document.getElementById("fontes-section"); if(fs) fs.style.display = tab==="fontes" ? "" : "none";
+  ["painel","dados","busca","fontes","sobre"].forEach(function(t){
+    var el=document.getElementById(t+"-section"); if(el) el.style.display = (tab===t) ? "" : "none";
+  });
   document.getElementById("mapa-section").classList.toggle("on", tab==="mapa");
   var rs=document.getElementById("rede-section"); if(rs) rs.classList.toggle("on", tab==="rede");
-  document.getElementById("tab-painel").classList.toggle("on", tab==="painel");
-  document.getElementById("tab-busca").classList.toggle("on", tab==="busca");
-  var tf=document.getElementById("tab-fontes"); if(tf) tf.classList.toggle("on", tab==="fontes");
-  document.getElementById("tab-mapa").classList.toggle("on", tab==="mapa");
-  var tr=document.getElementById("tab-rede"); if(tr) tr.classList.toggle("on", tab==="rede");
+  ["painel","dados","busca","fontes","mapa","rede","sobre"].forEach(function(t){
+    var el=document.getElementById("tab-"+t); if(el) el.classList.toggle("on", tab===t);
+  });
   if(tab==="mapa"){
     initMapa();
     setTimeout(()=>{ if(_mapObj) _mapObj.invalidateSize(); },120);
   }
   if(tab==="painel"){ try{ initPainel(); }catch(e){} }
+  if(tab==="dados"){ try{ initDadosGerais(); }catch(e){} }
   if(tab==="fontes"){ try{ initFontes(); }catch(e){} }
   if(tab==="rede"){ try{ renderRedeMulti(); }catch(e){} }
+  try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){}
 }
 
 function initMapa(){
