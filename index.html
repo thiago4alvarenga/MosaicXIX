@@ -251,6 +251,18 @@
   .dash-pill:hover{ border-color:var(--verde); color:var(--verde); }
   .dash-pill.on{ background:var(--verde); border-color:var(--verde); color:#fff; }
   .dash-hint{ font-size:10.5px; color:var(--txt3); font-style:italic; }
+  .rodape-legal{ margin-top:34px; padding:26px 0 34px; border-top:1px solid var(--borda); background:var(--card2); }
+  .rodape-legal .rl-wrap{ max-width:1180px; margin:0 auto; padding:0 18px; }
+  .rodape-legal .rl-marca{ font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:12px; }
+  .rodape-legal .rl-marca span{ font-weight:400; font-size:12px; color:var(--txt3); }
+  .rodape-legal p{ font-size:11.5px; line-height:1.65; color:var(--txt2); margin:0 0 9px; max-width:92ch; }
+  .rodape-legal p b{ color:var(--ink2); }
+  .rodape-legal .rl-destaque{ background:rgba(47,84,150,.07); border-left:3px solid #2f5496; border-radius:0 8px 8px 0; padding:10px 13px; }
+  .rodape-legal .rl-fim{ margin-top:14px; padding-top:12px; border-top:1px solid var(--borda); color:var(--txt3); }
+  .rodape-legal a{ color:#2f5496; text-decoration:none; font-weight:600; }
+  .rodape-legal a:hover{ text-decoration:underline; }
+  [data-theme="dark"] .rodape-legal .rl-destaque{ background:rgba(120,160,220,.10); border-left-color:#7ea6dd; }
+  [data-theme="dark"] .rodape-legal a{ color:#8ab4e8; }
   .vas-tab{ font-family:inherit; font-size:12px; font-weight:600; padding:6px 14px; border-radius:20px; border:1px solid var(--borda); background:var(--card2); color:var(--txt2); cursor:pointer; transition:all .12s; }
   .vas-tab:hover{ border-color:#8b1e1e; color:#8b1e1e; }
   .vas-tab.on{ background:#8b1e1e; border-color:#8b1e1e; color:#fff; }
@@ -687,6 +699,24 @@
     </div>
   </div>
 </div>
+
+<footer class="rodape-legal">
+  <div class="rl-wrap">
+    <div class="rl-marca">Mosaico&nbsp;XIX <span>· banco de dados de pesquisa em história do Brasil oitocentista</span></div>
+
+    <p class="rl-destaque"><b>Projeto acadêmico sem fins lucrativos, de finalidade exclusivamente educacional e de pesquisa.</b>
+    Este site não veicula publicidade nem patrocínio, não cobra pelo acesso, não vende, aluga, licencia ou sublicencia os dados que reúne, e não gera receita direta ou indireta a partir deles.</p>
+
+    <p><b>Fontes e créditos.</b> Cada registro remete à fonte de onde veio, com a referência completa na aba <a href="#" onclick="switchTab('fontes');return false;">📚 Fontes</a>. Os documentos originais pertencem aos arquivos e instituições que os custodiam. Os conjuntos de dados reutilizados permanecem sob a autoria e a licença de quem os produziu e depositou, e são citados no padrão da <a href="https://force11.org/info/joint-declaration-of-data-citation-principles-final/" target="_blank" rel="noopener">Joint Declaration of Data Citation Principles</a>.</p>
+
+    <p><b>Licença.</b> O banco de dados derivado é disponibilizado sob <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br" target="_blank" rel="noopener">CC&nbsp;BY-NC-SA&nbsp;4.0</a> — atribuição, uso não comercial e compartilhamento pela mesma licença. Conjuntos de origem sujeitos a licença própria mais restritiva prevalecem sobre esta.</p>
+
+    <p><b>Não afiliação.</b> Este projeto reutiliza dados de repositórios e acervos de terceiros — entre eles o Harvard&nbsp;Dataverse — sem qualquer vínculo institucional com eles. A menção a essas instituições é crédito de fonte, não endosso: nenhuma delas revisa, respalda ou se responsabiliza pelo conteúdo aqui apresentado. Erros de transcrição, normalização ou interpretação são de responsabilidade deste projeto, não das fontes.</p>
+
+    <p class="rl-fim">Mantido por <b>Thiago Alvarenga</b> · Universidade Federal Fluminense · <a href="mailto:thiagoalvarenga@id.uff.br">thiagoalvarenga@id.uff.br</a><br>
+    Correções, pedidos de retirada de conteúdo ou dúvidas sobre licenciamento: escreva para o e-mail acima.</p>
+  </div>
+</footer>
 
 <div id="fontePop"></div>
 <div class="overlay" id="overlay">
