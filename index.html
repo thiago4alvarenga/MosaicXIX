@@ -478,6 +478,7 @@
     <div class="card-chart"><h3>Condição jurídica — terminal <span style="font-weight:400;color:var(--txt3)">(última condição conhecida)</span></h3><div class="chart-wrap"><canvas id="dashCondJur"></canvas></div></div>
     <div class="card-chart"><h3>Condições experimentadas <span style="font-weight:400;color:var(--txt3)">(cada pessoa conta em toda condição que viveu)</span></h3><div class="chart-wrap"><canvas id="dashCondExp"></canvas></div></div>
     <div class="card-chart"><h3>Gênero <span style="font-weight:400;color:var(--txt3)">(pessoas c/ gênero registrado)</span></h3><div class="chart-wrap"><canvas id="dashGenero"></canvas></div></div>
+    <div class="card-chart" style="grid-column:1/-1"><h3>Ocupação por setor <span style="font-weight:400;color:var(--txt3)">(5.022 pessoas com ofício declarado nas fontes)</span></h3><div class="chart-wrap" style="height:340px"><canvas id="dashOcupacao"></canvas></div><div style="font-size:11px;color:var(--txt3);margin-top:8px">O peso do comércio reflete a composição do acervo — livros de contas correntes, credores de casas bancárias e cartórios de Lisboa —, não a estrutura ocupacional do Império. Clique numa barra para buscar as pessoas do setor.</div></div>
   </div>
   <div class="painel-guia" style="margin-top:22px">
     <h3>Destaques do acervo <span style="font-weight:400;color:var(--txt3)">— conjuntos de fontes específicas, prontos para explorar</span></h3>
@@ -3438,7 +3439,7 @@ function _fmt(n){ return Number(n||0).toLocaleString('pt-BR'); }
 async function loadPainelData(){
   if(_painelData) return _painelData;
   const q=async(p)=>{ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn('Painel:',p,e); return []; } };
-  const [tot,tipos,per,rel,sub,cond,condExp,gen]=await Promise.all([
+  const [tot,tipos,per,rel,sub,cond,condExp,gen,ocup]=await Promise.all([
     q("v_dash_totais?select=*"),
     q("v_contagem_tipos?select=tipo,n"),
     q("v_dash_periodo?select=decada,n"),
@@ -3446,9 +3447,10 @@ async function loadPainelData(){
     q("v_subtipos_instituicao?select=subtipo,n&order=n.desc&limit=12"),
     q("v_dash_legal_status?select=*"),
     q("v_dash_status_experienced?select=*"),
-    q("v_dash_genero?select=*")
+    q("v_dash_genero?select=*"),
+    q("v_dash_ocupacao_grupo?select=*&order=n.desc")
   ]);
-  const obj={ tot:tot[0]||{}, tipos, per, rel, sub, cond, condExp, gen };
+  const obj={ tot:tot[0]||{}, tipos, per, rel, sub, cond, condExp, gen, ocup };
   if(tipos.length||tot.length) _painelData=obj;
   return obj;
 }
@@ -4357,6 +4359,25 @@ async function initPainel(){
       dashCharts.dashGenero=new Chart(document.getElementById('dashGenero'),{type:'doughnut',
         data:{labels:genData.map(function(x){return x.genero;}),datasets:[{data:genData.map(function(x){return x.n;}),backgroundColor:genData.map(function(x){return CORG[x.genero]||'#8a9a92';}),borderWidth:0,hoverOffset:8}]},
         options:{responsive:true,maintainAspectRatio:false,cutout:'62%',animation:{animateScale:true},plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.label+': '+_fmt(c.parsed);}}}}}});
+    }
+    var ocupData=(d.ocup||[]).filter(function(x){return x.grupo;});
+    if(ocupData.length&&document.getElementById('dashOcupacao')){
+      var CORO={'Comércio e finanças':'#c9832a','Lavoura e criação':'#2e9e63','Ofícios mecânicos':'#8b7bd8',
+        'Estado e administração':'#2f5496','Serviço doméstico':'#c2557a','Mar e navegação':'#0e7490',
+        'Letras, artes e profissões liberais':'#7a5cc4','Trabalho não especializado':'#8a6d3b',
+        'Militar':'#8b1e1e','Rentistas e proprietários':'#a8901f','Supervisão do trabalho':'#b2632a',
+        'Saúde':'#1d9e75','Transporte terrestre':'#5b7a99','Culto':'#6b6b8f',
+        'Liderança indígena':'#1d6e56','Sem ofício declarado':'#8a9a92','Mineração':'#5a5a5a'};
+      dashCharts.dashOcupacao=new Chart(document.getElementById('dashOcupacao'),{type:'bar',
+        data:{labels:ocupData.map(function(x){return x.grupo;}),
+          datasets:[{data:ocupData.map(function(x){return x.n;}),
+            backgroundColor:ocupData.map(function(x){return CORO[x.grupo]||'#8a9a92';}),borderRadius:3}]},
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+          onClick:function(ev,el){ if(!el.length) return; var g=ocupData[el[0].index]; if(g&&g.grupo) irParaBusca({texto:g.grupo,foco:false}); },
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){
+            var tot=ocupData.reduce(function(a,b){return a+b.n;},0);
+            return _fmt(c.parsed.x)+' pessoas · '+(100*c.parsed.x/tot).toFixed(1)+'%';}}}},
+          scales:{x:{ticks:{font:{size:10},precision:0}},y:{ticks:{font:{size:11}}}}}});
     }
   }catch(e){ console.error('initPainel',e); }
 }
