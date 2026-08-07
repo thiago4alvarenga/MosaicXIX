@@ -251,49 +251,65 @@
   .dash-pill:hover{ border-color:var(--verde); color:var(--verde); }
   .dash-pill.on{ background:var(--verde); border-color:var(--verde); color:#fff; }
   .dash-hint{ font-size:10.5px; color:var(--txt3); font-style:italic; }
-  .temas-titulo{ font-size:15px; color:var(--ink2); margin:26px 0 4px; }
+  /* --- carrossel de destaques --- */
+  .carrossel{ position:relative; margin:22px 0 8px; border:1px solid var(--borda); border-radius:14px; background:var(--card); overflow:hidden; }
+  .car-track{ display:flex; transition:transform .45s cubic-bezier(.4,0,.2,1); }
+  .car-slide{ min-width:100%; padding:26px 30px 22px; display:flex; flex-direction:column; gap:7px; box-sizing:border-box; }
+  .car-eixo{ font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--dc); display:flex; align-items:center; gap:6px; }
+  .car-eixo b{ font-weight:700; }
+  .car-kicker{ font-size:12px; color:var(--txt3); font-weight:600; }
+  .car-h{ font-size:23px; font-weight:700; color:var(--ink2); line-height:1.2; margin:0; }
+  .car-p{ font-size:13px; color:var(--txt2); line-height:1.6; max-width:70ch; margin:0; }
+  .car-cta{ align-self:flex-start; margin-top:6px; font-family:inherit; font-size:12.5px; font-weight:700; color:#fff; background:var(--dc); border:none; border-radius:8px; padding:8px 16px; cursor:pointer; transition:filter .15s; }
+  .car-cta:hover{ filter:brightness(1.12); }
+  .car-nav{ position:absolute; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; border:1px solid var(--borda); background:var(--card2); color:var(--txt2); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; z-index:2; }
+  .car-nav:hover{ background:var(--card); color:var(--ink2); border-color:var(--txt3); }
+  .car-nav.prev{ left:9px; } .car-nav.next{ right:9px; }
+  .car-dots{ display:flex; gap:6px; justify-content:center; padding:0 0 13px; }
+  .car-dot{ width:7px; height:7px; border-radius:50%; border:none; background:var(--borda); cursor:pointer; padding:0; transition:all .2s; }
+  .car-dot.on{ background:var(--txt2); width:20px; border-radius:4px; }
+  /* --- lista de eixos --- */
+  .temas-titulo{ font-size:15px; color:var(--ink2); margin:26px 0 10px; }
   .temas-titulo span{ font-weight:400; font-size:12px; color:var(--txt3); }
-  .tema{ border:1px solid var(--borda); border-left:4px solid var(--dc); border-radius:12px; background:var(--card); padding:16px 18px; margin:14px 0; }
-  .tema-head{ display:flex; gap:13px; align-items:flex-start; }
-  .tema-ic{ font-size:24px; line-height:1; flex-shrink:0; }
-  .tema-head h4{ margin:0 0 3px; font-size:15px; color:var(--ink2); }
-  .tema-head p{ margin:0; font-size:12px; color:var(--txt2); line-height:1.55; max-width:74ch; }
-  .tema-num{ margin-left:auto; text-align:right; font-size:20px; font-weight:700; color:var(--dc); line-height:1.1; flex-shrink:0; }
-  .tema-num small{ display:block; font-size:10px; font-weight:400; color:var(--txt3); }
-  .tema-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:11px; margin-top:13px; }
-  .tcard{ text-align:left; font-family:inherit; border:1px solid var(--borda); background:var(--card2); border-radius:10px; padding:12px 14px; cursor:pointer; display:flex; flex-direction:column; gap:4px; transition:all .13s; }
-  .tcard:hover{ border-color:var(--dc); transform:translateY(-2px); box-shadow:0 4px 14px rgba(0,0,0,.09); }
-  .tcard.hero{ grid-column:1/-1; background:linear-gradient(135deg, color-mix(in srgb, var(--dc) 9%, var(--card2)), var(--card2)); }
-  .tc-kicker{ font-size:10.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:var(--dc); }
-  .tc-h{ font-size:14px; font-weight:700; color:var(--ink2); line-height:1.25; }
-  .tcard.hero .tc-h{ font-size:16px; }
-  .tc-p{ font-size:11.5px; color:var(--txt2); line-height:1.55; }
-  .tc-cta{ font-size:11px; font-weight:700; color:var(--dc); margin-top:2px; }
-  .tema-outras{ margin-top:12px; padding-top:10px; border-top:1px dashed var(--borda); font-size:11px; color:var(--txt3); line-height:2; }
-  .tema-outras b{ color:var(--txt2); font-size:11px; }
-  .tema-outras .tf{ display:inline-block; border:1px solid var(--borda); border-radius:20px; padding:1px 9px; margin:0 3px 3px 0; color:var(--txt2); }
+  .tema{ border:1px solid var(--borda); border-left:3px solid var(--dc); border-radius:10px; background:var(--card); padding:13px 16px; margin:9px 0; }
+  .tema-head{ display:flex; gap:11px; align-items:baseline; flex-wrap:wrap; }
+  .tema-ic{ font-size:17px; line-height:1; }
+  .tema-head h4{ margin:0; font-size:14px; color:var(--ink2); font-weight:700; }
+  .tema-head p{ margin:3px 0 0; font-size:11.5px; color:var(--txt3); line-height:1.55; max-width:78ch; flex-basis:100%; }
+  .tema-num{ margin-left:auto; font-size:12px; font-weight:700; color:var(--txt2); white-space:nowrap; }
+  .tema-num small{ font-size:10.5px; font-weight:400; color:var(--txt3); }
+  .tema-outras{ margin-top:9px; font-size:11px; color:var(--txt3); line-height:1.9; }
+  .tema-outras .tf{ display:inline-block; border:1px solid var(--borda); border-radius:20px; padding:1px 9px; margin:0 3px 3px 0; color:var(--txt2); background:var(--card2); }
   .tema-outras .tf i{ font-style:normal; color:var(--txt3); font-size:10px; }
   .tema-outras .tf u{ text-decoration:none; color:var(--dc); font-weight:700; font-size:10px; }
   .tema-outras .tf.mais{ cursor:pointer; border-style:dashed; color:var(--dc); font-weight:600; }
-  .tema-outras .tf.mais:hover{ background:var(--card2); }
-  .sobre-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:16px; margin-top:14px; }
-  .sobre-bloco{ border:1px solid var(--borda); border-radius:12px; background:var(--card); padding:17px 19px; }
-  .sobre-bloco h3{ margin:0 0 9px; font-size:14px; color:var(--ink2); }
-  .sobre-bloco p{ font-size:12px; line-height:1.68; color:var(--txt2); margin:0 0 10px; }
-  .sobre-bloco p b{ color:var(--ink2); }
-  .sobre-cite{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:10.5px; line-height:1.6; background:var(--card2); border:1px solid var(--borda); border-radius:8px; padding:10px 12px; white-space:pre-wrap; color:var(--txt2); margin:0 0 10px; }
-  .rodape-legal{ margin-top:34px; padding:26px 0 34px; border-top:1px solid var(--borda); background:var(--card2); }
+  .tema-outras .tf.mais:hover{ background:var(--card); }
+  /* --- Sobre: texto corrido --- */
+  .sobre-texto{ max-width:78ch; margin-top:6px; }
+  .sobre-texto h3{ font-size:14px; color:var(--ink2); margin:22px 0 8px; }
+  .sobre-texto p{ font-size:13px; line-height:1.75; color:var(--txt2); margin:0 0 13px; }
+  .sobre-texto p b{ color:var(--ink2); }
+  .sobre-cite{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:11px; line-height:1.6; background:var(--card2); border:1px solid var(--borda); border-radius:8px; padding:11px 13px; white-space:pre-wrap; color:var(--txt2); margin:0 0 13px; }
+  /* --- rodapé em colunas --- */
+  .rodape-legal{ margin-top:34px; padding:26px 0 30px; border-top:1px solid var(--borda); background:var(--card2); }
   .rodape-legal .rl-wrap{ max-width:1180px; margin:0 auto; padding:0 18px; }
-  .rodape-legal .rl-marca{ font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:12px; }
-  .rodape-legal .rl-marca span{ font-weight:400; font-size:12px; color:var(--txt3); }
-  .rodape-legal p{ font-size:11.5px; line-height:1.65; color:var(--txt2); margin:0 0 9px; max-width:92ch; }
-  .rodape-legal p b{ color:var(--ink2); }
-  .rodape-legal .rl-destaque{ background:rgba(47,84,150,.07); border-left:3px solid #2f5496; border-radius:0 8px 8px 0; padding:10px 13px; }
-  .rodape-legal .rl-fim{ margin-top:14px; padding-top:12px; border-top:1px solid var(--borda); color:var(--txt3); }
+  .rodape-legal .rl-marca{ font-size:13px; font-weight:700; color:var(--ink2); margin-bottom:14px; }
+  .rodape-legal .rl-marca span{ font-weight:400; font-size:11.5px; color:var(--txt3); }
+  .rodape-legal .rl-cols{ display:grid; grid-template-columns:1.15fr 1fr 1fr; gap:22px; align-items:start; }
+  .rodape-legal h5{ margin:0 0 5px; font-size:11px; font-weight:700; color:var(--ink2); text-transform:uppercase; letter-spacing:.04em; }
+  .rodape-legal p{ font-size:11px; line-height:1.6; color:var(--txt2); margin:0 0 11px; }
+  .rodape-legal .rl-destaque{ background:rgba(47,84,150,.07); border-left:3px solid #2f5496; border-radius:0 8px 8px 0; padding:11px 13px; margin:0; }
+  .rodape-legal .rl-destaque p{ margin:0; font-size:11px; }
+  .rodape-legal .rl-fim{ margin-top:16px; padding-top:11px; border-top:1px solid var(--borda); color:var(--txt3); font-size:11px; display:flex; gap:14px; flex-wrap:wrap; justify-content:space-between; }
   .rodape-legal a{ color:#2f5496; text-decoration:none; font-weight:600; }
   .rodape-legal a:hover{ text-decoration:underline; }
   [data-theme="dark"] .rodape-legal .rl-destaque{ background:rgba(120,160,220,.10); border-left-color:#7ea6dd; }
   [data-theme="dark"] .rodape-legal a{ color:#8ab4e8; }
+  @media (max-width:820px){
+    .rodape-legal .rl-cols{ grid-template-columns:1fr; gap:14px; }
+    .car-slide{ padding:20px 22px 18px; } .car-h{ font-size:19px; }
+    .car-nav{ display:none; }
+  }
   .vas-tab{ font-family:inherit; font-size:12px; font-weight:600; padding:6px 14px; border-radius:20px; border:1px solid var(--borda); background:var(--card2); color:var(--txt2); cursor:pointer; transition:all .12s; }
   .vas-tab:hover{ border-color:#8b1e1e; color:#8b1e1e; }
   .vas-tab.on{ background:#8b1e1e; border-color:#8b1e1e; color:#fff; }
@@ -553,36 +569,24 @@
     <p>Um banco de dados prosopográfico do Brasil do longo século XIX: pessoas, instituições, embarcações e companhias, com suas trajetórias e as relações que mantiveram entre si.</p>
   </div>
 
-  <div class="sobre-grid">
-    <div class="sobre-bloco">
-      <h3>O que é</h3>
-      <p>A pesquisa histórica produz, o tempo todo, listas de gente. Um levantamento de alforrias, uma relação de credores, o índice de um processo-crime, o apêndice de uma tese. Cada um desses conjuntos responde à pergunta de quem o montou e depois costuma parar por aí — num anexo, num PDF, numa planilha que ninguém mais abre.</p>
-      <p>O Mosaico XIX reúne esses conjuntos num modelo comum: cada pessoa vira um <b>ator</b>, cada vínculo documentado vira uma <b>relação</b> datada, cada acontecimento vira um <b>evento</b>, e tudo carrega de volta a fonte de onde veio. O ganho não está em ter muitos nomes, está em poder perguntar coisas que nenhuma das fontes responderia sozinha.</p>
-      <p>O nome é uma homenagem a <b>Anansi</b>, a aranha-contadora de histórias da mitologia Ashanti, que tece teias para unir e preservar as narrativas de um povo.</p>
-    </div>
+  <div class="sobre-texto">
+    <p>A pesquisa histórica produz, o tempo todo, listas de gente. Um levantamento de alforrias, uma relação de credores, o índice de um processo-crime, o apêndice de uma tese. Cada um desses conjuntos responde à pergunta de quem o montou e depois costuma parar por aí — num anexo, num PDF, numa planilha que ninguém mais abre.</p>
 
-    <div class="sobre-bloco">
-      <h3>Como o dado é tratado</h3>
-      <p><b>A grafia da fonte é preservada.</b> Ocupação, naturalidade, nação e idade ficam gravadas como o documento registra — "Nação Rebolo", "20 e tantos", "vive de seus negócios". A padronização vive em camadas separadas, para que a agregação seja possível sem apagar o original.</p>
-      <p><b>O que é inferência aparece marcado.</b> Gênero deduzido do prenome, condição jurídica presumida pelo contexto do lote — tudo leva sinalização própria e o método fica registrado.</p>
-      <p><b>Homônimo não vira fusão.</b> Duas pessoas com o mesmo nome em fontes diferentes recebem uma marca de "possível mesma pessoa" apontando uma para a outra, e continuam separadas. Pessoas escravizadas e gente identificada só pelo nome de batismo nunca são fundidas: a documentação não sustenta a afirmação de identidade.</p>
-      <p><b>Ausência de informação é ausência</b>, não uma categoria chamada "não identificado".</p>
-    </div>
+    <p>O Mosaico XIX reúne esses conjuntos num modelo comum: cada pessoa vira um <b>ator</b>, cada vínculo documentado vira uma <b>relação</b> datada, cada acontecimento vira um <b>evento</b>, e tudo carrega de volta a fonte de onde veio. O ganho não está em ter muitos nomes, está em poder perguntar coisas que nenhuma das fontes responderia sozinha. O nome é uma homenagem a <b>Anansi</b>, a aranha-contadora de histórias da mitologia Ashanti, que tece teias para unir e preservar as narrativas de um povo.</p>
 
-    <div class="sobre-bloco">
-      <h3>Como citar</h3>
-      <p>Ao usar dados daqui, cite <b>duas coisas</b>: este banco e a fonte original do registro, que aparece em cada ficha e na aba <a href="#" onclick="switchTab('fontes');return false;">Fontes</a>.</p>
-      <pre class="sobre-cite">ALVARENGA, Thiago. Mosaico XIX: banco de dados prosopográfico
+    <h3>Como o dado é tratado</h3>
+    <p>A grafia da fonte é preservada. Ocupação, naturalidade, nação e idade ficam gravadas como o documento registra — "Nação Rebolo", "20 e tantos", "vive de seus negócios". A padronização necessária para agregar existe, mas vive em camadas separadas, ao lado do original e nunca por cima dele. O que é inferência aparece marcado: gênero deduzido do prenome, condição jurídica presumida pelo contexto do lote — cada caso leva sinalização própria, com o método registrado.</p>
+
+    <p>Homônimo não vira fusão. Duas pessoas com o mesmo nome em fontes diferentes recebem uma marca de "possível mesma pessoa" apontando uma para a outra, e continuam separadas até que haja documento que sustente a identificação. Pessoas escravizadas e gente identificada apenas pelo nome de batismo nunca são fundidas, porque a documentação não sustenta a afirmação de identidade. E ausência de informação é ausência — não uma categoria chamada "não identificado", que contaminaria qualquer contagem.</p>
+
+    <h3>Limites que valem saber</h3>
+    <p>O acervo <b>não é uma amostra do Brasil oitocentista</b>. É a soma das fontes digitadas até agora, e elas puxam para onde a pesquisa que as gerou olhava: praça mercantil do Rio, crédito, Atlântico português. Se o comércio pesa 30% das ocupações, isso diz respeito aos livros de contas correntes, não à estrutura ocupacional do Império. O recorte também é desigual no tempo e no espaço: há muito mais Rio de Janeiro que Norte, muito mais 1850-1880 que 1800-1830. Toda contagem agregada da aba <a href="#" onclick="switchTab('dados');return false;">Dados gerais</a> deve ser lida com isso em mente.</p>
+
+    <h3>Como citar</h3>
+    <p>Ao usar dados daqui, cite <b>duas coisas</b>: este banco e a fonte original do registro, que aparece em cada ficha e na aba <a href="#" onclick="switchTab('fontes');return false;">Fontes</a>. Os conjuntos reutilizados permanecem sob a autoria e a licença de quem os produziu — citá-los não é cortesia, é o que sustenta a cadeia de crédito que torna esse tipo de reúso possível.</p>
+    <pre class="sobre-cite">ALVARENGA, Thiago. Mosaico XIX: banco de dados prosopográfico
 do Brasil oitocentista. Universidade Federal Fluminense, 2026.
 Consultado em [data].</pre>
-      <p style="font-size:11px;color:var(--txt3)">Os conjuntos reutilizados permanecem sob a autoria e a licença de quem os produziu — citá-los não é cortesia, é o que sustenta a cadeia de crédito que torna esse tipo de reúso possível.</p>
-    </div>
-
-    <div class="sobre-bloco">
-      <h3>Limites que valem saber</h3>
-      <p>O acervo <b>não é uma amostra do Brasil oitocentista</b>. É a soma das fontes que foram digitadas até agora, e elas puxam para onde a pesquisa que as gerou olhava: praça mercantil do Rio, crédito, Atlântico português. Se o comércio pesa 30% das ocupações, isso diz respeito aos livros de contas correntes, não à estrutura ocupacional do Império.</p>
-      <p>O recorte também é desigual no tempo e no espaço: há muito mais Rio de Janeiro que Norte, muito mais 1850-1880 que 1800-1830. Toda contagem agregada da aba <a href="#" onclick="switchTab('dados');return false;">Dados gerais</a> deve ser lida com isso em mente.</p>
-    </div>
   </div>
 </div>
 
@@ -730,17 +734,27 @@ Consultado em [data].</pre>
   <div class="rl-wrap">
     <div class="rl-marca">Mosaico&nbsp;XIX <span>· banco de dados de pesquisa em história do Brasil oitocentista</span></div>
 
-    <p class="rl-destaque"><b>Projeto acadêmico sem fins lucrativos, de finalidade exclusivamente educacional e de pesquisa.</b>
-    Este site não veicula publicidade nem patrocínio, não cobra pelo acesso, não vende, aluga, licencia ou sublicencia os dados que reúne, e não gera receita direta ou indireta a partir deles.</p>
+    <div class="rl-cols">
+      <div class="rl-destaque">
+        <p><b>Projeto acadêmico sem fins lucrativos, de finalidade exclusivamente educacional e de pesquisa.</b> Este site não veicula publicidade nem patrocínio, não cobra pelo acesso, não vende, aluga, licencia ou sublicencia os dados que reúne, e não gera receita direta ou indireta a partir deles.</p>
+      </div>
+      <div>
+        <h5>Fontes e créditos</h5>
+        <p>Cada registro remete à fonte de onde veio, com a referência completa na aba <a href="#" onclick="switchTab('fontes');return false;">Fontes</a>. Os documentos originais pertencem aos arquivos que os custodiam; os conjuntos reutilizados permanecem sob a autoria e a licença de quem os produziu, citados no padrão da <a href="https://force11.org/info/joint-declaration-of-data-citation-principles-final/" target="_blank" rel="noopener">Joint Declaration of Data Citation Principles</a>.</p>
+        <h5>Licença</h5>
+        <p>Banco derivado sob <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br" target="_blank" rel="noopener">CC&nbsp;BY-NC-SA&nbsp;4.0</a> — atribuição, uso não comercial, compartilhamento pela mesma licença. Conjuntos de origem com licença mais restritiva prevalecem sobre esta.</p>
+      </div>
+      <div>
+        <h5>Não afiliação</h5>
+        <p>Este projeto reutiliza dados de repositórios e acervos de terceiros — entre eles o Harvard&nbsp;Dataverse — sem vínculo institucional com eles. A menção a essas instituições é crédito de fonte, não endosso: nenhuma revisa, respalda ou se responsabiliza pelo conteúdo aqui apresentado.</p>
+        <p>Erros de transcrição, normalização ou interpretação são de responsabilidade deste projeto, não das fontes.</p>
+      </div>
+    </div>
 
-    <p><b>Fontes e créditos.</b> Cada registro remete à fonte de onde veio, com a referência completa na aba <a href="#" onclick="switchTab('fontes');return false;">📚 Fontes</a>. Os documentos originais pertencem aos arquivos e instituições que os custodiam. Os conjuntos de dados reutilizados permanecem sob a autoria e a licença de quem os produziu e depositou, e são citados no padrão da <a href="https://force11.org/info/joint-declaration-of-data-citation-principles-final/" target="_blank" rel="noopener">Joint Declaration of Data Citation Principles</a>.</p>
-
-    <p><b>Licença.</b> O banco de dados derivado é disponibilizado sob <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br" target="_blank" rel="noopener">CC&nbsp;BY-NC-SA&nbsp;4.0</a> — atribuição, uso não comercial e compartilhamento pela mesma licença. Conjuntos de origem sujeitos a licença própria mais restritiva prevalecem sobre esta.</p>
-
-    <p><b>Não afiliação.</b> Este projeto reutiliza dados de repositórios e acervos de terceiros — entre eles o Harvard&nbsp;Dataverse — sem qualquer vínculo institucional com eles. A menção a essas instituições é crédito de fonte, não endosso: nenhuma delas revisa, respalda ou se responsabiliza pelo conteúdo aqui apresentado. Erros de transcrição, normalização ou interpretação são de responsabilidade deste projeto, não das fontes.</p>
-
-    <p class="rl-fim">Mantido por <b>Thiago Alvarenga</b> · Universidade Federal Fluminense · <a href="mailto:thiagoalvarenga@id.uff.br">thiagoalvarenga@id.uff.br</a><br>
-    Correções, pedidos de retirada de conteúdo ou dúvidas sobre licenciamento: escreva para o e-mail acima.</p>
+    <div class="rl-fim">
+      <span>Mantido por <b>Thiago Alvarenga</b> · Universidade Federal Fluminense · <a href="mailto:thiagoalvarenga@id.uff.br">thiagoalvarenga@id.uff.br</a></span>
+      <span>Correções, pedidos de retirada ou dúvidas sobre licenciamento: escreva para o e-mail.</span>
+    </div>
   </div>
 </footer>
 
@@ -4479,42 +4493,75 @@ var TEMAS = [
     cards:[]}
 ];
 
+var _carIdx=0, _carTimer=null, _carSlides=[];
+function _carGo(i){
+  if(!_carSlides.length) return;
+  _carIdx=(i+_carSlides.length)%_carSlides.length;
+  var tr=document.getElementById('car-track'); if(tr) tr.style.transform='translateX(-'+(_carIdx*100)+'%)';
+  document.querySelectorAll('.car-dot').forEach(function(d,j){ d.classList.toggle('on', j===_carIdx); });
+}
+function _carStep(n){ _carGo(_carIdx+n); _carAuto(); }
+function _carAuto(){
+  if(_carTimer) clearInterval(_carTimer);
+  _carTimer=setInterval(function(){
+    var el=document.getElementById('car-track');
+    if(!el || !document.getElementById('painel-section') || document.getElementById('painel-section').style.display==='none'){ clearInterval(_carTimer); _carTimer=null; return; }
+    _carGo(_carIdx+1);
+  }, 7000);
+}
+
 async function _renderTemas(){
   var box=document.getElementById('temas-container'); if(!box) return;
   var fontes=window._fontesTemaData;
   if(!fontes){
     try{ fontes=(await getJSON("v_dash_fontes_por_tema?select=*&n_registros=gt.0&order=n_registros.desc")).dados||[]; }
     catch(e){ console.warn('temas:',e); fontes=[]; }
-    window._fontesTemaData=fontes;
+    if(fontes.length) window._fontesTemaData=fontes;
   }
   var porTema={}; fontes.forEach(function(f){ (porTema[f.tema]=porTema[f.tema]||[]).push(f); });
   var usadas=['Caixa Econômica','Manumission','Embarcações e cargas','Agostini','500 anos'];
-  box.innerHTML='<h3 class="temas-titulo">O que existe neste acervo <span>— seis eixos, '+_fmt(fontes.length)+' conjuntos documentais</span></h3>'
-    + TEMAS.map(function(t){
+
+  _carSlides=[];
+  TEMAS.forEach(function(t){ (t.cards||[]).forEach(function(c){ _carSlides.push({t:t,c:c}); }); });
+
+  var car = _carSlides.length ? (
+    '<div class="carrossel">'
+    + '<div class="car-track" id="car-track">'
+    + _carSlides.map(function(s){
+        return '<div class="car-slide" style="--dc:'+s.t.cor+'">'
+          +'<div class="car-eixo">'+s.t.ic+' <b>'+esc(s.t.nome)+'</b></div>'
+          +'<div class="car-kicker">'+esc(s.c.kicker)+'</div>'
+          +'<h3 class="car-h">'+s.c.h+'</h3>'
+          +'<p class="car-p">'+s.c.p+'</p>'
+          +'<button class="car-cta" onclick="_abrirStatPopup(\''+s.c.pop+'\', '+s.c.fn+')">Explorar este conjunto →</button>'
+          +'</div>';
+      }).join('')
+    + '</div>'
+    + '<button class="car-nav prev" onclick="_carStep(-1)" aria-label="Anterior">‹</button>'
+    + '<button class="car-nav next" onclick="_carStep(1)" aria-label="Próximo">›</button>'
+    + '<div class="car-dots">'+_carSlides.map(function(s,i){
+        return '<button class="car-dot'+(i===0?' on':'')+'" onclick="_carGo('+i+');_carAuto()" aria-label="Slide '+(i+1)+'"></button>';
+      }).join('')+'</div>'
+    + '</div>') : '';
+
+  var eixos = TEMAS.map(function(t){
     var lista=(porTema[t.nome]||[]);
-    var tot=lista.reduce(function(a,b){return a+(b.n_registros||0);},0);
-    var cards=(t.cards||[]).map(function(c){
-      return '<button class="tcard'+(c.hero?' hero':'')+'" style="--dc:'+t.cor+'" onclick="_abrirStatPopup(\''+c.pop+'\', '+c.fn+')">'
-        +'<span class="tc-kicker">'+esc(c.kicker)+'</span>'
-        +'<span class="tc-h">'+c.h+'</span>'
-        +'<span class="tc-p">'+c.p+'</span>'
-        +'<span class="tc-cta">Explorar →</span></button>';
-    }).join('');
+    var tot=lista.reduce(function(a,b){return a+(+b.n_registros||0);},0);
     var tail='';
     if(!t.semCauda){
       var fam={};
       lista.forEach(function(f){
         var r=(f.short_ref||f.full_reference||'');
         if(usadas.some(function(u){ return r.indexOf(u)>=0; })) return;
-        var k=r.split(/\s+—\s+cap\.|\s+—\s+|:\s/)[0].trim().slice(0,60) || r.slice(0,60);
+        var k=r.split(/\s+—\s+cap\.|\s+—\s+|:\s/)[0].trim().slice(0,58) || r.slice(0,58);
         if(!fam[k]) fam[k]={nome:k, n:0, q:0, ref:f.full_reference||r};
-        fam[k].n += (f.n_registros||0); fam[k].q++;
+        fam[k].n += (+f.n_registros||0); fam[k].q++;
       });
       var resto=Object.values(fam).sort(function(a,b){return b.n-a.n;});
-      var mais=resto.length>12 ? resto.length-12 : 0;
+      var mais=resto.length>10 ? resto.length-10 : 0;
       if(resto.length){
-        tail='<div class="tema-outras"><b>Também neste eixo:</b> '
-          + resto.slice(0,12).map(function(f){
+        tail='<div class="tema-outras">'
+          + resto.slice(0,10).map(function(f){
               return '<span class="tf" title="'+esc(f.ref)+'">'+esc(f.nome)
                 + (f.q>1?' <u>×'+f.q+'</u>':'') + ' <i>'+_fmt(f.n)+'</i></span>';
             }).join(' ')
@@ -4522,13 +4569,18 @@ async function _renderTemas(){
           + '</div>';
       }
     }
-    return '<section class="tema" style="--dc:'+t.cor+'">'
-      +'<header class="tema-head"><span class="tema-ic">'+t.ic+'</span>'
-        +'<div><h4>'+t.nome+'</h4><p>'+t.frase+'</p></div>'
-        +'<span class="tema-num">'+_fmt(tot)+'<small>registros · '+lista.length+' fontes</small></span></header>'
-      +(cards?'<div class="tema-cards">'+cards+'</div>':'')
-      +tail+'</section>';
+    return '<div class="tema" style="--dc:'+t.cor+'">'
+      +'<div class="tema-head"><span class="tema-ic">'+t.ic+'</span>'
+        +'<h4>'+t.nome+'</h4>'
+        +'<span class="tema-num">'+_fmt(tot)+' <small>registros · '+lista.length+' fontes</small></span>'
+        +'<p>'+t.frase+'</p></div>'
+      +tail+'</div>';
   }).join('');
+
+  box.innerHTML = car
+    + '<h3 class="temas-titulo">O que existe neste acervo <span>— seis eixos, '+_fmt(fontes.length)+' conjuntos documentais</span></h3>'
+    + eixos;
+  _carIdx=0; _carAuto();
 }
 
 function _renderPopCor(rows){
