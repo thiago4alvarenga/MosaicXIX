@@ -1159,9 +1159,9 @@ Consultado em [data].</pre>
               <div class="dq-nota">As categorias são as do recenseador — branca, preta, parda e cabocla —, não autodeclaração como hoje.</div>
             </div>
             <div class="dq-card">
-              <h3>Escravizados: nascidos no Brasil e africanos</h3>
+              <h3>Escravizados por naturalidade</h3>
               <div class="chart-wrap" style="height:300px"><canvas id="grafC72Escrava"></canvas></div>
-              <div class="dq-nota">Vinte e dois anos depois do fim do tráfico, os africanos já são menos de 9% da população escravizada. A escravidão brasileira passara a se reproduzir internamente.</div>
+              <div class="dq-nota">Vinte e dois anos depois do fim do tráfico, nove em cada dez pessoas escravizadas já haviam nascido no Brasil. A escravidão passara a se reproduzir internamente, e é disso que trata a Lei do Ventre Livre, de um ano antes deste censo.</div>
             </div>
           </div>
         </div>
@@ -1169,13 +1169,14 @@ Consultado em [data].</pre>
         <div id="c72-pane-soc" style="display:none">
           <div class="dq-grid2">
             <div class="dq-card">
-              <h3>Sabem ler e escrever</h3>
+              <h3>Sabem ler e escrever, por sexo e condição</h3>
               <div class="chart-wrap" style="height:300px"><canvas id="grafC72Instr"></canvas></div>
-              <div class="dq-nota">Pouco mais de 15% da população. Entre as mulheres, menos de 11% — pouco mais da metade da taxa masculina.</div>
+              <div class="dq-nota">Pouco mais de 15% da população livre. Entre os escravizados a barra verde quase desaparece: 1.403 pessoas em um milhão e meio. Ensinar quem era escravizado a ler não era proibido por lei geral, mas era raro a ponto de não aparecer no gráfico.</div>
             </div>
             <div class="dq-card">
-              <h3>Estado civil</h3>
+              <h3>Estado civil, por condição</h3>
               <div class="chart-wrap" style="height:300px"><canvas id="grafC72Civil"></canvas></div>
+              <div class="dq-nota">O casamento entre pessoas escravizadas dependia da anuência do senhor e era muito menos frequente que entre livres — a diferença nas proporções mede isso.</div>
             </div>
           </div>
           <div class="dq-card" style="margin-top:22px">
@@ -1202,7 +1203,7 @@ Consultado em [data].</pre>
         <div class="dq-fonte" style="background:rgba(47,84,150,.07)">
           <b>Fonte:</b> BRASIL. Diretoria Geral de Estatística. <i>Recenseamento Geral do Império de 1872</i>. Rio de Janeiro, 1873-1876.<br>
           <b>Digitalização e tabulação:</b> IBGE — Biblioteca e Centro de Documentação e Disseminação de Informações.<br>
-          <span style="color:var(--txt3)">O banco guarda o nível municipal. Os totais provinciais também existem no acervo, mas são redundantes com a soma dos municípios — o painel usa só um dos dois níveis para não contar ninguém duas vezes.</span>
+          <span style="color:var(--txt3)">O banco guarda o nível municipal, os 636 municípios, e deriva os totais provinciais e nacionais somando-os. Uma ressalva de leitura: as categorias de cor são as do recenseador de 1872, não autodeclaração, e a tabela de naturalidade estrangeira só foi levantada para a população livre — os escravizados nascidos fora do Brasil aparecem na tabela de nacionalidade, não nela.</span>
         </div>
       </div>
     </div>
@@ -4889,38 +4890,36 @@ async function _loadCenso1872(){
       q('v_dash_c1872_provincia?select=*'),
       getAllJSON('v_dash_c1872_categoria?select=*'),
       q('v_dash_c1872_profissoes?select=*&limit=31'),
-      getAllJSON('v_dash_c1872_municipios?select=*'),
-      q('v_dash_c1872_cobertura_extra?select=*')
+      getAllJSON('v_dash_c1872_municipios?select=*')
     ]);
     var r=(res[0]||[])[0]||{}, prov=res[1], cat=res[2].dados||res[2]||[], prof=res[3],
-        mun=res[4].dados||res[4]||[], cx=(res[5]||[])[0]||{};
+        mun=res[4].dados||res[4]||[];
 
-    var UFN={AL:'Alagoas',AM:'Amazonas',BA:'Bahia',CE:'Ceará',ES:'Espírito Santo',GO:'Goiás',
-      MA:'Maranhão',MG:'Minas Gerais',MT:'Mato Grosso',PA:'Pará',PB:'Paraíba',PE:'Pernambuco',
-      PI:'Piauí',PR:'Paraná',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RS:'Rio Grande do Sul',
-      SC:'Santa Catarina',SE:'Sergipe',SP:'São Paulo'};
     var av=document.getElementById('c72-aviso-prof');
-    if(av) av.innerHTML='<b>Leia com cuidado.</b> A tabulação de profissões do censo só foi digitalizada em nível provincial, e apenas para '
-      +(cx.provincias||11)+' das vinte províncias: '
-      +String(cx.ufs||'').split(', ').map(function(u){return UFN[u]||u;}).join(', ')
-      +'. São '+_fmt(cx.pessoas)+' pessoas, cerca de '+(100*(cx.pessoas||0)/(r.populacao||1)).toFixed(0)
-      +'% do que o banco tem — e ficam de fora justamente Minas Gerais, São Paulo, Rio de Janeiro, Bahia e Pernambuco. '
-      +'<b>Isto não é o perfil ocupacional do Brasil</b>, é o de um recorte de províncias menores e mais agrárias.';
+    if(av) av.innerHTML='O recenseamento separa as ocupações por sexo e por condição jurídica, e a tabela abaixo mantém as duas dimensões. '
+      +'Passe o mouse para ver a repartição. A nomenclatura é a de 1873 — “canteiros, calcoteiros, mineiros e cavouqueiros” é uma categoria só, '
+      +'e “Sem profissão” reúne crianças, estudantes e quem não declarou trabalho remunerado.';
     var soma=function(fam,c){ return cat.filter(function(x){ return x.familia===fam && (!c||x.categoria===c); })
                                         .reduce(function(a,b){return a+Number(b.total||0);},0); };
-    var somaSexo=function(fam,c,s){ var x=cat.find(function(y){return y.familia===fam&&y.categoria===c&&y.sexo===s;}); return x?Number(x.total):0; };
+    var pega=function(fam,c,s,cond){
+      return cat.filter(function(y){ return y.familia===fam && y.categoria===c
+              && (!s||y.sexo===s) && (!cond||y.condicao===cond); })
+                .reduce(function(a,b){return a+Number(b.total||0);},0); };
 
     _dqKpis('c72-kpis',[
-      [_fmt(r.populacao),'pessoas recenseadas no banco'],
-      [_fmt(r.escravizados),'escravizados ('+(100*r.escravizados/r.populacao).toFixed(1)+'% da população)'],
-      [_fmt(r.escravos_africanos),'africanos entre os escravizados'],
+      [_fmt(r.populacao),'habitantes — o total oficial do recenseamento'],
+      [_fmt(r.escravizados),'escravizados, '+(100*r.escravizados/r.populacao).toFixed(1)+'% da população'],
+      [_fmt(r.mulheres_escravizadas),'delas eram mulheres'],
       [(100*r.alfabetizados/r.populacao).toFixed(1)+'%','sabiam ler e escrever'],
       [_fmt(r.municipios),'municípios, em '+r.provincias+' províncias']
     ]);
     var cob=document.getElementById('c72-cobertura');
-    if(cob) cob.innerHTML='<b>Cobertura.</b> O recenseamento publicado apurou '+_fmt(r.populacao_oficial_publicada)
-      +' habitantes. O banco tem '+_fmt(r.populacao)+', ou '+(100*r.populacao/r.populacao_oficial_publicada).toFixed(1)
-      +'% do total — a diferença são municípios cujas tabelas não entraram na digitalização. As porcentagens acima são calculadas sobre o que está aqui, não sobre o total oficial.';
+    if(cob) cob.innerHTML='<b>Cobertura completa.</b> São os '+_fmt(r.populacao)
+      +' habitantes do recenseamento publicado, nos 636 municípios, incluindo o Município Neutro da Corte ('
+      +_fmt((mun.find(function(x){return x.uf==='MN';})||{}).populacao)+' habitantes). '
+      +'Cada indicador vem repartido em quatro: homem livre, mulher livre, homem escravizado, mulher escravizada — '
+      +'o que permite perguntas que o total esconde. Entre os '+_fmt(r.escravizados)+' escravizados, por exemplo, '
+      +'<b>'+_fmt(r.escravizados_alfabetizados)+' sabiam ler e escrever</b>, menos de um em mil.';
 
     var pv=prov.slice(0,20);
     _dqChart('grafC72Prov',{type:'bar',
@@ -4935,52 +4934,62 @@ async function _loadCenso1872(){
             var x=pv[c.dataIndex];
             return c.dataset.label+': '+_fmt(c.parsed.x)+(c.datasetIndex===1?' ('+x.pct_escravizados+'% da província)':''); }}}}}});
 
-    var CR={'Branca':'#c9832a','Preta':'#4a3728','Parda':'#8a6d3b','Cabocla':'#1d6e56'};
-    var racas=['Branca','Parda','Preta','Cabocla'];
+    var CR={'Branco':'#c9832a','Preto':'#4a3728','Pardo':'#8a6d3b','Caboclo':'#1d6e56'};
+    var racas=['Branco','Pardo','Preto','Caboclo'];
     _dqChart('grafC72Raca',{type:'doughnut',
-      data:{labels:racas,datasets:[{data:racas.map(function(c){return soma('Raça 1872',c);}),
+      data:{labels:racas,datasets:[{data:racas.map(function(c){return soma('Raças',c);}),
         backgroundColor:racas.map(function(c){return CR[c];}),borderWidth:0}]},
       options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
         plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,usePointStyle:true}},
           tooltip:{callbacks:{label:function(c){
-            return c.label+': '+_fmt(c.parsed)+' ('+(100*c.parsed/r.populacao).toFixed(1)+'%)'; }}}}}});
+            var esc=pega('Raças',c.label,null,'Escravizada');
+            return [c.label+': '+_fmt(c.parsed)+' ('+(100*c.parsed/r.populacao).toFixed(1)+'% da população)',
+                    'destes, '+_fmt(esc)+' escravizados ('+(100*esc/(c.parsed||1)).toFixed(1)+'%)']; }}}}}});
 
     _dqChart('grafC72Escrava',{type:'bar',
-      data:{labels:['Nascidos no Brasil','Africanos'],
+      data:{labels:['Nascidos no Brasil','Nascidos fora'],
         datasets:[
           {label:'Homens',backgroundColor:'#2f5496',borderRadius:3,
-           data:[somaSexo('Pop. escrava 1872','Brasileira','Homens'),somaSexo('Pop. escrava 1872','Africana','Homens')]},
+           data:[pega('Nacionalidade','Brasileira','Homens','Escravizada'),pega('Nacionalidade','Estrangeira','Homens','Escravizada')]},
           {label:'Mulheres',backgroundColor:'#c2557a',borderRadius:3,
-           data:[somaSexo('Pop. escrava 1872','Brasileira','Mulheres'),somaSexo('Pop. escrava 1872','Africana','Mulheres')]}]},
+           data:[pega('Nacionalidade','Brasileira','Mulheres','Escravizada'),pega('Nacionalidade','Estrangeira','Mulheres','Escravizada')]}]},
       options:{responsive:true,maintainAspectRatio:false,
         scales:{x:{stacked:true,ticks:{font:{size:11}}},y:{stacked:true,ticks:{font:{size:10},callback:function(v){return _fmt(v);}}}},
         plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
           tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+_fmt(c.parsed.y);}}}}}});
 
     _dqChart('grafC72Instr',{type:'bar',
-      data:{labels:['Homens','Mulheres'],
+      data:{labels:['Homens livres','Mulheres livres','Homens escravizados','Mulheres escravizadas'],
         datasets:[
           {label:'Sabem ler e escrever',backgroundColor:'#1d6e56',borderRadius:3,
-           data:[somaSexo('Instrução 1872','Sabem ler e escrever','Homens'),somaSexo('Instrução 1872','Sabem ler e escrever','Mulheres')]},
+           data:[pega('Instrução','Sabem Ler e Escrever','Homens','Livre'),
+                 pega('Instrução','Sabem Ler e Escrever','Mulheres','Livre'),
+                 pega('Instrução','Sabem Ler e Escrever','Homens','Escravizada'),
+                 pega('Instrução','Sabem Ler e Escrever','Mulheres','Escravizada')]},
           {label:'Analfabetos',backgroundColor:'#8a9a92',borderRadius:3,
-           data:[somaSexo('Instrução 1872','Analfabetos','Homens'),somaSexo('Instrução 1872','Analfabetos','Mulheres')]}]},
+           data:[pega('Instrução','Analfabetos','Homens','Livre'),
+                 pega('Instrução','Analfabetos','Mulheres','Livre'),
+                 pega('Instrução','Analfabetos','Homens','Escravizada'),
+                 pega('Instrução','Analfabetos','Mulheres','Escravizada')]}]},
       options:{responsive:true,maintainAspectRatio:false,
-        scales:{x:{stacked:true,ticks:{font:{size:11}}},y:{stacked:true,ticks:{font:{size:10},callback:function(v){return _fmt(v);}}}},
+        scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:function(v){return _fmt(v);}}}},
         plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
           tooltip:{callbacks:{label:function(c){
             var tot=c.chart.data.datasets.reduce(function(a,d){return a+d.data[c.dataIndex];},0);
-            return c.dataset.label+': '+_fmt(c.parsed.y)+' ('+(100*c.parsed.y/tot).toFixed(1)+'%)'; }}}}}});
+            return c.dataset.label+': '+_fmt(c.parsed.y)+' ('+(100*c.parsed.y/(tot||1)).toFixed(2)+'%)'; }}}}}});
 
     var civis=['Solteiro','Casado','Viúvo'];
     _dqChart('grafC72Civil',{type:'bar',
       data:{labels:civis,
         datasets:[
-          {label:'Homens',backgroundColor:'#2f5496',borderRadius:3,data:civis.map(function(c){return somaSexo('Estado civil 1872',c,'Homens');})},
-          {label:'Mulheres',backgroundColor:'#c2557a',borderRadius:3,data:civis.map(function(c){return somaSexo('Estado civil 1872',c,'Mulheres');})}]},
+          {label:'Livres',backgroundColor:'#2f5496',borderRadius:3,data:civis.map(function(c){return pega('Estado civil',c,null,'Livre');})},
+          {label:'Escravizados',backgroundColor:'#8b1e1e',borderRadius:3,data:civis.map(function(c){return pega('Estado civil',c,null,'Escravizada');})}]},
       options:{responsive:true,maintainAspectRatio:false,
         scales:{y:{ticks:{font:{size:10},callback:function(v){return _fmt(v);}}},x:{ticks:{font:{size:11}}}},
         plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
-          tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+_fmt(c.parsed.y);}}}}}});
+          tooltip:{callbacks:{label:function(c){
+            var t=pega('Estado civil',civis[c.dataIndex],null,null);
+            return c.dataset.label+': '+_fmt(c.parsed.y)+' ('+(100*c.parsed.y/(t||1)).toFixed(1)+'% dos '+civis[c.dataIndex].toLowerCase()+'s)'; }}}}}});
 
     var pa=prov.filter(function(x){return x.pct_alfabetizados!=null;})
                .slice().sort(function(a,b){return b.pct_alfabetizados-a.pct_alfabetizados;});
@@ -4991,16 +5000,22 @@ async function _loadCenso1872(){
     _dqChart('grafC72Prof',{type:'bar',
       data:{labels:pf.map(function(x){return x.profissao;}),
         datasets:[
-          {label:'Homens',backgroundColor:'#2f5496',borderRadius:3,data:pf.map(function(x){return Number(x.homens||0);})},
-          {label:'Mulheres',backgroundColor:'#c2557a',borderRadius:3,data:pf.map(function(x){return Number(x.mulheres||0);})}]},
+          {label:'Livres',backgroundColor:'#2f5496',borderRadius:3,data:pf.map(function(x){return Number(x.livres||0);})},
+          {label:'Escravizados',backgroundColor:'#8b1e1e',borderRadius:3,data:pf.map(function(x){return Number(x.escravizados||0);})}]},
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
         scales:{x:{stacked:true,ticks:{font:{size:10},callback:function(v){return _fmt(v);}}},y:{stacked:true,ticks:{font:{size:10}}}},
         plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
-          tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+_fmt(c.parsed.x);}}}}}});
+          tooltip:{callbacks:{
+            label:function(c){
+              var x=pf[c.dataIndex];
+              return c.dataset.label+': '+_fmt(c.parsed.x)+' ('+(100*c.parsed.x/(x.total||1)).toFixed(1)+'%)'; },
+            afterBody:function(items){
+              var x=pf[items[0].dataIndex];
+              return 'homens '+_fmt(x.homens)+' · mulheres '+_fmt(x.mulheres); }}}}}});
 
     _c72Mun=mun.map(function(x){
-      x._pct = x.populacao? (100*x.escravizados/x.populacao) : 0;
-      x._busca=[x.municipio,x.uf].join(' ').toLowerCase(); return x;
+      x._pct = Number(x.pct_escravizados||0);
+      x._busca=[x.municipio,x.uf,x.provincia].join(' ').toLowerCase(); return x;
     });
     _c72Filtrar('');
     _c72Tab('pop');
@@ -5201,7 +5216,7 @@ var TEMAS = [
   { nome:'Território e demografia', ic:'🌎', cor:'#2f5496',
     frase:'Quanta gente havia, onde, e como isso mudou. Censos, séries de população e a geografia histórica das cidades.',
     cards:[
-      {kicker:'Império do Brasil, 1872', h:'O primeiro recenseamento geral', p:'9,6 milhões de pessoas em 635 municípios, cruzadas por cor, condição, naturalidade, instrução, religião, idade e profissão. A base de quase toda a demografia histórica do oitocentos.',
+      {kicker:'Império do Brasil, 1872', h:'O primeiro recenseamento geral', p:'Os 9.930.478 habitantes do Império, município a município, cada indicador repartido entre homens e mulheres, livres e escravizados. Cor, instrução, religião, idade, naturalidade e profissão.',
        pop:'popup-censo1872', fn:'_loadCenso1872',
        fonte:{autoria:'Diretoria Geral de Estatística, 1873-1876', acervo:'Recenseamento Geral do Império de 1872', via:'IBGE — Biblioteca e Centro de Documentação'}},
       {kicker:'Brasil, 1550–1991', h:'Cinco séculos de população', p:'O Censo de 1872 em detalhe, a população escrava província a província e a composição por cor ao longo de quatro séculos.',
