@@ -267,6 +267,28 @@
   .car-ficha dt{ font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--txt3); font-weight:700; margin-bottom:1px; }
   .car-ficha dd{ margin:0; color:var(--txt2); }
   .car-ficha .lic{ display:inline-block; border:1px solid var(--borda); border-radius:5px; padding:1px 7px; font-size:10px; background:var(--card); }
+
+  /* Destaques de acervo (popups) */
+  .dq-kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:4px; }
+  .dq-kpi{ border:1px solid var(--borda); border-radius:10px; padding:11px 13px; background:var(--card2); }
+  .dq-kpi b{ display:block; font-size:21px; font-weight:700; color:var(--ink2); line-height:1.15; }
+  .dq-kpi span{ display:block; font-size:10.5px; color:var(--txt3); margin-top:3px; line-height:1.35; }
+  .dq-intro{ font-size:12.5px; color:var(--txt2); margin:12px 0 4px; line-height:1.65; }
+  .dq-grid2{ display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:24px; margin-top:20px; }
+  .dq-card h3{ font-size:13px; margin:0 0 8px; color:var(--ink2); font-weight:600; }
+  .dq-nota{ font-size:11px; color:var(--txt3); margin-top:8px; line-height:1.55; }
+  .dq-h{ font-size:13.5px; margin:26px 0 10px; color:var(--ink2); font-weight:600; }
+  .dq-busca{ width:100%; padding:9px 12px; border:1px solid var(--borda); border-radius:9px; font-family:inherit; font-size:13px; background:var(--card); color:var(--ink2); }
+  .dq-count{ font-size:11px; color:var(--txt3); margin:8px 0 10px; }
+  .dq-item{ border:1px solid var(--borda); border-radius:9px; padding:9px 12px; background:var(--card); font-size:12px; color:var(--txt2); line-height:1.5; }
+  .dq-item .nm{ font-weight:600; color:var(--ink2); cursor:pointer; }
+  .dq-item .nm:hover{ text-decoration:underline; }
+  .dq-item .meta{ font-size:11px; color:var(--txt3); }
+  .dq-tag{ display:inline-block; border:1px solid var(--borda); border-radius:20px; padding:1px 8px; font-size:10px; margin-right:4px; background:var(--card2); }
+  .dq-fonte{ margin-top:26px; padding:14px 16px; border-radius:10px; font-size:11.5px; color:var(--txt2); line-height:1.65; }
+  .dq-fonte .lic{ display:inline-block; border:1px solid var(--borda); border-radius:5px; padding:1px 7px; font-size:10px; background:var(--card); }
+  .c72-tab{ border:1px solid var(--borda); background:var(--card); border-radius:20px; padding:5px 13px; cursor:pointer; font-family:inherit; font-size:11.5px; color:var(--txt2); }
+  .c72-tab.on{ background:var(--ferro); color:#fff; border-color:var(--ferro); }
   .car-bar{ display:flex; align-items:center; justify-content:center; gap:10px; padding:9px 0 11px; border-top:1px solid var(--borda); }
   .car-nav{ width:26px; height:26px; border-radius:50%; border:1px solid var(--borda); background:var(--card2); color:var(--txt2); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
   .car-nav:hover{ background:var(--card); color:var(--ink2); border-color:var(--txt3); }
@@ -951,6 +973,236 @@ Consultado em [data].</pre>
           <b>Levantamento e organização:</b> Camilla Agostini, pesquisa de 2000, base da dissertação de mestrado (Unicamp, 2002, FAPESP).<br>
           <b>Publicação e difusão:</b> LABHOI/UFF — Laboratório de História Oral e Imagem. AGOSTINI, Camilla. <i>“Ouvi dizer de um vizinho”: assim também se faz história</i>. Niterói: LABHOI/UFF, 2019. <a href="http://www.labhoi.uff.br/sites/default/files/arquivos/ouvi_dizer_de_um_vizinho_ii.pdf" target="_blank" rel="noopener" style="color:#8b1e1e;font-weight:600">Livro completo em PDF ↗</a><br>
           <span style="color:var(--txt3)">A numeração “PC nnn” é o sistema de referência da autora, não a notação do arquivo.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="popup-pwrj">
+  <div class="modal" style="width:min(1080px,96vw)">
+    <header>
+      <div style="color:#fff;font-size:16px;font-weight:600">🌳 Obras Públicas da Corte, 1860–1863 <span style="font-weight:400;font-size:12px;opacity:.85">— africanos livres e escravos da nação</span></div>
+      <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-pwrj')" aria-label="Fechar">&times;</button></div>
+    </header>
+    <div class="ficha" style="height:76vh">
+      <div id="pwrj-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
+      <div id="pwrj-body" style="display:none">
+        <div id="pwrj-kpis" class="dq-kpis"></div>
+        <p class="dq-intro">Em 1860 o Império criou a Secretaria de Agricultura, Comércio e Obras Públicas, e sua Inspecção Geral passou a administrar o trabalho de cento e dezenove pessoas. Oitenta eram <b>africanos livres</b> — apreendidos do tráfico proibido, livres perante a lei e mantidos em tutela compulsória. Trinta e nove eram <b>escravos da nação</b>, propriedade do Estado. O inspetor Christiano Pereira de Azeredo Coutinho listou cada um pelo nome, ano a ano, com o serviço a que estava destinado. Entre eles estão os trabalhadores do reflorestamento da Tijuca e das Paineiras.</p>
+        <div class="dq-grid2">
+          <div class="dq-card">
+            <h3>Onde trabalhavam, ano a ano</h3>
+            <div class="chart-wrap" style="height:330px"><canvas id="grafPwrjLocais"></canvas></div>
+            <div class="dq-nota">Só os destinos que são lugar. Ofícios (lavagem de roupas, carpintaria, abegoaria) e condições (menor de idade, inválido, licenciado) estão na lista abaixo, não aqui.</div>
+          </div>
+          <div class="dq-card">
+            <h3>Nações declaradas</h3>
+            <div class="chart-wrap" style="height:330px"><canvas id="grafPwrjNacoes"></canvas></div>
+            <div class="dq-nota">Crioulo é o maior grupo entre os escravos da nação; entre os africanos livres predominam Quilimane, Moçambique e Congo — portos da África oriental e centro-ocidental.</div>
+          </div>
+        </div>
+        <h3 class="dq-h">As cento e dezenove pessoas</h3>
+        <input id="pwrj-busca" type="search" placeholder="Buscar por nome, nação, condição, ofício ou lugar de trabalho…" oninput="_pwrjFiltrar(this.value)" class="dq-busca">
+        <div id="pwrj-count" class="dq-count"></div>
+        <div id="pwrj-lista" style="display:grid;gap:7px"></div>
+        <div class="dq-fonte" style="background:rgba(29,110,86,.07)">
+          <b>Fonte primária:</b> COUTINHO, Christiano Pereira de Azeredo. Relatórios da Inspecção Geral das Obras Públicas de 21/02/1861, 26/03/1862 e 09/02/1863, apresentados à Assembleia Geral. Biblioteca Nacional.<br>
+          <b>Levantamento:</b> Bruno Buccalon (Rice University).<br>
+          <b>Publicação:</b> <i>Journal of Slavery and Data Preservation</i> 4, n. 4 (2023): 56-62 · Harvard Dataverse. <a href="https://doi.org/10.7910/DVN/IHZISD" target="_blank" rel="noopener" style="color:#1d6e56;font-weight:600">DOI ↗</a> · <span class="lic">CC BY-NC-SA 4.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="popup-bsbc">
+  <div class="modal" style="width:min(1080px,96vw)">
+    <header>
+      <div style="color:#fff;font-size:16px;font-weight:600">🇬🇧 Proprietários britânicos no Brasil, 1848–1849 <span style="font-weight:400;font-size:12px;opacity:.85">— o levantamento consular de Palmerston</span></div>
+      <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-bsbc')" aria-label="Fechar">&times;</button></div>
+    </header>
+    <div class="ficha" style="height:76vh">
+      <div id="bsbc-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
+      <div id="bsbc-body" style="display:none">
+        <div id="bsbc-kpis" class="dq-kpis"></div>
+        <p class="dq-intro">Quinze anos depois de a Grã-Bretanha abolir a escravidão em seus domínios, Lord Palmerston mandou os cônsules no Brasil apurarem quantos súditos britânicos ainda possuíam escravizados aqui. Sete cônsules responderam entre novembro de 1848 e março de 1849. O resultado é um retrato incômodo: <b>174 proprietários</b> e <b>3.442 escravizados</b>, de comerciantes do Recife a companhias de mineração de ouro em Minas Gerais.</p>
+        <p class="dq-intro" style="border-left:3px solid #c9832a;padding-left:12px;background:rgba(201,131,42,.07)">Os escravizados aparecem aqui <b>contados, nunca nomeados</b> — é o que a fonte faz. Eles entram como estatística do proprietário, não como pessoas no banco. Sessenta das entradas são casas comerciais da Corte que o cônsul Westwood contou em bloco sem identificar nenhuma; viraram um único ator coletivo, não sessenta fichas.</p>
+        <div class="dq-grid2">
+          <div class="dq-card">
+            <h3>Escravizados por província</h3>
+            <div class="chart-wrap" style="height:320px"><canvas id="grafBsbcProv"></canvas></div>
+          </div>
+          <div class="dq-card">
+            <h3>Por ramo declarado</h3>
+            <div class="chart-wrap" style="height:320px"><canvas id="grafBsbcOcup"></canvas></div>
+            <div class="dq-nota">Três companhias inglesas de mineração de ouro respondem sozinhas por 1.700 pessoas — quase metade do total.</div>
+          </div>
+        </div>
+        <h3 class="dq-h">Os proprietários, do maior ao menor</h3>
+        <input id="bsbc-busca" type="search" placeholder="Buscar por nome, firma, província ou ramo…" oninput="_bsbcFiltrar(this.value)" class="dq-busca">
+        <div id="bsbc-count" class="dq-count"></div>
+        <div id="bsbc-lista" style="display:grid;gap:7px"></div>
+        <div class="dq-fonte" style="background:rgba(139,30,30,.06)">
+          <b>Fonte primária:</b> levantamento consular britânico encomendado por Lord Palmerston, 1848. The National Archives (Reino Unido), Foreign Office.<br>
+          <b>Levantamento:</b> Joseph Mulhern (Durham University). Ver também <i>British Entanglement with Brazilian Slavery</i>. Londres: Anthem Press, 2024.<br>
+          <b>Publicação:</b> <i>Journal of Slavery and Data Preservation</i> 4, n. 4 (2023): 39-44 · Harvard Dataverse. <a href="https://doi.org/10.7910/DVN/VJ3Z6Q" target="_blank" rel="noopener" style="color:#8b1e1e;font-weight:600">DOI ↗</a> · <span class="lic">CC BY-NC-SA 4.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="popup-fab1860">
+  <div class="modal" style="width:min(1080px,96vw)">
+    <header>
+      <div style="color:#fff;font-size:16px;font-weight:600">🕊 Africanos livres e seus concessionários, 1860 <span style="font-weight:400;font-size:12px;opacity:.85">— o registro nominal de março</span></div>
+      <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-fab1860')" aria-label="Fechar">&times;</button></div>
+    </header>
+    <div class="ficha" style="height:76vh">
+      <div id="fab-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
+      <div id="fab-body" style="display:none">
+        <div id="fab-kpis" class="dq-kpis"></div>
+        <p class="dq-intro">Africano livre é uma condição jurídica que não é nem escravidão nem liberdade plena. Eram africanos apreendidos em navios negreiros depois da proibição do tráfico, declarados livres e entregues por catorze anos à tutela de particulares ou repartições — prazo que na prática se estendia indefinidamente. Em março de 1860 o governo levantou <b>quem ainda estava sob tutela de quem</b>: 1.342 africanos e 841 concessionários. O manuscrito de 111 páginas está hoje nos arquivos britânicos, e não nos brasileiros.</p>
+        <div class="dq-grid2">
+          <div class="dq-card">
+            <h3>De que apreensão vieram</h3>
+            <div class="chart-wrap" style="height:340px"><canvas id="grafFabNavios"></canvas></div>
+            <div class="dq-nota">Cada africano está ligado ao caso de apreensão de que saiu. São nomes de navios negreiros: Subtil, Asseiceira, Paquete de Benguela, Especulador, Leal.</div>
+          </div>
+          <div class="dq-card">
+            <h3>Ano da concessão</h3>
+            <div class="chart-wrap" style="height:340px"><canvas id="grafFabAno"></canvas></div>
+            <div class="dq-nota">Em 1860 muitos já cumpriam vinte anos de serviço — muito além dos catorze previstos em lei.</div>
+          </div>
+        </div>
+        <h3 class="dq-h">Quem tutelava, e quantos</h3>
+        <input id="fab-busca" type="search" placeholder="Buscar concessionário por nome, título, endereço ou natureza…" oninput="_fabFiltrar(this.value)" class="dq-busca">
+        <div id="fab-count" class="dq-count"></div>
+        <div id="fab-lista" style="display:grid;gap:7px"></div>
+        <div class="dq-fonte" style="background:rgba(14,116,144,.07)">
+          <b>Fonte primária:</b> [Balbino José da França Ribeiro], “Relação de todos os Africanos livres que athé o presente data ainda se acham sob a responsabilidade dos particulares a quem foram confiados”, março de 1860. The National Archives (Reino Unido), FO 128/48, ff. 289-37.<br>
+          <b>Levantamento e identificadores:</b> Daryle Williams (University of Maryland), <i>Free Africans of Brazil Database</i>.<br>
+          <b>Publicação:</b> <i>Journal of Slavery and Data Preservation</i> 2, n. 1 (2021) · Harvard Dataverse. <a href="https://doi.org/10.7910/DVN/XMDKGB" target="_blank" rel="noopener" style="color:#0e7490;font-weight:600">DOI ↗</a> · <span class="lic">CC BY-NC-SA 4.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="popup-fabdis">
+  <div class="modal" style="width:min(1080px,96vw)">
+    <header>
+      <div style="color:#fff;font-size:16px;font-weight:600">📰 Desaparecimentos de africanos livres, 1835–1863 <span style="font-weight:400;font-size:12px;opacity:.85">— anúncios na imprensa da Corte</span></div>
+      <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-fabdis')" aria-label="Fechar">&times;</button></div>
+    </header>
+    <div class="ficha" style="height:76vh">
+      <div id="fdis-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
+      <div id="fdis-body" style="display:none">
+        <div id="fdis-kpis" class="dq-kpis"></div>
+        <p class="dq-intro">Quando um africano livre sumia, o concessionário publicava anúncio no jornal — como se fazia com escravizados fugidos, embora aquela pessoa fosse livre em direito. São <b>660 anúncios</b> no <i>Jornal do Commercio</i>, no <i>Diário do Rio de Janeiro</i>, no <i>Correio Mercantil</i> e n’<i>O Despertador</i>. A fonte chama de fuga, rapto, furto e “sedução”, e a escolha da palavra já é uma tese sobre quem tinha direito sobre aquele corpo. Cada anúncio traz a descrição física e as roupas, transcritas aqui como estão no original.</p>
+        <div class="dq-grid2">
+          <div class="dq-card">
+            <h3>Desaparecimentos por ano</h3>
+            <div class="chart-wrap" style="height:320px"><canvas id="grafFdisAno"></canvas></div>
+            <div class="dq-nota">O pico acompanha o auge do desembarque ilegal e a pressão britânica dos anos 1840-50.</div>
+          </div>
+          <div class="dq-card">
+            <h3>Nações declaradas</h3>
+            <div class="chart-wrap" style="height:320px"><canvas id="grafFdisNacao"></canvas></div>
+          </div>
+        </div>
+        <h3 class="dq-h">Os anúncios</h3>
+        <input id="fdis-busca" type="search" placeholder="Buscar por nome, nação, concessionário, ano ou local…" oninput="_fdisFiltrar(this.value)" class="dq-busca">
+        <div id="fdis-count" class="dq-count"></div>
+        <div id="fdis-lista" style="display:grid;gap:7px"></div>
+        <div class="dq-fonte" style="background:rgba(139,123,216,.09)">
+          <b>Fontes primárias:</b> <i>Jornal do Commercio</i>, <i>Diário do Rio de Janeiro</i>, <i>Correio Mercantil</i> e <i>O Despertador</i>, 1835-1863 — Hemeroteca Digital Brasileira, Fundação Biblioteca Nacional.<br>
+          <b>Levantamento e identificadores:</b> Daryle Williams (University of Maryland), <i>Free Africans of Brazil Database</i>.<br>
+          <b>Publicação:</b> <i>Journal of Slavery and Data Preservation</i> 2, n. 1 (2021) · Harvard Dataverse. <a href="https://doi.org/10.7910/DVN/PKKHIN" target="_blank" rel="noopener" style="color:#8b7bd8;font-weight:600">DOI ↗</a> · <span class="lic">CC BY-NC-SA 4.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="popup-censo1872">
+  <div class="modal" style="width:min(1140px,96vw)">
+    <header>
+      <div style="color:#fff;font-size:16px;font-weight:600">📊 Censo de 1872 <span style="font-weight:400;font-size:12px;opacity:.85">— o primeiro recenseamento geral do Brasil</span></div>
+      <div class="mtools"><button class="x" onclick="_fecharStatPopup('popup-censo1872')" aria-label="Fechar">&times;</button></div>
+    </header>
+    <div class="ficha" style="height:78vh">
+      <div id="c72-loading" style="font-size:12px;color:var(--txt3);padding:20px 0">Carregando…</div>
+      <div id="c72-body" style="display:none">
+        <div id="c72-kpis" class="dq-kpis"></div>
+        <p class="dq-intro">O Recenseamento Geral do Império de 1872 é o único retrato completo do Brasil escravista. Contou a população município a município e cruzou cor, condição jurídica, naturalidade, estado civil, religião, instrução, idade e profissão — o mesmo indivíduo aparecendo em várias tabelas ao mesmo tempo. É por isso que ele ainda é a base de quase toda a demografia histórica brasileira do século XIX.</p>
+        <div id="c72-cobertura" class="dq-intro" style="border-left:3px solid #2f5496;padding-left:12px;background:rgba(47,84,150,.07)"></div>
+
+        <div class="dash-tabs" style="display:flex;gap:6px;margin:14px 0 16px;flex-wrap:wrap">
+          <button class="c72-tab" data-ct="pop" onclick="_c72Tab('pop')">População e condição</button>
+          <button class="c72-tab" data-ct="soc" onclick="_c72Tab('soc')">Instrução, religião e estado civil</button>
+          <button class="c72-tab" data-ct="tra" onclick="_c72Tab('tra')">Profissões</button>
+          <button class="c72-tab" data-ct="mun" onclick="_c72Tab('mun')">Municípios</button>
+        </div>
+
+        <div id="c72-pane-pop">
+          <div class="dq-card">
+            <h3>População por província, e quanto dela era escravizada</h3>
+            <div class="chart-wrap" style="height:420px"><canvas id="grafC72Prov"></canvas></div>
+            <div class="dq-nota">O Rio de Janeiro é o caso extremo: mais de um terço da população provincial era escravizada, contra 4% no Ceará. O café explica quase toda a diferença.</div>
+          </div>
+          <div class="dq-grid2" style="margin-top:22px">
+            <div class="dq-card">
+              <h3>Cor declarada</h3>
+              <div class="chart-wrap" style="height:300px"><canvas id="grafC72Raca"></canvas></div>
+              <div class="dq-nota">As categorias são as do recenseador — branca, preta, parda e cabocla —, não autodeclaração como hoje.</div>
+            </div>
+            <div class="dq-card">
+              <h3>Escravizados: nascidos no Brasil e africanos</h3>
+              <div class="chart-wrap" style="height:300px"><canvas id="grafC72Escrava"></canvas></div>
+              <div class="dq-nota">Vinte e dois anos depois do fim do tráfico, os africanos já são menos de 9% da população escravizada. A escravidão brasileira passara a se reproduzir internamente.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="c72-pane-soc" style="display:none">
+          <div class="dq-grid2">
+            <div class="dq-card">
+              <h3>Sabem ler e escrever</h3>
+              <div class="chart-wrap" style="height:300px"><canvas id="grafC72Instr"></canvas></div>
+              <div class="dq-nota">Pouco mais de 15% da população. Entre as mulheres, menos de 11% — pouco mais da metade da taxa masculina.</div>
+            </div>
+            <div class="dq-card">
+              <h3>Estado civil</h3>
+              <div class="chart-wrap" style="height:300px"><canvas id="grafC72Civil"></canvas></div>
+            </div>
+          </div>
+          <div class="dq-card" style="margin-top:22px">
+            <h3>Alfabetização por província</h3>
+            <div class="chart-wrap" style="height:380px"><canvas id="grafC72Alfab"></canvas></div>
+          </div>
+        </div>
+
+        <div id="c72-pane-tra" style="display:none">
+          <div id="c72-aviso-prof" class="dq-intro" style="border-left:3px solid #c9832a;padding-left:12px;background:rgba(201,131,42,.08);margin-top:0"></div>
+          <div class="dq-card" style="margin-top:16px">
+            <h3>As trinta maiores ocupações declaradas</h3>
+            <div class="chart-wrap" style="height:620px"><canvas id="grafC72Prof"></canvas></div>
+            <div class="dq-nota">A nomenclatura é a do censo. “Sem profissão” inclui crianças e quem não trabalhava fora de casa; depois dela vem a lavoura, o que dá a medida de quão agrária era a economia. Repare em “Costureiras”: o censo separa por sexo boa parte das ocupações, e as femininas se concentram em costura, serviço doméstico e tecidos.</div>
+          </div>
+        </div>
+
+        <div id="c72-pane-mun" style="display:none">
+          <input id="c72-busca" type="search" placeholder="Buscar município ou província…" oninput="_c72Filtrar(this.value)" class="dq-busca">
+          <div id="c72-count" class="dq-count"></div>
+          <div id="c72-lista" style="display:grid;gap:7px"></div>
+        </div>
+
+        <div class="dq-fonte" style="background:rgba(47,84,150,.07)">
+          <b>Fonte:</b> BRASIL. Diretoria Geral de Estatística. <i>Recenseamento Geral do Império de 1872</i>. Rio de Janeiro, 1873-1876.<br>
+          <b>Digitalização e tabulação:</b> IBGE — Biblioteca e Centro de Documentação e Disseminação de Informações.<br>
+          <span style="color:var(--txt3)">O banco guarda o nível municipal. Os totais provinciais também existem no acervo, mas são redundantes com a soma dos municípios — o painel usa só um dos dois níveis para não contar ninguém duas vezes.</span>
         </div>
       </div>
     </div>
@@ -3509,13 +3761,13 @@ carregarHeaderCounts();
 carregarCategorias();
 document.querySelectorAll(".filtros input").forEach(el=>el.addEventListener("keydown",e=>{ if(e.key==="Enter") buscar(); }));
 document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") fecharFicha(); });
-["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas","popup-vassouras"].forEach(function(pid){
+["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas","popup-vassouras","popup-pwrj","popup-bsbc","popup-fab1860","popup-fabdis","popup-censo1872"].forEach(function(pid){
   var el=document.getElementById(pid);
   if(el) el.addEventListener("click",function(e){ if(e.target.id===pid) _fecharStatPopup(pid); });
 });
 document.addEventListener("keydown",function(e){
   if(e.key!=="Escape") return;
-  ["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas","popup-vassouras"].forEach(function(pid){ _fecharStatPopup(pid); });
+  ["popup-alforrias-mpb","popup-demografia-ibge","popup-destaque","popup-poupancas","popup-fsm","popup-indigenas","popup-vassouras","popup-pwrj","popup-bsbc","popup-fab1860","popup-fabdis","popup-censo1872"].forEach(function(pid){ _fecharStatPopup(pid); });
 });
 buscar();carregarSubtipos();setTimeout(()=>_updSortArrows(),100);
 
@@ -4346,6 +4598,427 @@ async function _destaqueCarregarEventos(actorId, token){
     box.innerHTML=h;
   }catch(e){ if(token===window._destaqueLoadToken) box.innerHTML='<div style="font-size:12px;color:var(--txt3)">Não foi possível carregar.</div>'; }
 }
+/* ===== Destaques de acervo: helpers comuns ===== */
+var dqCharts={};
+function _dqChart(id, cfg){
+  var el=document.getElementById(id); if(!el) return;
+  if(dqCharts[id]){ try{dqCharts[id].destroy();}catch(e){} }
+  dqCharts[id]=new Chart(el, cfg);
+}
+function _dqKpis(boxId, itens){
+  var b=document.getElementById(boxId); if(!b) return;
+  b.innerHTML=itens.map(function(k){
+    return '<div class="dq-kpi"><b>'+k[0]+'</b><span>'+k[1]+'</span></div>';
+  }).join('');
+}
+function _dqLista(listaId, countId, dados, render, filtro, rotulo){
+  var f=(filtro||'').trim().toLowerCase();
+  var vis=f? dados.filter(function(x){ return (x._busca||'').indexOf(f)>=0; }) : dados;
+  var c=document.getElementById(countId);
+  if(c) c.textContent=_fmt(vis.length)+' de '+_fmt(dados.length)+' '+rotulo;
+  var l=document.getElementById(listaId);
+  if(l) l.innerHTML = vis.length? vis.slice(0,400).map(render).join('')
+        : '<div style="font-size:12px;color:var(--txt3);padding:12px 0">Nada encontrado.</div>';
+}
+function _dqBarra(id, labels, data, cor, horizontal, unidade){
+  _dqChart(id,{type:'bar',
+    data:{labels:labels,datasets:[{data:data,backgroundColor:cor,borderRadius:4,maxBarThickness:26}]},
+    options:{indexAxis:horizontal?'y':'x',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){
+        return _fmt(horizontal?c.parsed.x:c.parsed.y)+' '+(unidade||''); }}}},
+      scales:{x:{ticks:{font:{size:10},precision:0,callback:function(v){return horizontal?_fmt(v):this.getLabelForValue(v);}}},
+              y:{ticks:{font:{size:10},precision:0,callback:function(v){return horizontal?this.getLabelForValue(v):_fmt(v);}}}}}});
+}
+
+/* ===== Obras Públicas RJ, 1860-1863 ===== */
+var _pwrjDados=[];
+async function _loadPwrj(){
+  var load=document.getElementById('pwrj-loading'), body=document.getElementById('pwrj-body');
+  if(body.dataset.ok==='1'){ return; }
+  try{
+    var q=async function(p){ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn(p,e); return []; } };
+    var res=await Promise.all([
+      q('v_dash_pwrj_perfil?select=*'),
+      q('v_dash_pwrj_locais?select=*'),
+      q('v_dash_pwrj_pessoas?select=*')
+    ]);
+    var perfil=res[0], locais=res[1], pessoas=res[2];
+
+    var afr=perfil.filter(function(x){return x.condicao==='Liberated African';}).reduce(function(a,b){return a+b.n;},0);
+    var esc=perfil.filter(function(x){return x.condicao==='Enslaved';}).reduce(function(a,b){return a+b.n;},0);
+    var mul=perfil.filter(function(x){return x.genero==='female';}).reduce(function(a,b){return a+b.n;},0);
+    var obitos=pessoas.filter(function(x){return x.ano_obito;}).length;
+    _dqKpis('pwrj-kpis',[
+      [_fmt(afr+esc),'pessoas listadas nos relatórios'],
+      [_fmt(afr),'africanos livres, em tutela do Estado'],
+      [_fmt(esc),'escravos da nação'],
+      [_fmt(mul),'mulheres'],
+      [_fmt(obitos),'morreram durante o registro']
+    ]);
+
+    var nomes=[]; locais.forEach(function(x){ if(nomes.indexOf(x.local)<0) nomes.push(x.local); });
+    nomes.sort(function(a,b){
+      var sa=locais.filter(function(x){return x.local===a;}).reduce(function(s,x){return s+x.n;},0);
+      var sb=locais.filter(function(x){return x.local===b;}).reduce(function(s,x){return s+x.n;},0);
+      return sb-sa;
+    });
+    nomes=nomes.slice(0,10);
+    var coresAno={1861:'#1d6e56',1862:'#c9832a',1863:'#8b1e1e'};
+    _dqChart('grafPwrjLocais',{type:'bar',
+      data:{labels:nomes,datasets:[1861,1862,1863].map(function(ano){
+        return {label:String(ano),backgroundColor:coresAno[ano],borderRadius:3,
+          data:nomes.map(function(n){ var r=locais.find(function(x){return x.local===n&&x.ano===ano;}); return r?r.n:0; })};
+      })},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        scales:{x:{stacked:false,ticks:{font:{size:10},precision:0}},y:{ticks:{font:{size:10}}}},
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
+          tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.parsed.x+' pessoas';}}}}}});
+
+    var porNacao={};
+    perfil.forEach(function(x){ porNacao[x.nacao]=(porNacao[x.nacao]||0)+x.n; });
+    var nac=Object.keys(porNacao).map(function(k){return {k:k,v:porNacao[k]};}).sort(function(a,b){return b.v-a.v;}).slice(0,12);
+    _dqBarra('grafPwrjNacoes', nac.map(function(x){return x.k;}), nac.map(function(x){return x.v;}), '#0e7490', true, 'pessoas');
+
+    var COND={'Liberated African':'Africano livre','Enslaved':'Escravo da nação'};
+    _pwrjDados=pessoas.map(function(p){
+      p._cond=COND[p.condicao]||p.condicao||'';
+      p._busca=[p.nome,p.nacao,p._cond,p.ocupacao,p.destinos,p.registro].join(' ').toLowerCase();
+      return p;
+    });
+    _pwrjFiltrar('');
+    load.style.display='none'; body.style.display=''; body.dataset.ok='1';
+  }catch(e){ console.error('pwrj',e); load.textContent='Não foi possível carregar.'; }
+}
+function _pwrjFiltrar(f){
+  _dqLista('pwrj-lista','pwrj-count',_pwrjDados,function(p){
+    var cor = p.condicao==='Liberated African' ? '#1d6e56' : '#8b1e1e';
+    return '<div class="dq-item">'
+      +'<span class="nm" onclick="_fecharStatPopup(\'popup-pwrj\');abrirFicha('+p.actor_id+')">'+esc(p.nome)+'</span> '
+      +'<span class="dq-tag" style="border-color:'+cor+';color:'+cor+'">'+esc(p._cond)+'</span>'
+      +(p.nacao?'<span class="dq-tag">'+esc(p.nacao)+'</span>':'')
+      +(p.ocupacao?'<span class="dq-tag">'+esc(p.ocupacao)+'</span>':'')
+      +(p.ano_obito?'<span class="dq-tag" style="border-color:#8b1e1e;color:#8b1e1e">falecido em '+p.ano_obito+'</span>':'')
+      +(p.destinos?'<div class="meta" style="margin-top:4px">'+esc(p.destinos)+'</div>':'')
+      +'<div class="meta" style="margin-top:2px;opacity:.7">registro '+esc(p.registro)+'</div>'
+      +'</div>';
+  }, f, 'pessoas');
+}
+
+/* ===== Censo britânico, 1848-1849 ===== */
+var _bsbcDados=[];
+async function _loadBsbc(){
+  var load=document.getElementById('bsbc-loading'), body=document.getElementById('bsbc-body');
+  if(body.dataset.ok==='1') return;
+  try{
+    var q=async function(p){ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn(p,e); return []; } };
+    var res=await Promise.all([
+      q('v_dash_bsbc_provincia?select=*'),
+      q('v_dash_bsbc_ocupacao?select=*'),
+      q('v_dash_bsbc_lista?select=*')
+    ]);
+    var prov=res[0], ocup=res[1], lista=res[2];
+    var totEsc=lista.reduce(function(a,b){return a+(b.total||0);},0);
+    var pess=lista.filter(function(x){return x.tipo==='person';}).length;
+    var firm=lista.filter(function(x){return x.tipo!=='person';}).length;
+    _dqKpis('bsbc-kpis',[
+      ['174','entradas no levantamento consular'],
+      [_fmt(totEsc),'pessoas escravizadas contadas'],
+      [_fmt(pess),'proprietários pessoa física'],
+      [_fmt(firm),'firmas, companhias e coletivos'],
+      ['7','cônsules, em sete distritos']
+    ]);
+    var pv=prov.filter(function(x){return x.escravizados>0;}).slice(0,12);
+    _dqBarra('grafBsbcProv', pv.map(function(x){return x.provincia;}), pv.map(function(x){return x.escravizados;}), '#8b1e1e', true, 'escravizados');
+    var oc=ocup.filter(function(x){return x.escravizados>0;}).slice(0,12);
+    _dqBarra('grafBsbcOcup', oc.map(function(x){return x.ocupacao;}), oc.map(function(x){return x.escravizados;}), '#c9832a', true, 'escravizados');
+
+    _bsbcDados=lista.map(function(x){
+      x._busca=[x.nome,x.endereco,x.ocupacao,x.titulo].join(' ').toLowerCase(); return x;
+    });
+    _bsbcFiltrar('');
+    load.style.display='none'; body.style.display=''; body.dataset.ok='1';
+  }catch(e){ console.error('bsbc',e); load.textContent='Não foi possível carregar.'; }
+}
+function _bsbcFiltrar(f){
+  _dqLista('bsbc-lista','bsbc-count',_bsbcDados,function(x){
+    var det=[];
+    if(x.homens) det.push(x.homens+' homens');
+    if(x.mulheres) det.push(x.mulheres+' mulheres');
+    if(x.domesticos) det.push(x.domesticos+' no serviço doméstico');
+    if(x.agricultura) det.push(x.agricultura+' na lavoura');
+    if(x.fundicao) det.push(x.fundicao+' na fundição');
+    return '<div class="dq-item">'
+      +'<span class="nm" onclick="_fecharStatPopup(\'popup-bsbc\');abrirFicha('+x.actor_id+')">'
+      +(x.titulo?esc(x.titulo)+' ':'')+esc(x.nome)+'</span> '
+      +'<span class="dq-tag" style="border-color:#8b1e1e;color:#8b1e1e">'+_fmt(x.total||0)+' escravizados</span>'
+      +(x.ocupacao?'<span class="dq-tag">'+esc(x.ocupacao)+'</span>':'')
+      +(x.tipo!=='person'?'<span class="dq-tag">firma</span>':'')
+      +(x.endereco?'<div class="meta" style="margin-top:4px">'+esc(x.endereco)+'</div>':'')
+      +(det.length?'<div class="meta">'+esc(det.join(' · '))+'</div>':'')
+      +'</div>';
+  }, f, 'proprietários');
+}
+
+/* ===== Africanos livres e concessionários, 1860 ===== */
+var _fabDados=[];
+async function _loadFab1860(){
+  var load=document.getElementById('fab-loading'), body=document.getElementById('fab-body');
+  if(body.dataset.ok==='1') return;
+  try{
+    var q=async function(p){ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn(p,e); return []; } };
+    var res=await Promise.all([
+      q('v_dash_fab_navios?select=*&order=africanos.desc&limit=14'),
+      q('v_dash_fab_concessao?select=*'),
+      getAllJSON('v_dash_fab_concessionarios?select=*')
+    ]);
+    var navios=res[0], anos=res[1], conc=res[2].dados||res[2]||[];
+    var totAfr=anos.reduce(function(a,b){return a+b.n;},0);
+    var salMed=anos.filter(function(x){return x.salario_medio;});
+    _dqKpis('fab-kpis',[
+      ['1.342','africanos livres ainda sob tutela'],
+      [_fmt(conc.length),'concessionários'],
+      [_fmt(navios.length? navios.length:0)+'+','casos de apreensão de origem'],
+      ['12$000','o salário anual mais comum pago ao governo'],
+      ['21 anos','o tempo de serviço mais frequente em 1860']
+    ]);
+    _dqBarra('grafFabNavios', navios.map(function(x){return x.navio;}), navios.map(function(x){return x.africanos;}), '#0e7490', true, 'africanos');
+    _dqChart('grafFabAno',{type:'bar',
+      data:{labels:anos.map(function(x){return x.ano;}),
+        datasets:[{data:anos.map(function(x){return x.n;}),backgroundColor:'#8b7bd8',borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){
+          var r=anos[c.dataIndex];
+          return c.parsed.y+' concessões'+(r&&r.salario_medio?' · salário médio '+r.salario_medio+'$':''); }}}},
+        scales:{x:{ticks:{font:{size:9},maxRotation:60,minRotation:45}},y:{ticks:{font:{size:10},precision:0}}}}});
+
+    _fabDados=conc.map(function(x){
+      x._busca=[x.nome,x.titulo,x.endereco,x.natureza].join(' ').toLowerCase(); return x;
+    });
+    _fabFiltrar('');
+    load.style.display='none'; body.style.display=''; body.dataset.ok='1';
+  }catch(e){ console.error('fab1860',e); load.textContent='Não foi possível carregar.'; }
+}
+function _fabFiltrar(f){
+  _dqLista('fab-lista','fab-count',_fabDados,function(x){
+    return '<div class="dq-item">'
+      +'<span class="nm" onclick="_fecharStatPopup(\'popup-fab1860\');abrirFicha('+x.actor_id+')">'+esc(x.nome)+'</span> '
+      +'<span class="dq-tag" style="border-color:#0e7490;color:#0e7490">'+x.africanos+(x.africanos===1?' africano':' africanos')+'</span>'
+      +(x.titulo?'<span class="dq-tag">'+esc(x.titulo)+'</span>':'')
+      +(x.natureza&&x.natureza!=='particular'?'<span class="dq-tag">'+esc(x.natureza)+'</span>':'')
+      +(x.salario?'<span class="dq-tag">'+x.salario+'$ ao ano</span>':'')
+      +(x.endereco?'<div class="meta" style="margin-top:4px">'+esc(x.endereco)+'</div>':'')
+      +'</div>';
+  }, f, 'concessionários');
+}
+
+/* ===== Desaparecimentos, 1835-1863 ===== */
+var _fdisDados=[];
+async function _loadFabdis(){
+  var load=document.getElementById('fdis-loading'), body=document.getElementById('fdis-body');
+  if(body.dataset.ok==='1') return;
+  try{
+    var res=await Promise.all([
+      getJSON('v_dash_fabdis_serie?select=*'),
+      getAllJSON('v_dash_fabdis_lista?select=*')
+    ]);
+    var serie=res[0].dados||[], lista=res[1].dados||res[1]||[];
+    var comNacao={}; lista.forEach(function(x){ if(x.nacao) comNacao[x.nacao]=(comNacao[x.nacao]||0)+1; });
+    var pessoas={}; lista.forEach(function(x){ if(x.africano_id) pessoas[x.africano_id]=1; });
+    var mulheres=lista.filter(function(x){return x.genero==='female';}).length;
+    _dqKpis('fdis-kpis',[
+      [_fmt(lista.length),'anúncios de desaparecimento'],
+      [_fmt(Object.keys(pessoas).length),'pessoas distintas'],
+      [_fmt(mulheres),'anúncios sobre mulheres'],
+      ['1835–1863','os vinte e nove anos cobertos'],
+      ['4','jornais varridos']
+    ]);
+    _dqChart('grafFdisAno',{type:'line',
+      data:{labels:serie.map(function(x){return x.ano;}),
+        datasets:[{data:serie.map(function(x){return x.n;}),borderColor:'#8b7bd8',
+          backgroundColor:'rgba(139,123,216,.18)',fill:true,tension:.25,pointRadius:2}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y+' anúncios';}}}},
+        scales:{x:{ticks:{font:{size:9},maxRotation:60,minRotation:45}},y:{ticks:{font:{size:10},precision:0}}}}});
+    var nac=Object.keys(comNacao).map(function(k){return {k:k,v:comNacao[k]};})
+              .sort(function(a,b){return b.v-a.v;}).slice(0,12);
+    _dqBarra('grafFdisNacao', nac.map(function(x){return x.k;}), nac.map(function(x){return x.v;}), '#0e7490', true, 'anúncios');
+
+    var MES=['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    _fdisDados=lista.map(function(x){
+      x._data=(x.dia?x.dia+' ':'')+(x.mes?MES[x.mes]+' ':'')+(x.ano||'');
+      x._busca=[x.africano,x.nacao,x.concessionario,x.local,x.ano].join(' ').toLowerCase();
+      return x;
+    });
+    _fdisFiltrar('');
+    load.style.display='none'; body.style.display=''; body.dataset.ok='1';
+  }catch(e){ console.error('fabdis',e); load.textContent='Não foi possível carregar.'; }
+}
+function _fdisFiltrar(f){
+  _dqLista('fdis-lista','fdis-count',_fdisDados,function(x){
+    var d=(x.descricao||'');
+    var acao=(d.match(/descreve a ação como: "([^"]+)"/)||[])[1]||'';
+    var desc=(d.match(/Descrição no anúncio: "([^"]+)"/)||[])[1]||'';
+    return '<div class="dq-item">'
+      +'<span class="nm" onclick="_fecharStatPopup(\'popup-fabdis\');abrirFicha('+x.africano_id+')">'+esc(x.africano||'—')+'</span> '
+      +'<span class="dq-tag">'+esc(x._data)+'</span>'
+      +(x.nacao?'<span class="dq-tag">'+esc(x.nacao)+'</span>':'')
+      +(acao?'<span class="dq-tag" style="border-color:#8b7bd8;color:#8b7bd8">'+esc(acao.slice(0,60))+'</span>':'')
+      +(x.concessionario?'<div class="meta" style="margin-top:4px">concessionário: '
+        +'<span class="nm" style="font-weight:500" onclick="_fecharStatPopup(\'popup-fabdis\');abrirFicha('+x.concessionario_id+')">'+esc(x.concessionario)+'</span></div>':'')
+      +(x.local?'<div class="meta">'+esc(x.local)+'</div>':'')
+      +(desc?'<div class="meta" style="margin-top:3px;font-style:italic">“'+esc(desc.slice(0,220))+(desc.length>220?'…':'')+'”</div>':'')
+      +'</div>';
+  }, f, 'anúncios');
+}
+
+/* ===== Censo de 1872 ===== */
+var _c72Mun=[];
+function _c72Tab(k){
+  ['pop','soc','tra','mun'].forEach(function(x){
+    var p=document.getElementById('c72-pane-'+x); if(p) p.style.display = (x===k)?'':'none';
+  });
+  document.querySelectorAll('.c72-tab').forEach(function(b){ b.classList.toggle('on', b.dataset.ct===k); });
+}
+async function _loadCenso1872(){
+  var load=document.getElementById('c72-loading'), body=document.getElementById('c72-body');
+  if(body.dataset.ok==='1') return;
+  try{
+    var q=async function(p){ try{ return (await getJSON(p)).dados||[]; }catch(e){ console.warn(p,e); return []; } };
+    var res=await Promise.all([
+      q('v_dash_c1872_resumo?select=*'),
+      q('v_dash_c1872_provincia?select=*'),
+      getAllJSON('v_dash_c1872_categoria?select=*'),
+      q('v_dash_c1872_profissoes?select=*&limit=31'),
+      getAllJSON('v_dash_c1872_municipios?select=*'),
+      q('v_dash_c1872_cobertura_extra?select=*')
+    ]);
+    var r=(res[0]||[])[0]||{}, prov=res[1], cat=res[2].dados||res[2]||[], prof=res[3],
+        mun=res[4].dados||res[4]||[], cx=(res[5]||[])[0]||{};
+
+    var UFN={AL:'Alagoas',AM:'Amazonas',BA:'Bahia',CE:'Ceará',ES:'Espírito Santo',GO:'Goiás',
+      MA:'Maranhão',MG:'Minas Gerais',MT:'Mato Grosso',PA:'Pará',PB:'Paraíba',PE:'Pernambuco',
+      PI:'Piauí',PR:'Paraná',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RS:'Rio Grande do Sul',
+      SC:'Santa Catarina',SE:'Sergipe',SP:'São Paulo'};
+    var av=document.getElementById('c72-aviso-prof');
+    if(av) av.innerHTML='<b>Leia com cuidado.</b> A tabulação de profissões do censo só foi digitalizada em nível provincial, e apenas para '
+      +(cx.provincias||11)+' das vinte províncias: '
+      +String(cx.ufs||'').split(', ').map(function(u){return UFN[u]||u;}).join(', ')
+      +'. São '+_fmt(cx.pessoas)+' pessoas, cerca de '+(100*(cx.pessoas||0)/(r.populacao||1)).toFixed(0)
+      +'% do que o banco tem — e ficam de fora justamente Minas Gerais, São Paulo, Rio de Janeiro, Bahia e Pernambuco. '
+      +'<b>Isto não é o perfil ocupacional do Brasil</b>, é o de um recorte de províncias menores e mais agrárias.';
+    var soma=function(fam,c){ return cat.filter(function(x){ return x.familia===fam && (!c||x.categoria===c); })
+                                        .reduce(function(a,b){return a+Number(b.total||0);},0); };
+    var somaSexo=function(fam,c,s){ var x=cat.find(function(y){return y.familia===fam&&y.categoria===c&&y.sexo===s;}); return x?Number(x.total):0; };
+
+    _dqKpis('c72-kpis',[
+      [_fmt(r.populacao),'pessoas recenseadas no banco'],
+      [_fmt(r.escravizados),'escravizados ('+(100*r.escravizados/r.populacao).toFixed(1)+'% da população)'],
+      [_fmt(r.escravos_africanos),'africanos entre os escravizados'],
+      [(100*r.alfabetizados/r.populacao).toFixed(1)+'%','sabiam ler e escrever'],
+      [_fmt(r.municipios),'municípios, em '+r.provincias+' províncias']
+    ]);
+    var cob=document.getElementById('c72-cobertura');
+    if(cob) cob.innerHTML='<b>Cobertura.</b> O recenseamento publicado apurou '+_fmt(r.populacao_oficial_publicada)
+      +' habitantes. O banco tem '+_fmt(r.populacao)+', ou '+(100*r.populacao/r.populacao_oficial_publicada).toFixed(1)
+      +'% do total — a diferença são municípios cujas tabelas não entraram na digitalização. As porcentagens acima são calculadas sobre o que está aqui, não sobre o total oficial.';
+
+    var pv=prov.slice(0,20);
+    _dqChart('grafC72Prov',{type:'bar',
+      data:{labels:pv.map(function(x){return x.provincia;}),
+        datasets:[
+          {label:'População livre',data:pv.map(function(x){return x.livres;}),backgroundColor:'#2f5496',borderRadius:3},
+          {label:'População escravizada',data:pv.map(function(x){return x.escravizados;}),backgroundColor:'#8b1e1e',borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        scales:{x:{stacked:true,ticks:{font:{size:10},callback:function(v){return _fmt(v);}}},y:{stacked:true,ticks:{font:{size:10}}}},
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
+          tooltip:{callbacks:{label:function(c){
+            var x=pv[c.dataIndex];
+            return c.dataset.label+': '+_fmt(c.parsed.x)+(c.datasetIndex===1?' ('+x.pct_escravizados+'% da província)':''); }}}}}});
+
+    var CR={'Branca':'#c9832a','Preta':'#4a3728','Parda':'#8a6d3b','Cabocla':'#1d6e56'};
+    var racas=['Branca','Parda','Preta','Cabocla'];
+    _dqChart('grafC72Raca',{type:'doughnut',
+      data:{labels:racas,datasets:[{data:racas.map(function(c){return soma('Raça 1872',c);}),
+        backgroundColor:racas.map(function(c){return CR[c];}),borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+        plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,usePointStyle:true}},
+          tooltip:{callbacks:{label:function(c){
+            return c.label+': '+_fmt(c.parsed)+' ('+(100*c.parsed/r.populacao).toFixed(1)+'%)'; }}}}}});
+
+    _dqChart('grafC72Escrava',{type:'bar',
+      data:{labels:['Nascidos no Brasil','Africanos'],
+        datasets:[
+          {label:'Homens',backgroundColor:'#2f5496',borderRadius:3,
+           data:[somaSexo('Pop. escrava 1872','Brasileira','Homens'),somaSexo('Pop. escrava 1872','Africana','Homens')]},
+          {label:'Mulheres',backgroundColor:'#c2557a',borderRadius:3,
+           data:[somaSexo('Pop. escrava 1872','Brasileira','Mulheres'),somaSexo('Pop. escrava 1872','Africana','Mulheres')]}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{x:{stacked:true,ticks:{font:{size:11}}},y:{stacked:true,ticks:{font:{size:10},callback:function(v){return _fmt(v);}}}},
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
+          tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+_fmt(c.parsed.y);}}}}}});
+
+    _dqChart('grafC72Instr',{type:'bar',
+      data:{labels:['Homens','Mulheres'],
+        datasets:[
+          {label:'Sabem ler e escrever',backgroundColor:'#1d6e56',borderRadius:3,
+           data:[somaSexo('Instrução 1872','Sabem ler e escrever','Homens'),somaSexo('Instrução 1872','Sabem ler e escrever','Mulheres')]},
+          {label:'Analfabetos',backgroundColor:'#8a9a92',borderRadius:3,
+           data:[somaSexo('Instrução 1872','Analfabetos','Homens'),somaSexo('Instrução 1872','Analfabetos','Mulheres')]}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{x:{stacked:true,ticks:{font:{size:11}}},y:{stacked:true,ticks:{font:{size:10},callback:function(v){return _fmt(v);}}}},
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
+          tooltip:{callbacks:{label:function(c){
+            var tot=c.chart.data.datasets.reduce(function(a,d){return a+d.data[c.dataIndex];},0);
+            return c.dataset.label+': '+_fmt(c.parsed.y)+' ('+(100*c.parsed.y/tot).toFixed(1)+'%)'; }}}}}});
+
+    var civis=['Solteiro','Casado','Viúvo'];
+    _dqChart('grafC72Civil',{type:'bar',
+      data:{labels:civis,
+        datasets:[
+          {label:'Homens',backgroundColor:'#2f5496',borderRadius:3,data:civis.map(function(c){return somaSexo('Estado civil 1872',c,'Homens');})},
+          {label:'Mulheres',backgroundColor:'#c2557a',borderRadius:3,data:civis.map(function(c){return somaSexo('Estado civil 1872',c,'Mulheres');})}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{y:{ticks:{font:{size:10},callback:function(v){return _fmt(v);}}},x:{ticks:{font:{size:11}}}},
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
+          tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+_fmt(c.parsed.y);}}}}}});
+
+    var pa=prov.filter(function(x){return x.pct_alfabetizados!=null;})
+               .slice().sort(function(a,b){return b.pct_alfabetizados-a.pct_alfabetizados;});
+    _dqBarra('grafC72Alfab', pa.map(function(x){return x.provincia;}),
+             pa.map(function(x){return Number(x.pct_alfabetizados);}), '#1d6e56', true, '% alfabetizados');
+
+    var pf=prof.filter(function(x){return x.total>0;}).slice(0,30);
+    _dqChart('grafC72Prof',{type:'bar',
+      data:{labels:pf.map(function(x){return x.profissao;}),
+        datasets:[
+          {label:'Homens',backgroundColor:'#2f5496',borderRadius:3,data:pf.map(function(x){return Number(x.homens||0);})},
+          {label:'Mulheres',backgroundColor:'#c2557a',borderRadius:3,data:pf.map(function(x){return Number(x.mulheres||0);})}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        scales:{x:{stacked:true,ticks:{font:{size:10},callback:function(v){return _fmt(v);}}},y:{stacked:true,ticks:{font:{size:10}}}},
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,usePointStyle:true}},
+          tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+_fmt(c.parsed.x);}}}}}});
+
+    _c72Mun=mun.map(function(x){
+      x._pct = x.populacao? (100*x.escravizados/x.populacao) : 0;
+      x._busca=[x.municipio,x.uf].join(' ').toLowerCase(); return x;
+    });
+    _c72Filtrar('');
+    _c72Tab('pop');
+    load.style.display='none'; body.style.display=''; body.dataset.ok='1';
+  }catch(e){ console.error('censo1872',e); load.textContent='Não foi possível carregar.'; }
+}
+function _c72Filtrar(f){
+  _dqLista('c72-lista','c72-count',_c72Mun,function(x){
+    return '<div class="dq-item">'
+      +'<span class="nm" onclick="_fecharStatPopup(\'popup-censo1872\');abrirFicha('+x.actor_id+')">'+esc(x.municipio)+'</span> '
+      +'<span class="dq-tag">'+esc(x.uf)+'</span>'
+      +'<span class="dq-tag">'+_fmt(x.populacao)+' habitantes</span>'
+      +(x.escravizados?'<span class="dq-tag" style="border-color:#8b1e1e;color:#8b1e1e">'+_fmt(x.escravizados)+' escravizados · '+x._pct.toFixed(1)+'%</span>':'')
+      +(x.estrangeiros?'<span class="dq-tag">'+_fmt(x.estrangeiros)+' estrangeiros</span>':'')
+      +'</div>';
+  }, f, 'municípios');
+}
+
 function _abrirStatPopup(popupId, loaderFn){
   var el=document.getElementById(popupId);
   if(!el) return;
@@ -4486,7 +5159,23 @@ var TEMAS = [
        fonte:{autoria:'Kristin Mann e Urano de Cerqueira Andrade, 2023', acervo:'Livros de Notas 233-271, Arquivo Público do Estado da Bahia', via:'Harvard Dataverse · Journal of Slavery and Data Preservation', lic:'CC BY-NC-SA 4.0'}},
       {kicker:'Vassouras, 1821–1881', h:'“Ouvi dizer de um vizinho”', p:'552 pessoas em 120 processos-crime do Vale do Paraíba cafeeiro, dos autos de qualificação aos “ouvir dizeres” dos depoimentos.',
        pop:'popup-vassouras', fn:'_loadVassouras',
-       fonte:{autoria:'Camilla Agostini, 2019', acervo:'Processos-crime da Comarca de Vassouras — CDH/FESS, Universidade Severino Sombra', via:'LABHOI/UFF'}}
+       fonte:{autoria:'Camilla Agostini, 2019', acervo:'Processos-crime da Comarca de Vassouras — CDH/FESS, Universidade Severino Sombra', via:'LABHOI/UFF'}},
+      {kicker:'Brasil, 1848–1849', h:'Ingleses donos de gente', p:'Quinze anos depois de abolir a escravidão em casa, a Grã-Bretanha contou seus súditos que ainda escravizavam no Brasil: 174 proprietários, 3.442 pessoas.',
+       pop:'popup-bsbc', fn:'_loadBsbc',
+       fonte:{autoria:'Joseph Mulhern, 2023', acervo:'Levantamento consular de Lord Palmerston, 1848 — The National Archives, Foreign Office (Reino Unido)', via:'Harvard Dataverse · Journal of Slavery and Data Preservation', lic:'CC BY-NC-SA 4.0'}}
+    ]},
+  { nome:'Africanos livres', ic:'🕊', cor:'#0e7490',
+    frase:'Nem escravizados nem livres de fato: apreendidos do tráfico proibido, declarados livres por lei e entregues à tutela compulsória de particulares e repartições do Estado. Uma condição jurídica própria, com mais de mil e oitocentas pessoas no acervo.',
+    cards:[
+      {kicker:'Rio de Janeiro, 1860', h:'Sob a responsabilidade de particulares', p:'1.342 africanos livres e 841 concessionários, com o ano da concessão, o tempo de serviço já cumprido e o que cada tutor pagava ao governo.',
+       pop:'popup-fab1860', fn:'_loadFab1860',
+       fonte:{autoria:'Daryle Williams, 2021', acervo:'Relação de março de 1860, 111 páginas manuscritas — The National Archives, FO 128/48 (Reino Unido)', via:'Harvard Dataverse · Journal of Slavery and Data Preservation', lic:'CC BY-NC-SA 4.0'}},
+      {kicker:'Corte, 1835–1863', h:'“Desapareceu, desconfia-se que foi seduzido”', p:'660 anúncios de desaparecimento em quatro jornais da Corte — com a descrição física e as roupas transcritas do original.',
+       pop:'popup-fabdis', fn:'_loadFabdis',
+       fonte:{autoria:'Daryle Williams, 2021', acervo:'Jornal do Commercio, Diário do Rio, Correio Mercantil e O Despertador — Hemeroteca Digital, Biblioteca Nacional', via:'Harvard Dataverse · Journal of Slavery and Data Preservation', lic:'CC BY-NC-SA 4.0'}},
+      {kicker:'Corte, 1860–1863', h:'Quem reflorestou a Tijuca', p:'119 africanos livres e escravos da nação sob a Inspecção Geral das Obras Públicas, com o serviço de cada um ano a ano — floresta, telégrafo, quartel, ferraria.',
+       pop:'popup-pwrj', fn:'_loadPwrj',
+       fonte:{autoria:'Bruno Buccalon, 2023', acervo:'Relatórios da Inspecção Geral das Obras Públicas, 1861-1863 — Biblioteca Nacional', via:'Harvard Dataverse · Journal of Slavery and Data Preservation', lic:'CC BY-NC-SA 4.0'}}
     ]},
   { nome:'Comércio, crédito e finanças', ic:'💰', cor:'#1d6e56',
     frase:'A praça mercantil do Rio e suas conexões: negociantes, caixeiros, casas bancárias, credores, poupadores e devedores.',
@@ -4512,6 +5201,9 @@ var TEMAS = [
   { nome:'Território e demografia', ic:'🌎', cor:'#2f5496',
     frase:'Quanta gente havia, onde, e como isso mudou. Censos, séries de população e a geografia histórica das cidades.',
     cards:[
+      {kicker:'Império do Brasil, 1872', h:'O primeiro recenseamento geral', p:'9,6 milhões de pessoas em 635 municípios, cruzadas por cor, condição, naturalidade, instrução, religião, idade e profissão. A base de quase toda a demografia histórica do oitocentos.',
+       pop:'popup-censo1872', fn:'_loadCenso1872',
+       fonte:{autoria:'Diretoria Geral de Estatística, 1873-1876', acervo:'Recenseamento Geral do Império de 1872', via:'IBGE — Biblioteca e Centro de Documentação'}},
       {kicker:'Brasil, 1550–1991', h:'Cinco séculos de população', p:'O Censo de 1872 em detalhe, a população escrava província a província e a composição por cor ao longo de quatro séculos.',
        pop:'popup-demografia-ibge', fn:'_loadDemografiaIBGE',
        fonte:{autoria:'IBGE · João José Reis (população escrava)', acervo:'Brasil: 500 anos de povoamento (2000) e Recenseamento de 1872'}}
